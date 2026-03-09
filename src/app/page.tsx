@@ -13,21 +13,22 @@ export default function HomePage() {
   return (
     <StoreScreen
       title="Home"
-      subtitle="Compact storefront ready for Telegram Mini App"
+      subtitle="Discover products in a clean customer-first storefront"
       back={false}
     >
       <section className={styles.hero}>
-        <h2 className={styles.heroTitle}>New season essentials</h2>
+        <h2 className={styles.heroTitle}>Everyday picks, curated fast</h2>
         <p className={styles.heroText}>
-          MainStore UI scaffold is ready. Product cards, sections, and navigation
-          are prepared for real data integration in the next stage.
+          Premium baseline UI for a Telegram store. Browse the catalog and add
+          items in a few taps.
         </p>
         <div className={styles.heroActions}>
-          <Link href="/catalog" className={styles.heroButton}>
+          <Link
+            href="/catalog"
+            className={styles.heroButton}
+            aria-label="Open catalog from home hero section"
+          >
             Open catalog
-          </Link>
-          <Link href="/orders" className={styles.heroGhostButton}>
-            View orders
           </Link>
         </div>
       </section>

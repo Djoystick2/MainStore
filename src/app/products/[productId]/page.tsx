@@ -29,41 +29,51 @@ export default async function ProductPage({
       title="Product"
       subtitle={`SKU: ${product.id}`}
       back={true}
-      showBottomNav={true}
+      showBottomNav={false}
     >
-      <section className={styles.detailCard}>
-        <div
-          className={styles.detailImage}
-          style={{ background: product.imageGradient }}
-        >
-          <span className={styles.productImageLabel}>{product.imageLabel}</span>
-        </div>
-        <div className={styles.detailMeta}>
-          <h2 className={styles.detailTitle}>{product.title}</h2>
-          <p className={styles.detailPrice}>{price}</p>
-          <p className={styles.detailDescription}>
-            {product.description} This is a UI placeholder for the product
-            screen. Stock, options, and add-to-cart logic will be connected in
-            the next stage.
-          </p>
-          <button type="button" className={styles.primaryButton}>
+      <div className={styles.productPageBottomSpace}>
+        <section className={styles.detailCard}>
+          <div
+            className={styles.detailImage}
+            style={{ background: product.imageGradient }}
+          >
+            <span className={styles.productImageLabel}>{product.imageLabel}</span>
+          </div>
+          <div className={styles.detailMeta}>
+            <h2 className={styles.detailTitle}>{product.title}</h2>
+            <p className={styles.detailPrice}>{price}</p>
+            <p className={styles.detailDescription}>
+              {product.description} Product options, stock status, and checkout
+              behavior will be connected with real data in the next stage.
+            </p>
+          </div>
+        </section>
+
+        <StoreSection title="You may also like">
+          <div className={styles.scrollRow}>
+            {relatedProducts.map((item) => (
+              <ProductCard
+                key={item.id}
+                product={item}
+                href={`/products/${item.id}`}
+                compact
+              />
+            ))}
+          </div>
+        </StoreSection>
+      </div>
+
+      <div className={styles.stickyBar}>
+        <div className={styles.stickyBarInner}>
+          <button
+            type="button"
+            className={styles.stickyBarButton}
+            aria-label={`Add ${product.title} to cart`}
+          >
             Add to cart
           </button>
         </div>
-      </section>
-
-      <StoreSection title="You may also like">
-        <div className={styles.scrollRow}>
-          {relatedProducts.map((item) => (
-            <ProductCard
-              key={item.id}
-              product={item}
-              href={`/products/${item.id}`}
-              compact
-            />
-          ))}
-        </div>
-      </StoreSection>
+      </div>
     </StoreScreen>
   );
 }

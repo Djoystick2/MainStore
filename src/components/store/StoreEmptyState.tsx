@@ -20,7 +20,11 @@ export function StoreEmptyState({
       <h2 className={styles.emptyStateTitle}>{title}</h2>
       <p className={styles.emptyStateText}>{description}</p>
       {actionLabel && actionHref && (
-        <Link href={actionHref} className={styles.emptyStateAction}>
+        <Link
+          href={actionHref}
+          className={styles.emptyStateAction}
+          aria-label={actionLabel}
+        >
           {actionLabel}
         </Link>
       )}

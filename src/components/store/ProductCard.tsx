@@ -43,7 +43,11 @@ export function ProductCard({ product, href, compact = false }: ProductCardProps
   }
 
   return (
-    <Link href={href} className={styles.productLink}>
+    <Link
+      href={href}
+      className={styles.productLink}
+      aria-label={`Open product ${product.title}`}
+    >
       {card}
     </Link>
   );

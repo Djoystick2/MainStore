@@ -20,7 +20,11 @@ export function StoreSection({
       <div className={styles.sectionHead}>
         <h2 className={styles.sectionTitle}>{title}</h2>
         {actionLabel && actionHref && (
-          <Link href={actionHref} className={styles.sectionAction}>
+          <Link
+            href={actionHref}
+            className={styles.sectionAction}
+            aria-label={actionLabel}
+          >
             {actionLabel}
           </Link>
         )}

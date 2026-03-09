@@ -5,7 +5,7 @@ import styles from '@/components/store/store.module.css';
 
 export default function OrdersPage() {
   return (
-    <StoreScreen title="My Orders" subtitle="Order history screen scaffold">
+    <StoreScreen title="My Orders" subtitle="Track every purchase from profile">
       <StoreSection title="Order stats">
         <div className={styles.infoGrid}>
           <div className={styles.infoItem}>
@@ -18,6 +18,14 @@ export default function OrdersPage() {
           </div>
         </div>
       </StoreSection>
+
+      <section className={styles.panel}>
+        <h2 className={styles.panelTitle}>Status flow</h2>
+        <p className={styles.panelText}>
+          Ordered, packed, shipped, and delivered states are prepared as UI
+          placeholders for future live data.
+        </p>
+      </section>
 
       <StoreEmptyState
         title="No orders yet"

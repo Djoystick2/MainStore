@@ -5,7 +5,7 @@ import styles from '@/components/store/store.module.css';
 
 export default function AdminPage() {
   return (
-    <StoreScreen title="Admin" subtitle="Store management UI placeholders">
+    <StoreScreen title="Admin" subtitle="Technical route outside customer navigation">
       <StoreSection title="Dashboard">
         <div className={styles.infoGrid}>
           <div className={styles.infoItem}>
@@ -22,14 +22,14 @@ export default function AdminPage() {
       <section className={styles.panel}>
         <h2 className={styles.panelTitle}>Admin workspace</h2>
         <p className={styles.panelText}>
-          Product editing, order processing, and role checks are intentionally
+          Product editing, moderation workflows, and role checks are intentionally
           not connected in this stage.
         </p>
       </section>
 
       <StoreEmptyState
         title="Backend hooks are not connected"
-        description="This screen is intentionally visual-only and ready for the next implementation stage."
+        description="This route remains visual-only for now and ready for role-based access in the next stage."
       />
     </StoreScreen>
   );

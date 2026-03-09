@@ -1,38 +1,44 @@
-import { StoreEmptyState } from '@/components/store/StoreEmptyState';
+import Link from 'next/link';
+
 import { StoreScreen } from '@/components/store/StoreScreen';
 import { StoreSection } from '@/components/store/StoreSection';
 import styles from '@/components/store/store.module.css';
 
 export default function ProfilePage() {
   return (
-    <StoreScreen title="Profile" subtitle="Customer account placeholder">
+    <StoreScreen title="Profile" subtitle="Your account and purchase flow">
       <section className={styles.panel}>
-        <h2 className={styles.panelTitle}>Main profile card</h2>
+        <h2 className={styles.panelTitle}>Guest account</h2>
         <p className={styles.panelText}>
-          Guest customer mode. Profile data, addresses, and authentication will
-          be added in the next stage.
+          Sign in, address book, and payment data will be connected later. The
+          screen is focused on key customer actions.
         </p>
       </section>
 
-      <StoreSection title="Quick actions">
-        <div className={styles.infoGrid}>
-          <div className={styles.infoItem}>
-            <p className={styles.infoLabel}>Saved addresses</p>
-            <p className={styles.infoValue}>0</p>
-          </div>
-          <div className={styles.infoItem}>
-            <p className={styles.infoLabel}>Payment methods</p>
-            <p className={styles.infoValue}>0</p>
-          </div>
+      <StoreSection title="Your shortcuts">
+        <div className={styles.actionList}>
+          <Link href="/orders" className={styles.actionItem} aria-label="Open my orders">
+            <div>
+              <p className={styles.actionItemTitle}>My orders</p>
+              <p className={styles.actionItemSub}>Track status and history</p>
+            </div>
+            <span className={styles.actionItemIcon}>GO</span>
+          </Link>
+
+          <Link
+            href="/favorites"
+            className={styles.actionItem}
+            aria-label="Open favorites"
+          >
+            <div>
+              <p className={styles.actionItemTitle}>Favorites</p>
+              <p className={styles.actionItemSub}>Saved products in one place</p>
+            </div>
+            <span className={styles.actionItemIcon}>GO</span>
+          </Link>
+
         </div>
       </StoreSection>
-
-      <StoreEmptyState
-        title="Admin panel is prepared"
-        description="Administrative tools have a dedicated route with UI placeholders."
-        actionLabel="Open admin"
-        actionHref="/admin"
-      />
     </StoreScreen>
   );
 }

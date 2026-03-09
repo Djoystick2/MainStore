@@ -35,16 +35,19 @@ const navItems: NavItem[] = [
     isActive: (pathname) => pathname === '/cart',
   },
   {
-    href: '/orders',
-    icon: 'OR',
-    label: 'Orders',
-    isActive: (pathname) => pathname === '/orders',
+    href: '/favorites',
+    icon: 'FV',
+    label: 'Favorites',
+    isActive: (pathname) => pathname === '/favorites',
   },
   {
     href: '/profile',
     icon: 'PF',
     label: 'Profile',
-    isActive: (pathname) => pathname === '/profile' || pathname === '/admin',
+    isActive: (pathname) =>
+      pathname === '/profile' ||
+      pathname === '/orders' ||
+      pathname === '/admin',
   },
 ];
 
@@ -61,6 +64,8 @@ export function StoreBottomNav() {
             <Link
               key={item.href}
               href={item.href}
+              aria-label={item.label}
+              aria-current={isActive ? 'page' : undefined}
               className={classNames(
                 styles.bottomNavLink,
                 isActive && styles.bottomNavLinkActive,

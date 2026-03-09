@@ -13,15 +13,23 @@ export default function CartPage() {
             <p className={styles.infoValue}>0</p>
           </div>
           <div className={styles.infoItem}>
-            <p className={styles.infoLabel}>Subtotal</p>
+            <p className={styles.infoLabel}>Estimated total</p>
             <p className={styles.infoValue}>$0</p>
           </div>
         </div>
       </StoreSection>
 
+      <section className={styles.panel}>
+        <h2 className={styles.panelTitle}>Checkout readiness</h2>
+        <p className={styles.panelText}>
+          Delivery methods, promo codes, and payment confirmation will be added
+          with backend integration.
+        </p>
+      </section>
+
       <StoreEmptyState
         title="Your cart is empty"
-        description="Add products from catalog. Quantity, options, and checkout actions will be wired in the next stage."
+        description="Add products from catalog. Quantity updates and checkout actions will be wired in the next stage."
         actionLabel="Go to catalog"
         actionHref="/catalog"
       />
