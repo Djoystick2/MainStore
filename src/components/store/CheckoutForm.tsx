@@ -39,6 +39,8 @@ function mapCheckoutError(error: string): string {
       return 'В одном заказе поддерживается только одна валюта.';
     case 'not_configured':
       return 'Платёжный слой временно недоступен.';
+    case 'payment_provider_not_supported':
+      return 'Выбранный платёжный провайдер пока не подключён.';
     default:
       return 'Не удалось запустить оплату. Попробуйте ещё раз.';
   }

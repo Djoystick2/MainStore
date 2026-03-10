@@ -9,6 +9,9 @@ function getStatusCode(error: string): number {
   if (error === 'invalid_payment_webhook') {
     return 400;
   }
+  if (error === 'payment_provider_mismatch') {
+    return 409;
+  }
   if (error === 'not_configured') {
     return 503;
   }

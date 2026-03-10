@@ -6,9 +6,8 @@ import { createSupabaseAdminClientOptional, getSupabaseAdminMissingEnvMessage } 
 import { resolvePricingForProducts } from '@/features/pricing';
 import type { Database } from '@/types/db';
 
-import { getRuntimePaymentProvider } from './env';
-import { sandboxPaymentProvider } from './providers/sandbox';
-import type { PaymentProviderAdapter } from './providers/base';
+import { resolveConfiguredPaymentProvider } from './env';
+import { getRegisteredPaymentProviderAdapter, isRegisteredPaymentProvider } from './providers/registry';
 import type {
   PaymentAttemptSummary,
   PaymentInitiationResult,
@@ -111,13 +110,30 @@ function defaultPaymentError(status: PaymentStatus): string | null {
   }
 }
 
-function getPaymentProviderAdapter(provider: Exclude<PaymentProvider, 'legacy'>): PaymentProviderAdapter {
-  switch (provider) {
-    case 'sandbox':
-      return sandboxPaymentProvider;
-    default:
-      throw new Error(`Unsupported payment provider: ${provider}`);
+function resolvePaymentProviderOrError():
+  | { ok: true; provider: Exclude<PaymentProvider, 'legacy'> }
+  | { ok: false; error: 'payment_provider_not_supported' } {
+  const configured = resolveConfiguredPaymentProvider();
+  if (configured.ok && configured.provider) {
+    return { ok: true, provider: configured.provider };
   }
+
+  return { ok: false, error: 'payment_provider_not_supported' };
+}
+
+function resolveRetryProvider(
+  orderProvider: PaymentProvider | null,
+):
+  | { ok: true; provider: Exclude<PaymentProvider, 'legacy'> }
+  | { ok: false; error: 'payment_provider_not_supported' } {
+  if (orderProvider && orderProvider !== 'legacy') {
+    const adapter = getRegisteredPaymentProviderAdapter(orderProvider);
+    if (adapter) {
+      return { ok: true, provider: adapter.provider };
+    }
+  }
+
+  return resolvePaymentProviderOrError();
 }
 
 function mapPaymentAttemptRow(row: PaymentAttemptRow): PaymentAttemptSummary {
@@ -466,7 +482,10 @@ async function attachProviderSession(
   appOrigin: string,
 ) {
   const provider = attempt.provider as Exclude<PaymentProvider, 'legacy'>;
-  const adapter = getPaymentProviderAdapter(provider);
+  const adapter = getRegisteredPaymentProviderAdapter(provider);
+  if (!adapter) {
+    throw new Error(`Unsupported payment provider: ${provider}`);
+  }
   const session = await adapter.createPaymentSession({
     attemptId: attempt.id,
     orderId: order.id,
@@ -635,7 +654,12 @@ export async function startCheckoutPaymentForProfile(
     return { ok: false, error: 'not_configured' };
   }
 
-  const provider = getRuntimePaymentProvider();
+  const providerResult = resolvePaymentProviderOrError();
+  if (!providerResult.ok) {
+    return { ok: false, error: providerResult.error };
+  }
+
+  const provider = providerResult.provider;
   const idempotencyKey = createAttemptKey(input.idempotencyKey);
 
   try {
@@ -765,7 +789,12 @@ export async function retryOrderPaymentForProfile(
       return buildInitiationResult(client, orderId, latestAttempt);
     }
 
-    const provider = getRuntimePaymentProvider();
+    const providerResult = resolveRetryProvider(order.payment_provider);
+    if (!providerResult.ok) {
+      return { ok: false, error: providerResult.error };
+    }
+
+    const provider = providerResult.provider;
     const idempotencyKey = createAttemptKey(input.idempotencyKey);
     const attempt = await createPaymentAttempt(client, {
       orderId,
@@ -852,6 +881,9 @@ export async function getPaymentAttemptForProfile(
 export async function applyPaymentUpdateByAttemptId(
   attemptId: string,
   payload: PaymentUpdatePayload,
+  options?: {
+    expectedProvider?: Exclude<PaymentProvider, 'legacy'>;
+  },
 ): Promise<PaymentUpdateResult> {
   const client = createSupabaseAdminClientOptional();
   if (!client) {
@@ -870,6 +902,10 @@ export async function applyPaymentUpdateByAttemptId(
     }
 
     const attempt = attemptResult.data as PaymentAttemptRow;
+    if (options?.expectedProvider && attempt.provider !== options.expectedProvider) {
+      return { ok: false, error: 'payment_provider_mismatch' };
+    }
+
     const orderResult = await client
       .from('orders')
       .select('*')
@@ -995,11 +1031,15 @@ export async function applyPaymentWebhook(
   provider: string,
   request: NextRequest,
 ): Promise<PaymentUpdateResult> {
-  if (provider !== 'sandbox') {
+  if (!isRegisteredPaymentProvider(provider)) {
     return { ok: false, error: 'unsupported_payment_provider' };
   }
 
-  const adapter = getPaymentProviderAdapter('sandbox');
+  const adapter = getRegisteredPaymentProviderAdapter(provider);
+  if (!adapter) {
+    return { ok: false, error: 'unsupported_payment_provider' };
+  }
+
   const event = await adapter.parseWebhook(request);
   if (!event) {
     return { ok: false, error: 'invalid_payment_webhook' };
@@ -1011,5 +1051,7 @@ export async function applyPaymentWebhook(
     errorCode: event.errorCode ?? null,
     errorMessage: event.errorMessage ?? null,
     completedAt: event.completedAt ?? null,
+  }, {
+    expectedProvider: provider,
   });
 }

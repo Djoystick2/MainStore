@@ -10,6 +10,9 @@ function getStatusCode(error: string): number {
   if (error === 'not_configured') {
     return 503;
   }
+  if (error === 'payment_provider_not_supported') {
+    return 503;
+  }
   if (error === 'invalid_input') {
     return 400;
   }

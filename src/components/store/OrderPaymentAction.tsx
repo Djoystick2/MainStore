@@ -17,6 +17,8 @@ function mapRetryPaymentError(error: string | undefined): string {
       return 'Этот заказ уже оплачен.';
     case 'not_configured':
       return 'Платёжный слой временно недоступен.';
+    case 'payment_provider_not_supported':
+      return 'Текущий платёжный провайдер пока не подключён.';
     default:
       return 'Не удалось продолжить оплату. Попробуйте ещё раз.';
   }

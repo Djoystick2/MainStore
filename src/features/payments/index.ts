@@ -1,5 +1,5 @@
 export { formatPaymentProvider, formatPaymentStatus, canRetryPayment } from './presentation';
-export { getRuntimePaymentProvider } from './env';
+export { getRuntimePaymentProvider, resolveConfiguredPaymentProvider } from './env';
 export {
   applyPaymentUpdateByAttemptId,
   applyPaymentWebhook,
@@ -18,3 +18,4 @@ export type {
   PaymentUpdatePayload,
   PaymentUpdateResult,
 } from './types';
+export { listRegisteredPaymentProviders } from './providers/registry';

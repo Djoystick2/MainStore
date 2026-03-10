@@ -4,8 +4,8 @@ MainStore is a Telegram Mini App storefront built on Next.js App Router with:
 
 - Supabase-backed catalog and orders
 - Telegram session bootstrap (server-side verified)
-- User flows: favorites, cart, checkout (without payment), orders
-- Admin flows: products CRUD, product images, categories, orders management
+- User flows: favorites, cart, checkout with payment foundation, orders
+- Admin flows: catalog management, discounts, import, orders, payment state visibility
 
 ## Quick Start (Local)
 
@@ -55,8 +55,23 @@ See [.env.example](./.env.example) for canonical list.
   - `SUPABASE_SERVICE_ROLE_KEY`
   - `TELEGRAM_BOT_TOKEN`
   - `APP_SESSION_SECRET`
+- Payment:
+  - `PAYMENT_PROVIDER` (`sandbox` by default)
+  - `PAYMENT_SANDBOX_WEBHOOK_SECRET` (optional for sandbox webhook calls)
 - Dev-only app env:
   - none (Next.js manages `NODE_ENV`)
+
+## Payments
+
+- Current production-safe base is provider-agnostic:
+  - priced order snapshot
+  - `payment_status`
+  - `payment_attempts`
+  - idempotent checkout / retry flow
+  - provider adapter boundary
+  - webhook-ready payment update path
+- The repository currently ships with `sandbox` as the only wired adapter.
+- A real gateway should be added only through `src/features/payments/providers/*` and the adapter registry, without replacing checkout, pricing, discount, order, or admin flows.
 
 ## Deployment (Vercel)
 
