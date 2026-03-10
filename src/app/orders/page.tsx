@@ -23,7 +23,7 @@ function formatOrderStatus(status: string): string {
     case 'pending':
       return 'Ожидает';
     case 'confirmed':
-      return 'Подтвержден';
+      return 'Подтверждён';
     case 'processing':
       return 'В обработке';
     case 'shipped':
@@ -31,7 +31,7 @@ function formatOrderStatus(status: string): string {
     case 'delivered':
       return 'Доставлен';
     case 'cancelled':
-      return 'Отменен';
+      return 'Отменён';
     default:
       return status;
   }
@@ -75,14 +75,37 @@ function getPaymentStatusClass(status: string): string {
   }
 }
 
+function getOrderListHint(input: { canRetryPayment: boolean; status: string; paymentStatus: string }): string {
+  if (input.canRetryPayment) {
+    return 'Нужно завершить оплату';
+  }
+  if (input.status === 'processing') {
+    return 'Заказ собирается';
+  }
+  if (input.status === 'shipped') {
+    return 'Заказ уже в пути';
+  }
+  if (input.status === 'delivered') {
+    return 'Заказ завершён';
+  }
+  if (input.status === 'cancelled') {
+    return 'Заказ отменён';
+  }
+  if (input.paymentStatus === 'paid') {
+    return 'Оплата подтверждена';
+  }
+
+  return 'Следите за обновлениями статуса';
+}
+
 export default async function OrdersPage() {
   const { profile } = await getCurrentUserContext();
   const ordersData = await getOrdersForProfile(profile?.id ?? null);
   const isSessionMissing = ordersData.status === 'unauthorized';
 
   return (
-    <StoreScreen title="Мои заказы" subtitle="Отслеживайте все покупки в одном месте">
-      {ordersData.message && (
+    <StoreScreen title="Мои заказы" subtitle="История покупок, оплата и текущие статусы в одном месте">
+      {ordersData.message ? (
         <section
           className={classNames(
             styles.dataNotice,
@@ -91,19 +114,15 @@ export default async function OrdersPage() {
         >
           <p className={styles.dataNoticeTitle}>Обновление заказов</p>
           <p className={styles.dataNoticeText}>{ordersData.message}</p>
-          {(ordersData.status === 'error' || ordersData.status === 'not_configured') && (
+          {(ordersData.status === 'error' || ordersData.status === 'not_configured') ? (
             <div className={styles.dataNoticeActions}>
-              <Link
-                href="/orders"
-                className={styles.dataNoticeRetry}
-                aria-label="Повторить загрузку заказов"
-              >
+              <Link href="/orders" className={styles.dataNoticeRetry} aria-label="Повторить загрузку заказов">
                 Повторить
               </Link>
             </div>
-          )}
+          ) : null}
         </section>
-      )}
+      ) : null}
 
       {isSessionMissing ? (
         <StoreEmptyState
@@ -114,7 +133,7 @@ export default async function OrdersPage() {
         />
       ) : null}
 
-      <StoreSection title="Статистика заказов">
+      <StoreSection title="Статистика">
         <div className={styles.infoGrid}>
           <div className={styles.infoItem}>
             <p className={styles.infoLabel}>Всего заказов</p>
@@ -123,6 +142,10 @@ export default async function OrdersPage() {
           <div className={styles.infoItem}>
             <p className={styles.infoLabel}>В работе</p>
             <p className={styles.infoValue}>{ordersData.inProgressOrders}</p>
+          </div>
+          <div className={styles.infoItem}>
+            <p className={styles.infoLabel}>Ждут действия</p>
+            <p className={styles.infoValue}>{ordersData.actionRequiredOrders}</p>
           </div>
         </div>
       </StoreSection>
@@ -136,8 +159,8 @@ export default async function OrdersPage() {
         />
       ) : null}
 
-      {ordersData.orders.length > 0 && (
-        <StoreSection title="Последние заказы">
+      {ordersData.orders.length > 0 ? (
+        <StoreSection title="История заказов">
           <div className={styles.orderList}>
             {ordersData.orders.map((order) => (
               <Link
@@ -147,42 +170,39 @@ export default async function OrdersPage() {
                 aria-label={`Открыть заказ ${order.id}`}
               >
                 <div className={styles.orderCardHeader}>
-                  <p className={styles.orderCardId}>
-                    Заказ #{order.id.slice(0, 8).toUpperCase()}
-                  </p>
+                  <p className={styles.orderCardId}>Заказ #{order.id.slice(0, 8).toUpperCase()}</p>
+                  <p className={styles.orderMetaItem}>{formatOrderDate(order.createdAt)}</p>
                 </div>
+
                 <div className={styles.paymentBadgeRow}>
-                  <span
-                    className={classNames(
-                      styles.orderStatusBadge,
-                      getOrderStatusClass(order.status),
-                    )}
-                  >
+                  <span className={classNames(styles.orderStatusBadge, getOrderStatusClass(order.status))}>
                     {formatOrderStatus(order.status)}
                   </span>
-                  <span
-                    className={classNames(
-                      styles.paymentStatusBadge,
-                      getPaymentStatusClass(order.paymentStatus),
-                    )}
-                  >
+                  <span className={classNames(styles.paymentStatusBadge, getPaymentStatusClass(order.paymentStatus))}>
                     {formatPaymentStatus(order.paymentStatus)}
                   </span>
                 </div>
-                <div className={styles.orderMetaGrid}>
-                  <p className={styles.orderMetaItem}>{formatOrderDate(order.createdAt)}</p>
-                  <p className={styles.orderMetaItem}>
-                    {formatStorePrice(order.totalCents, order.currency)}
+
+                <p className={styles.orderCardHint}>{getOrderListHint(order)}</p>
+                {order.previewTitle ? (
+                  <p className={styles.orderCardPreview}>
+                    {order.previewTitle}
+                    {order.itemsCount > 1 ? ` и ещё ${order.itemsCount - 1}` : ''}
                   </p>
+                ) : null}
+
+                <div className={styles.orderMetaGrid}>
+                  <p className={styles.orderMetaItem}>{formatStorePrice(order.totalCents, order.currency)}</p>
+                  <p className={styles.orderMetaItem}>{order.itemsCount} шт.</p>
                   <p className={styles.orderMetaItem}>
-                    {order.canRetryPayment ? 'Требует оплаты' : `${order.itemsCount} шт.`}
+                    {order.canRetryPayment ? 'Открыть и оплатить' : 'Открыть детали'}
                   </p>
                 </div>
               </Link>
             ))}
           </div>
         </StoreSection>
-      )}
+      ) : null}
     </StoreScreen>
   );
 }

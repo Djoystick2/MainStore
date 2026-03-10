@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react';
 
 import { StoreEmptyState } from '@/components/store/StoreEmptyState';
 import { OrderPaymentAction } from '@/components/store/OrderPaymentAction';
+import { OrderRepeatAction } from '@/components/store/OrderRepeatAction';
 import { StoreScreen } from '@/components/store/StoreScreen';
 import { StoreSection } from '@/components/store/StoreSection';
 import { formatStorePrice } from '@/components/store/formatPrice';
@@ -17,6 +18,8 @@ function formatOrderDate(value: string): string {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   }).format(new Date(value));
 }
 
@@ -25,7 +28,7 @@ function formatOrderStatus(status: string): string {
     case 'pending':
       return 'Ожидает';
     case 'confirmed':
-      return 'Подтвержден';
+      return 'Подтверждён';
     case 'processing':
       return 'В обработке';
     case 'shipped':
@@ -33,7 +36,7 @@ function formatOrderStatus(status: string): string {
     case 'delivered':
       return 'Доставлен';
     case 'cancelled':
-      return 'Отменен';
+      return 'Отменён';
     default:
       return status;
   }
@@ -115,6 +118,59 @@ function buildImageStyle(imageUrl: string | null): CSSProperties {
   };
 }
 
+function getNextActionSummary(input: {
+  status: string;
+  paymentStatus: string;
+  canRetryPayment: boolean;
+}): { title: string; text: string } {
+  if (input.canRetryPayment) {
+    return {
+      title: 'Нужно завершить оплату',
+      text: 'Заказ уже создан. Продолжите оплату, чтобы магазин начал его обработку.',
+    };
+  }
+
+  if (input.status === 'processing') {
+    return {
+      title: 'Заказ в работе',
+      text: 'Мы уже обрабатываем заказ. Следующее заметное обновление появится, когда он будет отправлен.',
+    };
+  }
+
+  if (input.status === 'shipped') {
+    return {
+      title: 'Заказ отправлен',
+      text: 'Дальше остаётся дождаться доставки. Все позиции и адрес сохранены в деталях ниже.',
+    };
+  }
+
+  if (input.status === 'delivered') {
+    return {
+      title: 'Заказ завершён',
+      text: 'Можно вернуться в каталог или повторить заказ, если хотите купить эти позиции снова.',
+    };
+  }
+
+  if (input.status === 'cancelled') {
+    return {
+      title: 'Заказ отменён',
+      text: 'Если позиции всё ещё актуальны, можно собрать новый заказ через каталог или повтор заказа.',
+    };
+  }
+
+  if (input.paymentStatus === 'paid') {
+    return {
+      title: 'Оплата подтверждена',
+      text: 'Заказ оплачен и ожидает дальнейшего обновления статуса магазина.',
+    };
+  }
+
+  return {
+    title: 'Следите за статусом',
+    text: 'Все обновления по оплате и обработке будут появляться прямо в этой карточке.',
+  };
+}
+
 export default async function OrderDetailPage({
   params,
   searchParams,
@@ -128,21 +184,50 @@ export default async function OrderDetailPage({
   const orderData = await getOrderDetailForProfile(profile?.id ?? null, orderId);
   const order = orderData.order;
 
+  if (orderData.status === 'unauthorized') {
+    return (
+      <StoreScreen title="Заказ" subtitle="Детали заказа и доставка" back={true}>
+        <StoreEmptyState
+          title="Нужна сессия Telegram"
+          description="Откройте MainStore в Telegram, чтобы посмотреть свои заказы."
+          actionLabel="Открыть каталог"
+          actionHref="/catalog"
+        />
+      </StoreScreen>
+    );
+  }
+
+  if (orderData.status === 'not_found') {
+    return (
+      <StoreScreen title="Заказ" subtitle="Детали заказа и доставка" back={true}>
+        <StoreEmptyState
+          title="Заказ не найден"
+          description="Такого заказа нет или он не относится к вашему аккаунту."
+          actionLabel="К заказам"
+          actionHref="/orders"
+        />
+      </StoreScreen>
+    );
+  }
+
+  const nextAction = order
+    ? getNextActionSummary({
+        status: order.status,
+        paymentStatus: order.paymentStatus,
+        canRetryPayment: order.canRetryPayment,
+      })
+    : null;
+
   return (
     <StoreScreen title="Заказ" subtitle="Детали заказа и доставка" back={true}>
-      {paymentNotice && (
-        <section
-          className={classNames(
-            styles.dataNotice,
-            paymentNotice.isError && styles.dataNoticeError,
-          )}
-        >
+      {paymentNotice ? (
+        <section className={classNames(styles.dataNotice, paymentNotice.isError && styles.dataNoticeError)}>
           <p className={styles.dataNoticeTitle}>{paymentNotice.title}</p>
           <p className={styles.dataNoticeText}>{paymentNotice.text}</p>
         </section>
-      )}
+      ) : null}
 
-      {orderData.message && (
+      {orderData.message ? (
         <section
           className={classNames(
             styles.dataNotice,
@@ -151,158 +236,103 @@ export default async function OrderDetailPage({
         >
           <p className={styles.dataNoticeTitle}>Обновление заказа</p>
           <p className={styles.dataNoticeText}>{orderData.message}</p>
-          {(orderData.status === 'error' || orderData.status === 'not_configured') && (
+          {(orderData.status === 'error' || orderData.status === 'not_configured') ? (
             <div className={styles.dataNoticeActions}>
-              <Link
-                href={`/orders/${orderId}`}
-                className={styles.dataNoticeRetry}
-                aria-label="Повторить загрузку заказа"
-              >
+              <Link href={`/orders/${orderId}`} className={styles.dataNoticeRetry} aria-label="Повторить загрузку заказа">
                 Повторить
               </Link>
             </div>
-          )}
+          ) : null}
         </section>
-      )}
-
-      {orderData.status === 'unauthorized' ? (
-        <StoreEmptyState
-          title="Нужна сессия Telegram"
-          description="Откройте MainStore в Telegram, чтобы посмотреть свои заказы."
-          actionLabel="Открыть каталог"
-          actionHref="/catalog"
-        />
-      ) : null}
-
-      {orderData.status === 'not_found' ? (
-        <StoreEmptyState
-          title="Заказ не найден"
-          description="Такого заказа нет или он не относится к вашему аккаунту."
-          actionLabel="К заказам"
-          actionHref="/orders"
-        />
       ) : null}
 
       {order ? (
         <>
           <section className={styles.panel}>
             <div className={styles.orderCardHeader}>
-              <h2 className={styles.panelTitle}>
-                Заказ #{order.id.slice(0, 8).toUpperCase()}
-              </h2>
+              <h2 className={styles.panelTitle}>Заказ #{order.id.slice(0, 8).toUpperCase()}</h2>
+              <p className={styles.orderMetaItem}>{formatOrderDate(order.createdAt)}</p>
             </div>
-            <p className={styles.panelText}>{formatOrderDate(order.createdAt)}</p>
+
             <div className={styles.paymentBadgeRow}>
-              <span
-                className={classNames(
-                  styles.orderStatusBadge,
-                  getOrderStatusClass(order.status),
-                )}
-              >
+              <span className={classNames(styles.orderStatusBadge, getOrderStatusClass(order.status))}>
                 {formatOrderStatus(order.status)}
               </span>
-              <span
-                className={classNames(
-                  styles.paymentStatusBadge,
-                  getPaymentStatusClass(order.paymentStatus),
-                )}
-              >
+              <span className={classNames(styles.paymentStatusBadge, getPaymentStatusClass(order.paymentStatus))}>
                 {formatPaymentStatus(order.paymentStatus)}
               </span>
             </div>
-            <p className={styles.checkoutHint}>
-              Провайдер: {formatPaymentProvider(order.paymentProvider)}
-            </p>
-            {order.paymentCompletedAt && (
-              <p className={styles.checkoutHint}>
-                Оплата подтверждена {formatOrderDate(order.paymentCompletedAt)}
-              </p>
-            )}
-            {order.paymentLastError && (
-              <p className={classNames(styles.inlineActionMessage, styles.inlineActionMessageError)}>
-                {order.paymentLastError}
-              </p>
-            )}
+
+            <p className={styles.checkoutHint}>Провайдер: {formatPaymentProvider(order.paymentProvider)}</p>
+            {order.paymentCompletedAt ? (
+              <p className={styles.checkoutHint}>Оплата подтверждена {formatOrderDate(order.paymentCompletedAt)}</p>
+            ) : null}
+            {order.paymentLastError ? (
+              <p className={classNames(styles.inlineActionMessage, styles.inlineActionMessageError)}>{order.paymentLastError}</p>
+            ) : null}
           </section>
+
+          {nextAction ? (
+            <section className={styles.panel}>
+              <h2 className={styles.panelTitle}>{nextAction.title}</h2>
+              <p className={styles.panelText}>{nextAction.text}</p>
+              <div className={styles.panelActions}>
+                {order.canRetryPayment ? <OrderPaymentAction orderId={order.id} label="Продолжить оплату" /> : null}
+                <OrderRepeatAction orderId={order.id} />
+                <Link href="/catalog" className={styles.secondaryButton}>
+                  Вернуться в каталог
+                </Link>
+              </div>
+            </section>
+          ) : null}
 
           <StoreSection title="Сводка">
             <div className={styles.infoGrid}>
               <div className={styles.infoItem}>
                 <p className={styles.infoLabel}>Подытог</p>
-                <p className={styles.infoValue}>
-                  {formatStorePrice(order.subtotalCents, order.currency)}
-                </p>
+                <p className={styles.infoValue}>{formatStorePrice(order.subtotalCents, order.currency)}</p>
               </div>
-              {order.discountCents > 0 && (
+              {order.discountCents > 0 ? (
                 <div className={styles.infoItem}>
                   <p className={styles.infoLabel}>Скидка</p>
-                  <p className={styles.infoValue}>
-                    {formatStorePrice(order.discountCents, order.currency)}
-                  </p>
+                  <p className={styles.infoValue}>{formatStorePrice(order.discountCents, order.currency)}</p>
                 </div>
-              )}
+              ) : null}
               <div className={styles.infoItem}>
                 <p className={styles.infoLabel}>Итого</p>
-                <p className={styles.infoValue}>
-                  {formatStorePrice(order.totalCents, order.currency)}
-                </p>
+                <p className={styles.infoValue}>{formatStorePrice(order.totalCents, order.currency)}</p>
+              </div>
+              <div className={styles.infoItem}>
+                <p className={styles.infoLabel}>Позиции</p>
+                <p className={styles.infoValue}>{order.items.length}</p>
               </div>
             </div>
           </StoreSection>
-
-          {order.canRetryPayment && (
-            <StoreSection title="Оплата">
-              <OrderPaymentAction
-                orderId={order.id}
-                label={
-                  order.paymentStatus === 'requires_action' || order.paymentStatus === 'pending'
-                    ? 'Продолжить оплату'
-                    : 'Повторить оплату'
-                }
-              />
-            </StoreSection>
-          )}
 
           <StoreSection title="Доставка">
             <div className={styles.orderDetailsGrid}>
-              <p className={styles.orderDetailsValue}>
-                {order.customerDisplayName || 'Покупатель'}
-              </p>
-              <p className={styles.orderDetailsValue}>
-                {order.customerPhone || 'Телефон не указан'}
-              </p>
-              <p className={styles.orderDetailsMuted}>
-                {order.shippingAddress.city || 'Город не указан'}
-              </p>
-              <p className={styles.orderDetailsMuted}>
-                {order.shippingAddress.addressLine || 'Адрес не указан'}
-              </p>
-              {order.shippingAddress.postalCode && (
-                <p className={styles.orderDetailsMuted}>
-                  Индекс: {order.shippingAddress.postalCode}
-                </p>
-              )}
+              <p className={styles.orderDetailsValue}>{order.customerDisplayName || 'Покупатель'}</p>
+              <p className={styles.orderDetailsValue}>{order.customerPhone || 'Телефон не указан'}</p>
+              <p className={styles.orderDetailsMuted}>{order.shippingAddress.city || 'Город не указан'}</p>
+              <p className={styles.orderDetailsMuted}>{order.shippingAddress.addressLine || 'Адрес не указан'}</p>
+              {order.shippingAddress.postalCode ? (
+                <p className={styles.orderDetailsMuted}>Индекс: {order.shippingAddress.postalCode}</p>
+              ) : null}
             </div>
           </StoreSection>
 
-          <StoreSection title="Товары">
+          <StoreSection title="Состав заказа">
             <div className={styles.orderItemsList}>
               {order.items.map((item) => {
                 const preview = (
                   <>
-                    <div
-                      className={styles.orderItemImage}
-                      style={buildImageStyle(item.productImageUrl)}
-                    />
+                    <div className={styles.orderItemImage} style={buildImageStyle(item.productImageUrl)} />
                     <div className={styles.orderItemMeta}>
                       <p className={styles.orderItemTitle}>{item.productTitle}</p>
                       <p className={styles.orderItemSub}>
-                        {item.quantity} x{' '}
-                        {formatStorePrice(item.unitPriceCents, item.currency)}
+                        {item.quantity} x {formatStorePrice(item.unitPriceCents, item.currency)}
                       </p>
-                      <p className={styles.orderItemTotal}>
-                        {formatStorePrice(item.lineTotalCents, item.currency)}
-                      </p>
+                      <p className={styles.orderItemTotal}>{formatStorePrice(item.lineTotalCents, item.currency)}</p>
                     </div>
                   </>
                 );
@@ -329,12 +359,12 @@ export default async function OrderDetailPage({
             </div>
           </StoreSection>
 
-          {order.notes && (
+          {order.notes ? (
             <section className={styles.panel}>
-              <h2 className={styles.panelTitle}>Комментарий покупателя</h2>
+              <h2 className={styles.panelTitle}>Комментарий к заказу</h2>
               <p className={styles.panelText}>{order.notes}</p>
             </section>
-          )}
+          ) : null}
         </>
       ) : null}
     </StoreScreen>

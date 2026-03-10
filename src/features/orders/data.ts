@@ -10,6 +10,8 @@ import { canRetryPayment } from '@/features/payments';
 type OrderRow = Database['public']['Tables']['orders']['Row'];
 type OrderItemRow = Database['public']['Tables']['order_items']['Row'];
 type PaymentAttemptRow = Database['public']['Tables']['payment_attempts']['Row'];
+type ProductRow = Database['public']['Tables']['products']['Row'];
+type CartItemRow = Database['public']['Tables']['cart_items']['Row'];
 type OrderStatus = Database['public']['Enums']['order_status'];
 type PaymentStatus = Database['public']['Enums']['payment_status'];
 type PaymentProvider = Database['public']['Enums']['payment_provider'];
@@ -29,6 +31,8 @@ export interface OrderListItem {
   currency: string;
   createdAt: string;
   itemsCount: number;
+  previewTitle: string | null;
+  previewExtraCount: number;
   latestPaymentAttemptId: string | null;
   canRetryPayment: boolean;
 }
@@ -38,6 +42,7 @@ export interface OrderListResult {
   orders: OrderListItem[];
   totalOrders: number;
   inProgressOrders: number;
+  actionRequiredOrders: number;
   message?: string;
 }
 
@@ -77,6 +82,13 @@ export interface OrderDetail {
     expiresAt: string | null;
   } | null;
   canRetryPayment: boolean;
+}
+
+export interface RepeatOrderResult {
+  ok: boolean;
+  addedItemsCount?: number;
+  unavailableItemsCount?: number;
+  error?: string;
 }
 
 export interface OrderDetailResult {
@@ -137,6 +149,7 @@ export async function getOrdersForProfile(
       orders: [],
       totalOrders: 0,
       inProgressOrders: 0,
+      actionRequiredOrders: 0,
     };
   }
 
@@ -147,6 +160,7 @@ export async function getOrdersForProfile(
       orders: [],
       totalOrders: 0,
       inProgressOrders: 0,
+      actionRequiredOrders: 0,
       message: toPublicDataErrorMessage(
         'Заказы временно недоступны.',
         getSupabaseAdminMissingEnvMessage(),
@@ -166,6 +180,7 @@ export async function getOrdersForProfile(
       orders: [],
       totalOrders: 0,
       inProgressOrders: 0,
+      actionRequiredOrders: 0,
       message: toPublicDataErrorMessage(
         'Сейчас не удалось загрузить заказы.',
         ordersResult.error.message,
@@ -186,12 +201,13 @@ export async function getOrdersForProfile(
       orders: [],
       totalOrders: 0,
       inProgressOrders: 0,
+      actionRequiredOrders: 0,
     };
   }
 
   const orderIds = orderRows.map((row) => row.id);
   const [itemsResult, attemptsResult] = await Promise.all([
-    client.from('order_items').select('order_id, quantity').in('order_id', orderIds),
+    client.from('order_items').select('order_id, quantity, product_title').in('order_id', orderIds),
     client
       .from('payment_attempts')
       .select('id, order_id, status, provider, checkout_url, expires_at, created_at')
@@ -205,6 +221,7 @@ export async function getOrdersForProfile(
       orders: [],
       totalOrders: 0,
       inProgressOrders: 0,
+      actionRequiredOrders: 0,
       message: toPublicDataErrorMessage(
         'Сейчас не удалось загрузить позиции заказа.',
         itemsResult.error.message,
@@ -218,6 +235,7 @@ export async function getOrdersForProfile(
       orders: [],
       totalOrders: 0,
       inProgressOrders: 0,
+      actionRequiredOrders: 0,
       message: toPublicDataErrorMessage(
         'Сейчас не удалось загрузить платёжные попытки.',
         attemptsResult.error.message,
@@ -225,15 +243,24 @@ export async function getOrdersForProfile(
     };
   }
 
-  const itemRows = (itemsResult.data ?? []) as Array<Pick<OrderItemRow, 'order_id' | 'quantity'>>;
+  const itemRows = (itemsResult.data ?? []) as Array<
+    Pick<OrderItemRow, 'order_id' | 'quantity' | 'product_title'>
+  >;
   const attemptRows = (attemptsResult.data ?? []) as Array<
     Pick<PaymentAttemptRow, 'id' | 'order_id' | 'status' | 'provider' | 'checkout_url' | 'expires_at' | 'created_at'>
   >;
 
   const itemsCountByOrderId = new Map<string, number>();
+  const previewTitlesByOrderId = new Map<string, string[]>();
   itemRows.forEach((row) => {
     const existing = itemsCountByOrderId.get(row.order_id) ?? 0;
     itemsCountByOrderId.set(row.order_id, existing + row.quantity);
+
+    const previews = previewTitlesByOrderId.get(row.order_id) ?? [];
+    if (previews.length < 2) {
+      previews.push(row.product_title);
+      previewTitlesByOrderId.set(row.order_id, previews);
+    }
   });
 
   const latestAttemptByOrderId = new Map<string, (typeof attemptRows)[number]>();
@@ -254,6 +281,8 @@ export async function getOrdersForProfile(
       currency: row.currency,
       createdAt: row.created_at,
       itemsCount: itemsCountByOrderId.get(row.id) ?? 0,
+      previewTitle: previewTitlesByOrderId.get(row.id)?.[0] ?? null,
+      previewExtraCount: Math.max(0, (previewTitlesByOrderId.get(row.id)?.length ?? 0) - 1),
       latestPaymentAttemptId: latestAttempt?.id ?? null,
       canRetryPayment: canRetryPayment(row.payment_status, row.status),
     };
@@ -262,12 +291,141 @@ export async function getOrdersForProfile(
   const inProgressOrders = orders.filter(
     (order) => !['delivered', 'cancelled'].includes(order.status),
   ).length;
+  const actionRequiredOrders = orders.filter((order) => order.canRetryPayment).length;
 
   return {
     status: 'ok',
     orders,
     totalOrders: orders.length,
     inProgressOrders,
+    actionRequiredOrders,
+  };
+}
+
+export async function repeatOrderForProfile(
+  profileId: string | null,
+  orderId: string,
+): Promise<RepeatOrderResult> {
+  if (!profileId) {
+    return { ok: false, error: 'unauthorized' };
+  }
+
+  const client = createSupabaseAdminClientOptional();
+  if (!client) {
+    return { ok: false, error: 'not_configured' };
+  }
+
+  const orderResult = await client
+    .from('orders')
+    .select('id')
+    .eq('user_id', profileId)
+    .eq('id', orderId)
+    .maybeSingle();
+
+  if (orderResult.error) {
+    return { ok: false, error: orderResult.error.message };
+  }
+
+  if (!orderResult.data) {
+    return { ok: false, error: 'order_not_found' };
+  }
+
+  const itemsResult = await client
+    .from('order_items')
+    .select('product_id, quantity')
+    .eq('order_id', orderId);
+
+  if (itemsResult.error) {
+    return { ok: false, error: itemsResult.error.message };
+  }
+
+  const orderItems = (itemsResult.data ?? []) as Array<Pick<OrderItemRow, 'product_id' | 'quantity'>>;
+  const validProductIds = Array.from(
+    new Set(orderItems.map((item) => item.product_id).filter((value): value is string => Boolean(value))),
+  );
+
+  if (validProductIds.length === 0) {
+    return { ok: false, error: 'no_reorderable_items' };
+  }
+
+  const productsResult = await client
+    .from('products')
+    .select('id, stock_quantity')
+    .in('id', validProductIds)
+    .eq('status', 'active');
+
+  if (productsResult.error) {
+    return { ok: false, error: productsResult.error.message };
+  }
+
+  const activeProductIdSet = new Set(
+    ((productsResult.data ?? []) as Array<Pick<ProductRow, 'id' | 'stock_quantity'>>)
+      .filter((product) => !Number.isFinite(product.stock_quantity) || Number(product.stock_quantity) > 0)
+      .map((product) => product.id),
+  );
+
+  const existingCartResult = await client
+    .from('cart_items')
+    .select('id, product_id, quantity')
+    .eq('user_id', profileId);
+
+  if (existingCartResult.error) {
+    return { ok: false, error: existingCartResult.error.message };
+  }
+
+  const existingCartRows = (existingCartResult.data ?? []) as Array<Pick<CartItemRow, 'id' | 'product_id' | 'quantity'>>;
+  const existingByProductId = new Map(existingCartRows.map((row) => [row.product_id, row]));
+
+  let addedItemsCount = 0;
+  let unavailableItemsCount = 0;
+
+  for (const item of orderItems) {
+    if (!item.product_id || !activeProductIdSet.has(item.product_id)) {
+      unavailableItemsCount += 1;
+      continue;
+    }
+
+    const existing = existingByProductId.get(item.product_id);
+    if (existing) {
+      const nextQuantity = existing.quantity + item.quantity;
+      const updateResult = await client
+        .from('cart_items')
+        .update({ quantity: nextQuantity } as never)
+        .eq('id', existing.id)
+        .eq('user_id', profileId);
+
+      if (updateResult.error) {
+        return { ok: false, error: updateResult.error.message };
+      }
+
+      existingByProductId.set(item.product_id, { ...existing, quantity: nextQuantity });
+      addedItemsCount += 1;
+      continue;
+    }
+
+    const insertResult = await client.from('cart_items').insert(
+      {
+        user_id: profileId,
+        product_id: item.product_id,
+        quantity: item.quantity,
+      } as never,
+    );
+
+    if (insertResult.error) {
+      return { ok: false, error: insertResult.error.message };
+    }
+
+    addedItemsCount += 1;
+  }
+
+  if (addedItemsCount === 0) {
+    return { ok: false, error: 'no_reorderable_items' };
+  }
+
+  return {
+    ok: true,
+    addedItemsCount,
+    unavailableItemsCount,
   };
 }
 

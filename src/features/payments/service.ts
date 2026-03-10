@@ -61,18 +61,41 @@ function normalizeField(value: string | null | undefined, maxLength: number): st
 }
 
 function validateCheckoutPayload(payload: CheckoutPayload): string | null {
-  if (!normalizeField(payload.fullName, 120)) {
+  const fullName = normalizeField(payload.fullName, 120);
+  const phone = normalizeField(payload.phone, 40);
+  const city = normalizeField(payload.city, 120);
+  const addressLine = normalizeField(payload.addressLine, 240);
+  const postalCode = normalizeField(payload.postalCode, 40);
+  const phoneDigits = phone.replace(/\D/g, '');
+
+  if (!fullName) {
     return 'full_name_required';
   }
-  if (!normalizeField(payload.phone, 40)) {
+  if (fullName.length < 2) {
+    return 'full_name_too_short';
+  }
+  if (!phone) {
     return 'phone_required';
   }
-  if (!normalizeField(payload.city, 120)) {
+  if (phoneDigits.length < 6) {
+    return 'phone_invalid';
+  }
+  if (!city) {
     return 'city_required';
   }
-  if (!normalizeField(payload.addressLine, 240)) {
+  if (city.length < 2) {
+    return 'city_too_short';
+  }
+  if (!addressLine) {
     return 'address_required';
   }
+  if (addressLine.length < 6) {
+    return 'address_too_short';
+  }
+  if (postalCode && postalCode.length < 3) {
+    return 'postal_code_invalid';
+  }
+
   return null;
 }
 

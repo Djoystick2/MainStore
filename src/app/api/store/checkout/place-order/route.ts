@@ -13,7 +13,18 @@ function getStatusCode(status: string): number {
   if (status === 'payment_provider_not_supported') {
     return 503;
   }
-  if (status === 'invalid_input') {
+  if (
+    status === 'invalid_input' ||
+    status === 'full_name_required' ||
+    status === 'full_name_too_short' ||
+    status === 'phone_required' ||
+    status === 'phone_invalid' ||
+    status === 'city_required' ||
+    status === 'city_too_short' ||
+    status === 'address_required' ||
+    status === 'address_too_short' ||
+    status === 'postal_code_invalid'
+  ) {
     return 400;
   }
   if (

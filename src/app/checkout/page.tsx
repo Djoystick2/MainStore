@@ -1,4 +1,5 @@
-﻿import Link from 'next/link';
+import Link from 'next/link';
+import type { CSSProperties } from 'react';
 
 import { CheckoutForm } from '@/components/store/CheckoutForm';
 import { StoreEmptyState } from '@/components/store/StoreEmptyState';
@@ -9,6 +10,20 @@ import { classNames } from '@/css/classnames';
 import { getCurrentUserContext } from '@/features/auth';
 import { getCartDataForProfile } from '@/features/user-store/data';
 import styles from '@/components/store/store.module.css';
+
+function buildImageStyle(imageUrl: string | null | undefined, gradient: string): CSSProperties {
+  if (imageUrl) {
+    return {
+      backgroundImage: `linear-gradient(rgba(12, 18, 31, 0.14), rgba(12, 18, 31, 0.14)), url(${imageUrl})`,
+      backgroundPosition: 'center',
+      backgroundSize: 'cover',
+    };
+  }
+
+  return {
+    background: gradient,
+  };
+}
 
 export default async function CheckoutPage() {
   const { profile } = await getCurrentUserContext();
@@ -25,8 +40,8 @@ export default async function CheckoutPage() {
   const discountLabel = formatStorePrice(cartData.discountTotalCents, currency);
 
   return (
-    <StoreScreen title="Оформление" subtitle="Доставка, сумма и переход к оплате" back={true}>
-      {cartData.message && (
+    <StoreScreen title="Оформление" subtitle="Доставка, сумма и понятный путь к оплате" back={true}>
+      {cartData.message ? (
         <section
           className={classNames(
             styles.dataNotice,
@@ -37,17 +52,13 @@ export default async function CheckoutPage() {
           <p className={styles.dataNoticeText}>{cartData.message}</p>
           {(cartData.status === 'error' || cartData.status === 'not_configured') && (
             <div className={styles.dataNoticeActions}>
-              <Link
-                href="/checkout"
-                className={styles.dataNoticeRetry}
-                aria-label="Повторить загрузку оформления"
-              >
+              <Link href="/checkout" className={styles.dataNoticeRetry} aria-label="Повторить загрузку оформления">
                 Повторить
               </Link>
             </div>
           )}
         </section>
-      )}
+      ) : null}
 
       {isUnauthorized ? (
         <StoreEmptyState
@@ -76,41 +87,64 @@ export default async function CheckoutPage() {
         />
       ) : null}
 
-      {cartData.items.length > 0 && (
+      {cartData.items.length > 0 ? (
         <>
           <StoreSection title="Сводка по заказу">
             <div className={styles.infoGrid}>
               <div className={styles.infoItem}>
-                <p className={styles.infoLabel}>Товаров</p>
+                <p className={styles.infoLabel}>Позиции</p>
                 <p className={styles.infoValue}>{cartData.itemCount}</p>
               </div>
-              {cartData.discountTotalCents > 0 && (
-                <div className={styles.infoItem}>
-                  <p className={styles.infoLabel}>До скидок</p>
-                  <p className={styles.infoValue}>{baseSubtotalLabel}</p>
-                </div>
-              )}
               <div className={styles.infoItem}>
                 <p className={styles.infoLabel}>Итого</p>
                 <p className={styles.infoValue}>{totalLabel}</p>
               </div>
-              {cartData.discountTotalCents > 0 && (
-                <div className={styles.infoItem}>
-                  <p className={styles.infoLabel}>Скидка</p>
-                  <p className={styles.infoValue}>{discountLabel}</p>
-                </div>
-              )}
+              {cartData.discountTotalCents > 0 ? (
+                <>
+                  <div className={styles.infoItem}>
+                    <p className={styles.infoLabel}>До скидок</p>
+                    <p className={styles.infoValue}>{baseSubtotalLabel}</p>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <p className={styles.infoLabel}>Скидка</p>
+                    <p className={styles.infoValue}>{discountLabel}</p>
+                  </div>
+                </>
+              ) : null}
+            </div>
+          </StoreSection>
+
+          <StoreSection title="Что войдёт в заказ">
+            <div className={styles.orderItemsList}>
+              {cartData.items.map((item) => (
+                <article key={item.id} className={styles.orderItemRow}>
+                  <div
+                    className={styles.orderItemImage}
+                    style={buildImageStyle(item.product.imageUrl, item.product.imageGradient)}
+                  />
+                  <div className={styles.orderItemMeta}>
+                    <p className={styles.orderItemTitle}>{item.product.title}</p>
+                    <p className={styles.orderItemSub}>
+                      {item.quantity} x {formatStorePrice(item.product.priceCents, item.product.currency)}
+                    </p>
+                    <p className={styles.orderItemTotal}>
+                      {formatStorePrice(item.lineTotalCents, item.product.currency)}
+                    </p>
+                  </div>
+                </article>
+              ))}
             </div>
           </StoreSection>
 
           <section className={styles.panel}>
+            <h2 className={styles.panelTitle}>Как пройдёт оформление</h2>
             <p className={styles.panelText}>
-              Цена и скидки подтверждаются на сервере при создании заказа. После этого открывается
-              платёжная сессия, а заказ получает отдельный payment status.
+              Сначала вы подтверждаете данные доставки, затем создаётся заказ и открывается sandbox payment flow.
+              Payment status и order status сохраняются отдельно и дальше отображаются в заказе.
             </p>
           </section>
 
-          <StoreSection title="Доставка и оплата">
+          <StoreSection title="Получатель и доставка">
             <CheckoutForm
               initialFullName={profile?.displayName}
               subtotalCents={cartData.baseSubtotalCents}
@@ -124,7 +158,7 @@ export default async function CheckoutPage() {
             Вернуться в корзину
           </Link>
         </>
-      )}
+      ) : null}
     </StoreScreen>
   );
 }
