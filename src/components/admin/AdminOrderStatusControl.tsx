@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 
 import type { OrderStatus } from '@/features/admin';
@@ -27,29 +27,44 @@ export function AdminOrderStatusControl({
 }: AdminOrderStatusControlProps) {
   const router = useRouter();
   const [status, setStatus] = useState<OrderStatus>(initialStatus);
+  const [savedStatus, setSavedStatus] = useState<OrderStatus>(initialStatus);
   const [isPending, startTransition] = useTransition();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const isSubmittingRef = useRef(false);
 
   const handleSave = () => {
+    if (status === savedStatus || isPending || isSubmittingRef.current) {
+      return;
+    }
+
+    isSubmittingRef.current = true;
+
     startTransition(async () => {
       setErrorMessage(null);
       setSuccessMessage(null);
 
-      const response = await fetch(`/api/admin/orders/${orderId}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ status }),
-      });
+      try {
+        const response = await fetch(`/api/admin/orders/${orderId}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ status }),
+        });
 
-      if (!response.ok) {
-        setErrorMessage('Failed to update order status.');
-        return;
+        if (!response.ok) {
+          setErrorMessage('Failed to update order status.');
+          return;
+        }
+
+        setSavedStatus(status);
+        setSuccessMessage('Order status updated.');
+        router.refresh();
+      } catch {
+        setErrorMessage('Network error while updating order status.');
+      } finally {
+        isSubmittingRef.current = false;
       }
-
-      setSuccessMessage('Order status updated.');
-      router.refresh();
     });
   };
 
@@ -75,7 +90,7 @@ export function AdminOrderStatusControl({
         type="button"
         className={styles.adminPrimaryLink}
         onClick={handleSave}
-        disabled={isPending}
+        disabled={isPending || status === savedStatus}
         aria-label="Update order status"
       >
         {isPending ? 'Updating...' : 'Update status'}

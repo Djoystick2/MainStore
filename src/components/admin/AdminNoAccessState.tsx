@@ -9,12 +9,12 @@ interface AdminNoAccessStateProps {
 export function AdminNoAccessState({ reason }: AdminNoAccessStateProps) {
   const title =
     reason === 'no_session'
-      ? 'Admin access needs Telegram session'
+      ? 'Admin panel needs Telegram session'
       : 'Admin access denied';
   const description =
     reason === 'no_session'
-      ? 'Open MainStore inside Telegram with an admin account.'
-      : 'Your account does not have admin role in profiles.role.';
+      ? 'Open MainStore inside Telegram with an account that has admin role.'
+      : 'Your profile does not include admin role yet.';
 
   return (
     <section className={styles.adminNoAccess}>

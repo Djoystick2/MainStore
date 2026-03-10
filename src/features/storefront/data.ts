@@ -6,9 +6,16 @@ import { findStoreProduct, storeProducts } from '@/components/store/mock-product
 import type { StoreProduct } from '@/components/store/types';
 import type { Database } from '@/types/db';
 
+import {
+  buildStorefrontPromoBanners,
+  type StorefrontPromoBanner,
+} from './marketing';
+
 type ProductRow = Database['public']['Tables']['products']['Row'];
 type ProductImageRow = Database['public']['Tables']['product_images']['Row'];
 type CategoryRow = Database['public']['Tables']['categories']['Row'];
+type CollectionRow = Database['public']['Tables']['collections']['Row'];
+type CollectionItemRow = Database['public']['Tables']['collection_items']['Row'];
 type ProductListRow = Pick<
   ProductRow,
   | 'id'
@@ -26,6 +33,11 @@ type ProductImageListRow = Pick<
   ProductImageRow,
   'id' | 'product_id' | 'url' | 'alt' | 'sort_order' | 'is_primary' | 'created_at'
 >;
+type CollectionListRow = Pick<CollectionRow, 'id' | 'slug' | 'title' | 'description'>;
+type CollectionItemListRow = Pick<
+  CollectionItemRow,
+  'collection_id' | 'product_id' | 'sort_order' | 'created_at'
+>;
 
 const fallbackGradients = [
   'linear-gradient(135deg, #9fb8ff 0%, #5f7de8 100%)',
@@ -42,6 +54,41 @@ const fallbackCategories: StorefrontCategory[] = [
   { id: 'home', slug: 'home', title: 'Home' },
   { id: 'tech', slug: 'tech', title: 'Tech' },
 ];
+
+const fallbackCollectionDefinitions = [
+  {
+    id: 'fallback-featured',
+    slug: 'featured',
+    title: 'Featured picks',
+    description: 'Top products to start with.',
+    start: 0,
+    size: 4,
+  },
+  {
+    id: 'fallback-fresh',
+    slug: 'fresh-drops',
+    title: 'Fresh drops',
+    description: 'Recently added products you can grab now.',
+    start: 2,
+    size: 4,
+  },
+  {
+    id: 'fallback-daily',
+    slug: 'daily-setup',
+    title: 'Daily setup',
+    description: 'Balanced essentials for work and home.',
+    start: 1,
+    size: 4,
+  },
+] as const;
+
+function withDevDetails(message: string, details: string): string {
+  if (process.env.NODE_ENV === 'development') {
+    return `${message} Details: ${details}`;
+  }
+
+  return message;
+}
 
 function toPriceCents(price: unknown): number {
   if (typeof price === 'number' && Number.isFinite(price)) {
@@ -136,6 +183,53 @@ function mapProductRows(
   });
 }
 
+async function fetchActiveProductsByIds(productIds: string[]): Promise<StoreProduct[]> {
+  if (productIds.length === 0) {
+    return [];
+  }
+
+  const client = createSupabaseServerClientOptional();
+  if (!client) {
+    return [];
+  }
+
+  const { data: productRows, error: productsError } = await client
+    .from('products')
+    .select(
+      'id, category_id, slug, title, short_description, description, price, currency, is_featured, created_at',
+    )
+    .eq('status', 'active')
+    .in('id', productIds);
+
+  if (productsError || !productRows || productRows.length === 0) {
+    return [];
+  }
+  const typedProductRows = productRows as ProductListRow[];
+
+  const { data: imageRows, error: imagesError } = await client
+    .from('product_images')
+    .select('id, product_id, url, alt, sort_order, is_primary, created_at')
+    .in(
+      'product_id',
+      typedProductRows.map((row) => row.id),
+    )
+    .order('sort_order', { ascending: true });
+
+  if (imagesError) {
+    return [];
+  }
+
+  const mapped = mapProductRows(
+    typedProductRows,
+    (imageRows ?? []) as ProductImageListRow[],
+  );
+  const mappedById = new Map(mapped.map((product) => [product.id, product]));
+
+  return productIds
+    .map((id) => mappedById.get(id))
+    .filter((product): product is StoreProduct => Boolean(product));
+}
+
 async function fetchActiveProducts(limit?: number) {
   const client = createSupabaseServerClientOptional();
 
@@ -182,6 +276,115 @@ async function fetchActiveProducts(limit?: number) {
   };
 }
 
+function buildFallbackCollections(products: StoreProduct[]): StorefrontCollection[] {
+  const source = products.length > 0 ? products : storeProducts;
+
+  return fallbackCollectionDefinitions
+    .map((definition) => ({
+      id: definition.id,
+      slug: definition.slug,
+      title: definition.title,
+      description: definition.description,
+      products: source.slice(definition.start, definition.start + definition.size),
+    }))
+    .filter((collection) => collection.products.length > 0);
+}
+
+async function fetchActiveCollections(
+  products: StoreProduct[],
+): Promise<StorefrontCollection[]> {
+  const client = createSupabaseServerClientOptional();
+  if (!client) {
+    return buildFallbackCollections(products);
+  }
+
+  const { data: collectionRows, error: collectionsError } = await client
+    .from('collections')
+    .select('id, slug, title, description')
+    .eq('is_active', true)
+    .order('updated_at', { ascending: false })
+    .limit(6);
+
+  if (collectionsError || !collectionRows || collectionRows.length === 0) {
+    return buildFallbackCollections(products);
+  }
+
+  const rows = collectionRows as CollectionListRow[];
+  const collectionIds = rows.map((row) => row.id);
+
+  const { data: itemRows, error: itemsError } = await client
+    .from('collection_items')
+    .select('collection_id, product_id, sort_order, created_at')
+    .in('collection_id', collectionIds)
+    .order('sort_order', { ascending: true });
+
+  if (itemsError || !itemRows || itemRows.length === 0) {
+    return buildFallbackCollections(products);
+  }
+
+  const items = (itemRows ?? []) as CollectionItemListRow[];
+  const itemsByCollection = new Map<string, CollectionItemListRow[]>();
+
+  items.forEach((item) => {
+    const bucket = itemsByCollection.get(item.collection_id);
+    if (bucket) {
+      bucket.push(item);
+      return;
+    }
+
+    itemsByCollection.set(item.collection_id, [item]);
+  });
+
+  const productMap = new Map(products.map((product) => [product.id, product]));
+  const missingProductIds = Array.from(
+    new Set(
+      items
+        .map((item) => item.product_id)
+        .filter((productId) => !productMap.has(productId)),
+    ),
+  );
+
+  if (missingProductIds.length > 0) {
+    const missingProducts = await fetchActiveProductsByIds(missingProductIds);
+    missingProducts.forEach((product) => {
+      productMap.set(product.id, product);
+    });
+  }
+
+  const mapped = rows
+    .map((collection) => {
+      const collectionItems = [...(itemsByCollection.get(collection.id) ?? [])].sort(
+        (left, right) => {
+          if (left.sort_order !== right.sort_order) {
+            return left.sort_order - right.sort_order;
+          }
+
+          return left.created_at.localeCompare(right.created_at);
+        },
+      );
+
+      const collectionProducts = collectionItems
+        .map((item) => productMap.get(item.product_id))
+        .filter((product): product is StoreProduct => Boolean(product))
+        .slice(0, 8);
+
+      return {
+        id: collection.id,
+        slug: collection.slug,
+        title: collection.title,
+        description: collection.description,
+        products: collectionProducts,
+      };
+    })
+    .filter((collection) => collection.products.length > 0);
+
+  if (mapped.length === 0) {
+    return buildFallbackCollections(products);
+  }
+
+  return mapped;
+}
+
 async function fetchActiveCategories(): Promise<StorefrontCategory[]> {
   const client = createSupabaseServerClientOptional();
   if (!client) {
@@ -214,10 +417,22 @@ export interface StorefrontCategory {
   title: string;
 }
 
+export interface StorefrontCollection {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  products: StoreProduct[];
+}
+
 export interface HomeStorefrontDataResult {
   status: 'live' | 'empty' | 'fallback_env' | 'fallback_error';
   featuredProducts: StoreProduct[];
   latestProducts: StoreProduct[];
+  popularProducts: StoreProduct[];
+  categories: StorefrontCategory[];
+  collections: StorefrontCollection[];
+  promoBanners: StorefrontPromoBanner[];
   message?: string;
 }
 
@@ -225,6 +440,8 @@ export interface CatalogStorefrontDataResult {
   status: 'live' | 'empty' | 'fallback_env' | 'fallback_error';
   products: StoreProduct[];
   categories: StorefrontCategory[];
+  collections: StorefrontCollection[];
+  promoBanners: StorefrontPromoBanner[];
   message?: string;
 }
 
@@ -241,34 +458,61 @@ export interface ProductStorefrontDataResult {
 }
 
 export async function getHomeStorefrontData(): Promise<HomeStorefrontDataResult> {
-  const activeProductsResult = await fetchActiveProducts(16);
+  const [activeProductsResult, categories] = await Promise.all([
+    fetchActiveProducts(),
+    fetchActiveCategories(),
+  ]);
 
   if (activeProductsResult.kind === 'no_env') {
+    const fallbackProducts = storeProducts;
+    const collections = buildFallbackCollections(fallbackProducts);
+
     return {
       status: 'fallback_env',
-      featuredProducts: storeProducts.slice(0, 4),
-      latestProducts: storeProducts.slice(4, 8),
-      message: `${getSupabasePublicMissingEnvMessage()} Showing fallback products from local seed.`,
+      featuredProducts: fallbackProducts.slice(0, 4),
+      latestProducts: fallbackProducts.slice(4, 8),
+      popularProducts: fallbackProducts.slice(1, 5),
+      categories,
+      collections,
+      promoBanners: buildStorefrontPromoBanners(fallbackProducts, categories),
+      message:
+        'Store data source is not configured yet. Showing a safe local storefront preview.',
     };
   }
 
   if (activeProductsResult.kind === 'error') {
+    const fallbackProducts = storeProducts;
+    const collections = buildFallbackCollections(fallbackProducts);
+
     return {
       status: 'fallback_error',
-      featuredProducts: storeProducts.slice(0, 4),
-      latestProducts: storeProducts.slice(4, 8),
-      message: `Supabase request failed. Showing fallback products. Details: ${activeProductsResult.message}`,
+      featuredProducts: fallbackProducts.slice(0, 4),
+      latestProducts: fallbackProducts.slice(4, 8),
+      popularProducts: fallbackProducts.slice(1, 5),
+      categories,
+      collections,
+      promoBanners: buildStorefrontPromoBanners(fallbackProducts, categories),
+      message: withDevDetails(
+        'Store data is temporarily unavailable. Showing a safe local storefront preview.',
+        activeProductsResult.message,
+      ),
     };
   }
 
   const products = activeProductsResult.products;
+  const collections = await fetchActiveCollections(products);
+  const promoBanners = buildStorefrontPromoBanners(products, categories);
 
   if (products.length === 0) {
     return {
       status: 'empty',
       featuredProducts: [],
       latestProducts: [],
-      message: 'No active products found in Supabase.',
+      popularProducts: [],
+      categories,
+      collections: [],
+      promoBanners,
+      message: 'No active products yet. Publish products in admin to fill the storefront.',
     };
   }
 
@@ -281,11 +525,23 @@ export async function getHomeStorefrontData(): Promise<HomeStorefrontDataResult>
   const latestProducts = products
     .filter((product) => !featuredIds.has(product.id))
     .slice(0, 4);
+  const latestResolved = latestProducts.length > 0 ? latestProducts : products.slice(0, 4);
+  const latestIds = new Set(latestResolved.map((product) => product.id));
+  const popularProducts = products
+    .filter((product) => !featuredIds.has(product.id) && !latestIds.has(product.id))
+    .slice(0, 4);
 
   return {
     status: 'live',
     featuredProducts,
-    latestProducts: latestProducts.length > 0 ? latestProducts : products.slice(0, 4),
+    latestProducts: latestResolved,
+    popularProducts:
+      popularProducts.length > 0
+        ? popularProducts
+        : products.filter((product) => !featuredIds.has(product.id)).slice(0, 4),
+    categories,
+    collections,
+    promoBanners,
   };
 }
 
@@ -296,36 +552,56 @@ export async function getCatalogStorefrontData(): Promise<CatalogStorefrontDataR
   ]);
 
   if (activeProductsResult.kind === 'no_env') {
+    const fallbackProducts = storeProducts;
+
     return {
       status: 'fallback_env',
-      products: storeProducts,
+      products: fallbackProducts,
       categories,
-      message: `${getSupabasePublicMissingEnvMessage()} Showing fallback products from local seed.`,
+      collections: buildFallbackCollections(fallbackProducts),
+      promoBanners: buildStorefrontPromoBanners(fallbackProducts, categories),
+      message:
+        'Store data source is not configured yet. Showing a safe local catalog preview.',
     };
   }
 
   if (activeProductsResult.kind === 'error') {
+    const fallbackProducts = storeProducts;
+
     return {
       status: 'fallback_error',
-      products: storeProducts,
+      products: fallbackProducts,
       categories,
-      message: `Supabase request failed. Showing fallback products. Details: ${activeProductsResult.message}`,
+      collections: buildFallbackCollections(fallbackProducts),
+      promoBanners: buildStorefrontPromoBanners(fallbackProducts, categories),
+      message: withDevDetails(
+        'Catalog data is temporarily unavailable. Showing a safe local preview.',
+        activeProductsResult.message,
+      ),
     };
   }
+
+  const products = activeProductsResult.products;
+  const collections = await fetchActiveCollections(products);
+  const promoBanners = buildStorefrontPromoBanners(products, categories);
 
   if (activeProductsResult.products.length === 0) {
     return {
       status: 'empty',
       products: [],
       categories,
-      message: 'No active products available in Supabase yet.',
+      collections: [],
+      promoBanners,
+      message: 'No active products available yet.',
     };
   }
 
   return {
     status: 'live',
-    products: activeProductsResult.products,
+    products,
     categories,
+    collections,
+    promoBanners,
   };
 }
 
@@ -347,7 +623,7 @@ export async function getProductStorefrontData(
         status: 'not_found',
         product: null,
         relatedProducts: [],
-        message: 'Supabase is not configured and fallback product is missing.',
+        message: `${getSupabasePublicMissingEnvMessage()} Product is unavailable.`,
       };
     }
 
@@ -357,7 +633,8 @@ export async function getProductStorefrontData(
       relatedProducts: storeProducts
         .filter((item) => item.id !== fallbackProduct.id)
         .slice(0, 3),
-      message: `${getSupabasePublicMissingEnvMessage()} Showing fallback product from local seed.`,
+      message:
+        'Product data source is not configured yet. Showing a safe local preview of this item.',
     };
   }
 
@@ -399,7 +676,7 @@ export async function getProductStorefrontData(
         status: 'not_found',
         product: null,
         relatedProducts: [],
-        message: 'Product not found.',
+        message: 'This product is unavailable or no longer active.',
       };
     }
 
@@ -502,8 +779,11 @@ export async function getProductStorefrontData(
         .slice(0, 3),
       message:
         error instanceof Error
-          ? `Supabase request failed. Showing fallback product. Details: ${error.message}`
-          : 'Supabase request failed. Showing fallback product.',
+          ? withDevDetails(
+              'Product details are temporarily unavailable. Showing a safe local preview.',
+              error.message,
+            )
+          : 'Product details are temporarily unavailable. Showing a safe local preview.',
     };
   }
 }

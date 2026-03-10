@@ -1,6 +1,10 @@
+import Link from 'next/link';
+import type { Metadata } from 'next';
+
 import { AddToCartButton } from '@/components/store/AddToCartButton';
 import { FavoriteToggleButton } from '@/components/store/FavoriteToggleButton';
 import { ProductCard } from '@/components/store/ProductCard';
+import { ProductShareButton } from '@/components/store/ProductShareButton';
 import { StoreEmptyState } from '@/components/store/StoreEmptyState';
 import { StoreScreen } from '@/components/store/StoreScreen';
 import { StoreSection } from '@/components/store/StoreSection';
@@ -10,6 +14,31 @@ import { getCurrentUserContext } from '@/features/auth';
 import { getProductStorefrontData } from '@/features/storefront/data';
 import { getFavoriteProductIdsForProfile } from '@/features/user-store/data';
 import styles from '@/components/store/store.module.css';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ productId: string }>;
+}): Promise<Metadata> {
+  const { productId } = await params;
+  const productData = await getProductStorefrontData(productId);
+  const product = productData.product;
+
+  if (!product) {
+    return {
+      title: 'Product | MainStore',
+      description: 'Browse product details in MainStore catalog.',
+    };
+  }
+
+  return {
+    title: `${product.title} | MainStore`,
+    description: (product.shortDescription || product.description).slice(0, 160),
+    alternates: {
+      canonical: `/products/${product.slug}`,
+    },
+  };
+}
 
 export default async function ProductPage({
   params,
@@ -43,7 +72,7 @@ export default async function ProductPage({
   return (
     <StoreScreen
       title="Product"
-      subtitle={product ? `SKU: ${product.slug}` : 'Product details'}
+      subtitle={product ? product.title : 'Product details'}
       back={true}
       showBottomNav={false}
     >
@@ -56,7 +85,7 @@ export default async function ProductPage({
               styles.dataNoticeError,
           )}
         >
-          <p className={styles.dataNoticeTitle}>Storefront data status</p>
+          <p className={styles.dataNoticeTitle}>Product update</p>
           <p className={styles.dataNoticeText}>{productData.message}</p>
         </section>
       )}
@@ -80,12 +109,32 @@ export default async function ProductPage({
                 <p className={styles.detailPrice}>{price}</p>
                 <p className={styles.detailDescription}>{product.description}</p>
                 <div className={styles.detailActions}>
-                  <FavoriteToggleButton
-                    productId={product.id}
-                    initialFavorited={isFavorited}
-                  />
+                  <div className={styles.detailActionGrid}>
+                    <FavoriteToggleButton
+                      productId={product.id}
+                      initialFavorited={isFavorited}
+                    />
+                    <ProductShareButton
+                      productSlug={product.slug}
+                      productTitle={product.title}
+                    />
+                  </div>
+                  <Link
+                    href="/catalog"
+                    className={styles.secondaryInlineLink}
+                    aria-label="Back to catalog"
+                  >
+                    Back to catalog
+                  </Link>
                 </div>
               </div>
+            </section>
+
+            <section className={styles.panel}>
+              <h2 className={styles.panelTitle}>Share and reopen anytime</h2>
+              <p className={styles.panelText}>
+                Product link works as a direct path and can be opened both inside Telegram and in a browser.
+              </p>
             </section>
 
             {productData.relatedProducts.length > 0 && (

@@ -26,7 +26,7 @@ export default async function AdminEditProductPage({
             detailResult.status === 'error' && storeStyles.dataNoticeError,
           )}
         >
-          <p className={storeStyles.dataNoticeTitle}>Product details status</p>
+          <p className={storeStyles.dataNoticeTitle}>Product details update</p>
           <p className={storeStyles.dataNoticeText}>{detailResult.message}</p>
         </section>
       )}

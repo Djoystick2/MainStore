@@ -27,7 +27,7 @@ export default async function AdminOrdersPage() {
             ordersResult.status === 'error' && storeStyles.dataNoticeError,
           )}
         >
-          <p className={storeStyles.dataNoticeTitle}>Orders data status</p>
+          <p className={storeStyles.dataNoticeTitle}>Orders update</p>
           <p className={storeStyles.dataNoticeText}>{ordersResult.message}</p>
         </section>
       )}

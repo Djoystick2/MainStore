@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useTransition, type FormEventHandler } from 'react';
+import { useRef, useState, useTransition, type FormEventHandler } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
 import { classNames } from '@/css/classnames';
 
@@ -50,7 +49,6 @@ export function CheckoutForm({
   subtotalCents,
   currency,
 }: CheckoutFormProps) {
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [fullName, setFullName] = useState(initialFullName ?? '');
   const [phone, setPhone] = useState(initialPhone ?? '');
@@ -60,9 +58,16 @@ export function CheckoutForm({
   const [notes, setNotes] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [success, setSuccess] = useState<PlaceOrderSuccess | null>(null);
+  const isSubmittingRef = useRef(false);
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
+
+    if (isPending || isSubmittingRef.current || success) {
+      return;
+    }
+
+    isSubmittingRef.current = true;
 
     startTransition(async () => {
       setErrorMessage(null);
@@ -105,9 +110,10 @@ export function CheckoutForm({
           totalCents: payload.totalCents,
           currency: payload.currency,
         });
-        router.refresh();
       } catch {
         setErrorMessage('Network error during checkout. Please try again.');
+      } finally {
+        isSubmittingRef.current = false;
       }
     });
   };
@@ -119,12 +125,22 @@ export function CheckoutForm({
         <p className={styles.checkoutSuccessText}>
           Total: {formatStorePrice(success.totalCents, success.currency)}
         </p>
+        <p className={styles.checkoutHint}>
+          Order ID: #{success.orderId.slice(0, 8).toUpperCase()}
+        </p>
         <Link
           href={`/orders/${success.orderId}`}
           className={styles.primaryLinkButton}
           aria-label="Open created order"
         >
           Open order
+        </Link>
+        <Link
+          href="/catalog"
+          className={styles.secondaryInlineLink}
+          aria-label="Continue shopping"
+        >
+          Continue shopping
         </Link>
       </section>
     );

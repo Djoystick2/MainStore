@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { classNames } from '@/css/classnames';
@@ -14,13 +14,16 @@ interface AddToCartButtonProps {
 
 function mapAddToCartError(error: string): string {
   if (error === 'unauthorized') {
-    return 'Open this store in Telegram to use cart actions.';
+    return 'Open MainStore in Telegram to use cart actions.';
   }
   if (error === 'not_configured') {
-    return 'Cart backend is not configured yet.';
+    return 'Cart is temporarily unavailable.';
   }
   if (error === 'product_not_found') {
     return 'This product is not available.';
+  }
+  if (error === 'invalid_quantity') {
+    return 'Could not add this quantity to cart.';
   }
   return 'Could not add the product to cart.';
 }
@@ -30,8 +33,15 @@ export function AddToCartButton({ productId, className }: AddToCartButtonProps) 
   const [isPending, startTransition] = useTransition();
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);
+  const isSubmittingRef = useRef(false);
 
   const handleClick = () => {
+    if (isPending || isSubmittingRef.current) {
+      return;
+    }
+
+    isSubmittingRef.current = true;
+
     startTransition(async () => {
       setStatusMessage(null);
       setIsError(false);
@@ -55,12 +65,14 @@ export function AddToCartButton({ productId, className }: AddToCartButtonProps) 
           return;
         }
 
-        setStatusMessage('Added to cart.');
+        setStatusMessage('Added to cart. You can continue shopping or open cart.');
         setIsError(false);
         router.refresh();
       } catch {
         setStatusMessage('Network error while updating cart.');
         setIsError(true);
+      } finally {
+        isSubmittingRef.current = false;
       }
     });
   };

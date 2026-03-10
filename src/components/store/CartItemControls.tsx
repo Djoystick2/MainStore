@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+
+import { classNames } from '@/css/classnames';
 
 import styles from './store.module.css';
 
@@ -12,10 +14,10 @@ interface CartItemControlsProps {
 
 function mapCartError(error: string): string {
   if (error === 'unauthorized') {
-    return 'Open this store in Telegram to manage cart.';
+    return 'Open MainStore in Telegram to manage cart.';
   }
   if (error === 'not_configured') {
-    return 'Cart backend is not configured yet.';
+    return 'Cart is temporarily unavailable.';
   }
   return 'Could not update cart item.';
 }
@@ -24,17 +26,27 @@ export function CartItemControls({ itemId, quantity }: CartItemControlsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [isError, setIsError] = useState(false);
+  const isSubmittingRef = useRef(false);
 
   const updateQuantity = (nextQuantity: number) => {
+    const normalizedQuantity = Math.max(0, Math.trunc(nextQuantity));
+    if (normalizedQuantity === quantity || isPending || isSubmittingRef.current) {
+      return;
+    }
+
+    isSubmittingRef.current = true;
+
     startTransition(async () => {
       setStatusMessage(null);
+      setIsError(false);
 
       try {
         const response = await fetch(`/api/store/cart/items/${itemId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ quantity: nextQuantity }),
+          body: JSON.stringify({ quantity: normalizedQuantity }),
         });
         const payload = (await response.json()) as
           | { ok: true; quantity: number }
@@ -42,19 +54,33 @@ export function CartItemControls({ itemId, quantity }: CartItemControlsProps) {
 
         if (!response.ok || !payload.ok) {
           setStatusMessage(mapCartError(payload.ok ? 'unknown' : payload.error ?? 'unknown'));
+          setIsError(true);
           return;
         }
 
+        setStatusMessage(
+          normalizedQuantity === 0 ? 'Item removed from cart.' : 'Cart item updated.',
+        );
         router.refresh();
       } catch {
         setStatusMessage('Network error while updating cart item.');
+        setIsError(true);
+      } finally {
+        isSubmittingRef.current = false;
       }
     });
   };
 
   const removeItem = () => {
+    if (isPending || isSubmittingRef.current) {
+      return;
+    }
+
+    isSubmittingRef.current = true;
+
     startTransition(async () => {
       setStatusMessage(null);
+      setIsError(false);
 
       try {
         const response = await fetch(`/api/store/cart/items/${itemId}`, {
@@ -67,12 +93,17 @@ export function CartItemControls({ itemId, quantity }: CartItemControlsProps) {
 
         if (!response.ok || !payload.ok) {
           setStatusMessage(mapCartError(payload.ok ? 'unknown' : payload.error ?? 'unknown'));
+          setIsError(true);
           return;
         }
 
+        setStatusMessage('Item removed from cart.');
         router.refresh();
       } catch {
         setStatusMessage('Network error while removing cart item.');
+        setIsError(true);
+      } finally {
+        isSubmittingRef.current = false;
       }
     });
   };
@@ -114,7 +145,14 @@ export function CartItemControls({ itemId, quantity }: CartItemControlsProps) {
       </button>
 
       {statusMessage && (
-        <p className={styles.cartActionError} role="status" aria-live="polite">
+        <p
+          className={classNames(
+            styles.cartActionMessage,
+            isError ? styles.inlineActionMessageError : styles.inlineActionMessageSuccess,
+          )}
+          role="status"
+          aria-live="polite"
+        >
           {statusMessage}
         </p>
       )}

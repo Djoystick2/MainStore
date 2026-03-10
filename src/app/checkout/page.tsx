@@ -30,7 +30,7 @@ export default async function CheckoutPage() {
             cartData.status === 'error' && styles.dataNoticeError,
           )}
         >
-          <p className={styles.dataNoticeTitle}>Checkout status</p>
+          <p className={styles.dataNoticeTitle}>Checkout update</p>
           <p className={styles.dataNoticeText}>{cartData.message}</p>
         </section>
       )}
@@ -38,7 +38,7 @@ export default async function CheckoutPage() {
       {isUnauthorized ? (
         <StoreEmptyState
           title="Checkout needs Telegram session"
-          description="Open MainStore inside Telegram to place orders."
+          description="Open MainStore in Telegram to place orders."
           actionLabel="Open catalog"
           actionHref="/catalog"
         />
@@ -56,7 +56,7 @@ export default async function CheckoutPage() {
       {isCheckoutUnavailable ? (
         <StoreEmptyState
           title="Checkout is temporarily unavailable"
-          description="Review your cart and try again later."
+          description="Review your cart and try again in a moment."
           actionLabel="Back to cart"
           actionHref="/cart"
         />

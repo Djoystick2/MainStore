@@ -61,7 +61,7 @@ export default async function OrdersPage() {
   const isSessionMissing = ordersData.status === 'unauthorized';
 
   return (
-    <StoreScreen title="My Orders" subtitle="Track every purchase from profile">
+    <StoreScreen title="My Orders" subtitle="Track each purchase in one place">
       {ordersData.message && (
         <section
           className={classNames(
@@ -69,7 +69,7 @@ export default async function OrdersPage() {
             ordersData.status === 'error' && styles.dataNoticeError,
           )}
         >
-          <p className={styles.dataNoticeTitle}>Orders status</p>
+          <p className={styles.dataNoticeTitle}>Orders update</p>
           <p className={styles.dataNoticeText}>{ordersData.message}</p>
         </section>
       )}
@@ -77,7 +77,7 @@ export default async function OrdersPage() {
       {isSessionMissing ? (
         <StoreEmptyState
           title="Orders need Telegram session"
-          description="Open MainStore in Telegram to access your real order history."
+          description="Open MainStore in Telegram to access your order history."
           actionLabel="Open catalog"
           actionHref="/catalog"
         />

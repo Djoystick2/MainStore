@@ -20,7 +20,7 @@ export default async function AdminCreateProductPage() {
             categoriesResult.status === 'error' && storeStyles.dataNoticeError,
           )}
         >
-          <p className={storeStyles.dataNoticeTitle}>Categories status</p>
+          <p className={storeStyles.dataNoticeTitle}>Categories update</p>
           <p className={storeStyles.dataNoticeText}>{categoriesResult.message}</p>
         </section>
       )}

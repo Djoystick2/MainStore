@@ -23,7 +23,7 @@ export default async function FavoritesPage() {
             favoritesData.status === 'error' && styles.dataNoticeError,
           )}
         >
-          <p className={styles.dataNoticeTitle}>Favorites status</p>
+          <p className={styles.dataNoticeTitle}>Favorites update</p>
           <p className={styles.dataNoticeText}>{favoritesData.message}</p>
         </section>
       )}
@@ -31,7 +31,7 @@ export default async function FavoritesPage() {
       {isSessionMissing ? (
         <StoreEmptyState
           title="Favorites need Telegram session"
-          description="Open MainStore inside Telegram to use personal favorites."
+          description="Open MainStore in Telegram to load your personal favorites."
           actionLabel="Open catalog"
           actionHref="/catalog"
         />
@@ -53,7 +53,7 @@ export default async function FavoritesPage() {
           ) : (
             <StoreEmptyState
               title="Favorites are empty"
-              description="Save products from the product page and they will appear here."
+              description="Save products from product pages and they will appear here."
               actionLabel="Explore catalog"
               actionHref="/catalog"
             />

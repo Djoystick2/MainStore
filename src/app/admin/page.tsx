@@ -19,7 +19,7 @@ export default async function AdminPage() {
             dashboard.status === 'error' && storeStyles.dataNoticeError,
           )}
         >
-          <p className={storeStyles.dataNoticeTitle}>Admin data status</p>
+          <p className={storeStyles.dataNoticeTitle}>Admin update</p>
           <p className={storeStyles.dataNoticeText}>{dashboard.message}</p>
         </section>
       )}

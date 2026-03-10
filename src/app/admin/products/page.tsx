@@ -36,7 +36,7 @@ export default async function AdminProductsPage() {
             hasError && storeStyles.dataNoticeError,
           )}
         >
-          <p className={storeStyles.dataNoticeTitle}>Products status</p>
+          <p className={storeStyles.dataNoticeTitle}>Products update</p>
           <p className={storeStyles.dataNoticeText}>{combinedMessage}</p>
         </section>
       )}

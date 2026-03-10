@@ -34,7 +34,7 @@ export default async function AdminOrderDetailPage({
             detailResult.status === 'error' && storeStyles.dataNoticeError,
           )}
         >
-          <p className={storeStyles.dataNoticeTitle}>Order details status</p>
+          <p className={storeStyles.dataNoticeTitle}>Order details update</p>
           <p className={storeStyles.dataNoticeText}>{detailResult.message}</p>
         </section>
       )}

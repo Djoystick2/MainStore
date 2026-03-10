@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useTransition } from 'react';
+import { useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { classNames } from '@/css/classnames';
@@ -15,10 +15,10 @@ interface FavoriteToggleButtonProps {
 
 function mapFavoriteError(error: string): string {
   if (error === 'unauthorized') {
-    return 'Open this store in Telegram to use favorites.';
+    return 'Open MainStore in Telegram to use favorites.';
   }
   if (error === 'not_configured') {
-    return 'Favorites backend is not configured yet.';
+    return 'Favorites are temporarily unavailable.';
   }
   return 'Could not update favorites.';
 }
@@ -33,6 +33,7 @@ export function FavoriteToggleButton({
   const [isFavorited, setIsFavorited] = useState(initialFavorited);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);
+  const isSubmittingRef = useRef(false);
 
   const label = useMemo(() => {
     if (isFavorited) {
@@ -42,6 +43,12 @@ export function FavoriteToggleButton({
   }, [compact, isFavorited]);
 
   const handleToggle = () => {
+    if (isPending || isSubmittingRef.current) {
+      return;
+    }
+
+    isSubmittingRef.current = true;
+
     startTransition(async () => {
       setStatusMessage(null);
       setIsError(false);
@@ -72,6 +79,8 @@ export function FavoriteToggleButton({
       } catch {
         setStatusMessage('Network error while updating favorites.');
         setIsError(true);
+      } finally {
+        isSubmittingRef.current = false;
       }
     });
   };

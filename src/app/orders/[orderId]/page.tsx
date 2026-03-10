@@ -81,7 +81,7 @@ export default async function OrderDetailPage({
   const order = orderData.order;
 
   return (
-    <StoreScreen title="Order" subtitle="Order details snapshot" back={true}>
+    <StoreScreen title="Order" subtitle="Order details and delivery info" back={true}>
       {orderData.message && (
         <section
           className={classNames(
@@ -89,7 +89,7 @@ export default async function OrderDetailPage({
             orderData.status === 'error' && styles.dataNoticeError,
           )}
         >
-          <p className={styles.dataNoticeTitle}>Order status</p>
+          <p className={styles.dataNoticeTitle}>Order update</p>
           <p className={styles.dataNoticeText}>{orderData.message}</p>
         </section>
       )}
@@ -97,7 +97,7 @@ export default async function OrderDetailPage({
       {orderData.status === 'unauthorized' ? (
         <StoreEmptyState
           title="Order details need Telegram session"
-          description="Open MainStore in Telegram to access your orders."
+          description="Open MainStore in Telegram to view your orders."
           actionLabel="Open catalog"
           actionHref="/catalog"
         />

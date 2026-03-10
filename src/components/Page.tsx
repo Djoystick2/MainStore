@@ -2,7 +2,9 @@
 
 import { backButton } from '@tma.js/sdk-react';
 import { PropsWithChildren, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+
+import { resolveTelegramBackFallback } from '@/features/telegram/navigation';
 
 export function Page({ children, back = true }: PropsWithChildren<{
   /**
@@ -12,6 +14,7 @@ export function Page({ children, back = true }: PropsWithChildren<{
   back?: boolean
 }>) {
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (back) {
@@ -23,9 +26,19 @@ export function Page({ children, back = true }: PropsWithChildren<{
 
   useEffect(() => {
     return backButton.onClick(() => {
+      if (!back) {
+        return;
+      }
+
+      const fallbackHref = resolveTelegramBackFallback(pathname);
+      if (fallbackHref && fallbackHref !== pathname) {
+        router.replace(fallbackHref);
+        return;
+      }
+
       router.back();
     });
-  }, [router]);
+  }, [back, pathname, router]);
 
   return <>{children}</>;
 }

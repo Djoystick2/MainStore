@@ -23,7 +23,7 @@ export default async function ProfilePage() {
   const username = profile?.username ? `@${profile.username}` : 'No username';
 
   return (
-    <StoreScreen title="Profile" subtitle="Your account and purchase flow">
+    <StoreScreen title="Profile" subtitle="Account, history, and quick actions">
       {profile ? (
         <>
           {ordersData.message && (
@@ -33,7 +33,7 @@ export default async function ProfilePage() {
                 ordersData.status === 'error' && styles.dataNoticeError,
               )}
             >
-              <p className={styles.dataNoticeTitle}>Profile orders status</p>
+              <p className={styles.dataNoticeTitle}>Profile update</p>
               <p className={styles.dataNoticeText}>{ordersData.message}</p>
             </section>
           )}

@@ -32,7 +32,7 @@ export default async function CartPage() {
     : '$0';
 
   return (
-    <StoreScreen title="Cart" subtitle="Your selected products will appear here">
+    <StoreScreen title="Cart" subtitle="Review items before checkout">
       {cartData.message && (
         <section
           className={classNames(
@@ -40,7 +40,7 @@ export default async function CartPage() {
             cartData.status === 'error' && styles.dataNoticeError,
           )}
         >
-          <p className={styles.dataNoticeTitle}>Cart status</p>
+          <p className={styles.dataNoticeTitle}>Cart update</p>
           <p className={styles.dataNoticeText}>{cartData.message}</p>
         </section>
       )}
@@ -71,7 +71,7 @@ export default async function CartPage() {
       {isSessionMissing ? (
         <StoreEmptyState
           title="Cart needs Telegram session"
-          description="Open MainStore inside Telegram to use your personal cart."
+          description="Open MainStore in Telegram to load your personal cart."
           actionLabel="Browse catalog"
           actionHref="/catalog"
         />
@@ -80,7 +80,7 @@ export default async function CartPage() {
       {isEmpty ? (
         <StoreEmptyState
           title="Your cart is empty"
-          description="Add products from catalog, then return here to adjust quantities."
+          description="Add products from catalog and they will appear here."
           actionLabel="Go to catalog"
           actionHref="/catalog"
         />
@@ -121,9 +121,9 @@ export default async function CartPage() {
       )}
 
       <section className={styles.panel}>
-        <h2 className={styles.panelTitle}>Checkout is the next stage</h2>
+        <h2 className={styles.panelTitle}>Checkout without payment integration</h2>
         <p className={styles.panelText}>
-          Delivery options and payment flow are intentionally not connected yet.
+          Payment providers are intentionally not connected at this stage.
         </p>
       </section>
     </StoreScreen>

@@ -44,6 +44,17 @@ function buildLabel(title: string): string {
   return words.length > 0 ? words.slice(0, 2).join(' ') : 'Product';
 }
 
+function isDuplicateConstraintError(message: string | undefined): boolean {
+  if (!message) {
+    return false;
+  }
+
+  return (
+    message.includes('duplicate key value violates unique constraint') ||
+    message.includes('already exists')
+  );
+}
+
 function selectPrimaryImage(images: ProductImageRow[]): ProductImageRow | null {
   if (images.length === 0) {
     return null;
@@ -290,6 +301,10 @@ export async function toggleFavoriteForProfile(
   );
 
   if (insertResult.error) {
+    if (isDuplicateConstraintError(insertResult.error.message)) {
+      return { ok: true, data: { favorited: true } };
+    }
+
     return { ok: false, error: insertResult.error.message };
   }
 
@@ -427,6 +442,40 @@ export async function addProductToCartForProfile(
   );
 
   if (insertResult.error) {
+    if (isDuplicateConstraintError(insertResult.error.message)) {
+      const retryExistingResult = await client
+        .from('cart_items')
+        .select('id, quantity')
+        .eq('user_id', profileId)
+        .eq('product_id', productId)
+        .maybeSingle();
+
+      if (retryExistingResult.error) {
+        return { ok: false, error: retryExistingResult.error.message };
+      }
+
+      const retryExistingCartItem = retryExistingResult.data as Pick<
+        CartItemRow,
+        'id' | 'quantity'
+      > | null;
+      if (!retryExistingCartItem?.id) {
+        return { ok: false, error: insertResult.error.message };
+      }
+
+      const retryQuantity = retryExistingCartItem.quantity + quantity;
+      const retryUpdateResult = await client
+        .from('cart_items')
+        .update({ quantity: retryQuantity } as never)
+        .eq('id', retryExistingCartItem.id)
+        .eq('user_id', profileId);
+
+      if (retryUpdateResult.error) {
+        return { ok: false, error: retryUpdateResult.error.message };
+      }
+
+      return { ok: true, data: { quantity: retryQuantity } };
+    }
+
     return { ok: false, error: insertResult.error.message };
   }
 
