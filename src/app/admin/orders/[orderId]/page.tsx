@@ -26,7 +26,7 @@ export default async function AdminOrderDetailPage({
   const order = detailResult.order;
 
   return (
-    <AdminScreen title="Order Detail" subtitle="Snapshot and status management" back={true}>
+    <AdminScreen title="Заказ" subtitle="Снимок заказа и управление статусом" back={true}>
       {detailResult.message && (
         <section
           className={classNames(
@@ -34,16 +34,16 @@ export default async function AdminOrderDetailPage({
             detailResult.status === 'error' && storeStyles.dataNoticeError,
           )}
         >
-          <p className={storeStyles.dataNoticeTitle}>Order details update</p>
+          <p className={storeStyles.dataNoticeTitle}>Обновление заказа</p>
           <p className={storeStyles.dataNoticeText}>{detailResult.message}</p>
           {(detailResult.status === 'error' || detailResult.status === 'not_configured') && (
             <div className={storeStyles.dataNoticeActions}>
               <Link
                 href={`/admin/orders/${orderId}`}
                 className={storeStyles.dataNoticeRetry}
-                aria-label="Retry loading admin order details"
+                aria-label="Повторить загрузку заказа"
               >
-                Retry
+                Повторить
               </Link>
             </div>
           )}
@@ -51,14 +51,14 @@ export default async function AdminOrderDetailPage({
       )}
 
       <Link href="/admin/orders" className={adminStyles.adminActionLink}>
-        Back to orders
+        К заказам
       </Link>
 
       {!order ? (
         <StoreEmptyState
-          title="Order not found"
-          description="Requested order does not exist."
-          actionLabel="Back to orders"
+          title="Заказ не найден"
+          description="Запрошенный заказ не существует."
+          actionLabel="К заказам"
           actionHref="/admin/orders"
         />
       ) : (
@@ -66,7 +66,7 @@ export default async function AdminOrderDetailPage({
           <section className={adminStyles.adminCard}>
             <div className={adminStyles.adminCardHead}>
               <h2 className={adminStyles.adminCardTitle}>
-                Order #{order.id.slice(0, 8).toUpperCase()}
+                Заказ #{order.id.slice(0, 8).toUpperCase()}
               </h2>
               <span className={storeStyles.orderStatusBadge}>{order.status}</span>
             </div>
@@ -75,56 +75,56 @@ export default async function AdminOrderDetailPage({
             </p>
             <div className={adminStyles.adminMetaGrid}>
               <div className={adminStyles.adminMetaCell}>
-                <p className={adminStyles.adminMetaLabel}>Total</p>
+                <p className={adminStyles.adminMetaLabel}>Итого</p>
                 <p className={adminStyles.adminMetaValue}>
                   {formatPrice(order.totalAmount, order.currency)}
                 </p>
               </div>
               <div className={adminStyles.adminMetaCell}>
-                <p className={adminStyles.adminMetaLabel}>Subtotal</p>
+                <p className={adminStyles.adminMetaLabel}>Подытог</p>
                 <p className={adminStyles.adminMetaValue}>
                   {formatPrice(order.subtotalAmount, order.currency)}
                 </p>
               </div>
               <div className={adminStyles.adminMetaCell}>
-                <p className={adminStyles.adminMetaLabel}>Discounts</p>
+                <p className={adminStyles.adminMetaLabel}>Скидка</p>
                 <p className={adminStyles.adminMetaValue}>
                   {formatPrice(order.discountAmount, order.currency)}
                 </p>
               </div>
               <div className={adminStyles.adminMetaCell}>
-                <p className={adminStyles.adminMetaLabel}>Customer</p>
+                <p className={adminStyles.adminMetaLabel}>Покупатель</p>
                 <p className={adminStyles.adminMetaValue}>
                   {order.customerDisplayName || order.customerUsername || order.userId}
                 </p>
               </div>
               <div className={adminStyles.adminMetaCell}>
-                <p className={adminStyles.adminMetaLabel}>Phone</p>
+                <p className={adminStyles.adminMetaLabel}>Телефон</p>
                 <p className={adminStyles.adminMetaValue}>
-                  {order.customerPhone || 'n/a'}
+                  {order.customerPhone || 'н/д'}
                 </p>
               </div>
             </div>
           </section>
 
           <section className={adminStyles.adminCard}>
-            <h2 className={adminStyles.adminCardTitle}>Shipping snapshot</h2>
+            <h2 className={adminStyles.adminCardTitle}>Снимок доставки</h2>
             <p className={adminStyles.adminCardSub}>
-              {order.shippingAddress.city || 'City not specified'}
+              {order.shippingAddress.city || 'Город не указан'}
             </p>
             <p className={adminStyles.adminCardSub}>
-              {order.shippingAddress.addressLine || 'Address not specified'}
+              {order.shippingAddress.addressLine || 'Адрес не указан'}
             </p>
             {order.shippingAddress.postalCode && (
               <p className={adminStyles.adminCardSub}>
-                Postal code: {order.shippingAddress.postalCode}
+                Индекс: {order.shippingAddress.postalCode}
               </p>
             )}
-            {order.notes && <p className={adminStyles.adminCardSub}>Notes: {order.notes}</p>}
+            {order.notes && <p className={adminStyles.adminCardSub}>Комментарий: {order.notes}</p>}
           </section>
 
           <section className={adminStyles.adminCard}>
-            <h2 className={adminStyles.adminCardTitle}>Items</h2>
+            <h2 className={adminStyles.adminCardTitle}>Товары</h2>
             <div className={adminStyles.adminCardList}>
               {order.items.map((item) => (
                 <article key={item.id} className={adminStyles.adminImageCard}>
@@ -133,14 +133,14 @@ export default async function AdminOrderDetailPage({
                     {item.quantity} x {formatPrice(item.unitPrice, item.currency)}
                   </p>
                   <p className={adminStyles.adminCardSub}>
-                    Line total: {formatPrice(item.lineTotal, item.currency)}
+                    Сумма: {formatPrice(item.lineTotal, item.currency)}
                   </p>
                   {item.productSlug && (
                     <Link
                       href={`/products/${item.productSlug}`}
                       className={adminStyles.adminActionLink}
                     >
-                      Open storefront product
+                      Открыть в витрине
                     </Link>
                   )}
                 </article>
@@ -149,7 +149,7 @@ export default async function AdminOrderDetailPage({
           </section>
 
           <section className={adminStyles.adminCard}>
-            <h2 className={adminStyles.adminCardTitle}>Update order status</h2>
+            <h2 className={adminStyles.adminCardTitle}>Обновить статус</h2>
             <AdminOrderStatusControl orderId={order.id} initialStatus={order.status} />
           </section>
         </>

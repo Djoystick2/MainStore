@@ -3,8 +3,8 @@ import { StoreLoadingView } from '@/components/store/StoreLoadingView';
 export default function ProfileLoading() {
   return (
     <StoreLoadingView
-      title="Profile"
-      subtitle="Loading profile"
+      title="Профиль"
+      subtitle="Загружаем профиль"
       back={false}
       showBottomNav={true}
       mode="orders"

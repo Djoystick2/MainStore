@@ -11,7 +11,7 @@ export default async function AdminCollectionsPage() {
   const collectionsResult = await getAdminCollections();
 
   return (
-    <AdminScreen title="Admin Collections" subtitle="Manage curated storefront groupings and product links" back={true}>
+    <AdminScreen title="Подборки" subtitle="Группировки для витрины и связи с товарами" back={true}>
       {collectionsResult.message && (
         <section
           className={classNames(
@@ -19,16 +19,16 @@ export default async function AdminCollectionsPage() {
             collectionsResult.status === 'error' && storeStyles.dataNoticeError,
           )}
         >
-          <p className={storeStyles.dataNoticeTitle}>Collections update</p>
+          <p className={storeStyles.dataNoticeTitle}>Обновление подборок</p>
           <p className={storeStyles.dataNoticeText}>{collectionsResult.message}</p>
           {(collectionsResult.status === 'error' || collectionsResult.status === 'not_configured') && (
             <div className={storeStyles.dataNoticeActions}>
               <Link
                 href="/admin/collections"
                 className={storeStyles.dataNoticeRetry}
-                aria-label="Retry loading collections"
+                aria-label="Повторить загрузку подборок"
               >
-                Retry
+                Повторить
               </Link>
             </div>
           )}
@@ -39,8 +39,8 @@ export default async function AdminCollectionsPage() {
         <AdminCollectionsManager collections={collectionsResult.collections} />
       ) : (
         <StoreEmptyState
-          title="Cannot load collections"
-          description="Collections are temporarily unavailable. Retry in a moment."
+          title="Не удалось загрузить подборки"
+          description="Подборки временно недоступны. Попробуйте чуть позже."
         />
       )}
     </AdminScreen>

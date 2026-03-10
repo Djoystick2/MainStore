@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo, useRef, useState, useTransition, type FormEventHandler } from 'react';
 import { useRouter } from 'next/navigation';
@@ -29,15 +29,28 @@ interface DiscountRowProps {
 function formatStateLabel(state: AdminDiscountItem['currentState']): string {
   switch (state) {
     case 'live':
-      return 'Live';
+      return 'Активна';
     case 'scheduled':
-      return 'Scheduled';
+      return 'Запланирована';
     case 'expired':
-      return 'Expired';
+      return 'Завершена';
     case 'inactive':
-      return 'Inactive';
+      return 'Отключена';
     default:
       return state;
+  }
+}
+
+function formatScopeLabel(scope: DiscountScope): string {
+  switch (scope) {
+    case 'product':
+      return 'Товар';
+    case 'category':
+      return 'Категория';
+    case 'collection':
+      return 'Подборка';
+    default:
+      return scope;
   }
 }
 
@@ -54,46 +67,46 @@ function formatDiscountValue(type: DiscountType, value: number): string {
     return `${Math.round(value)}%`;
   }
 
-  return `Fixed ${value}`;
+  return `-${value}`;
 }
 
 function mapDiscountError(error: string | undefined): string {
   switch (error) {
     case 'not_configured':
-      return 'Admin backend is temporarily unavailable.';
+      return 'Админ-часть временно недоступна.';
     case 'invalid_discount_scope':
-      return 'Select a valid discount scope.';
+      return 'Выберите корректную область скидки.';
     case 'discount_target_required':
-      return 'Select where the discount should apply.';
+      return 'Укажите, куда применяется скидка.';
     case 'discount_target_not_found':
-      return 'Selected target no longer exists.';
+      return 'Выбранная цель больше не существует.';
     case 'discount_target_has_no_products':
-      return 'Fixed discount needs at least one linked product to validate against.';
+      return 'Для фиксированной скидки нужен хотя бы один связанный товар.';
     case 'discount_target_mixed_currency':
-      return 'Fixed discount is blocked because linked products use mixed currencies.';
+      return 'Фиксированная скидка недоступна: у связанных товаров разные валюты.';
     case 'discount_target_conflict':
-      return 'There is already a discount for this target. Edit the existing one instead.';
+      return 'Для этой цели уже существует скидка. Измените текущую запись.';
     case 'discount_title_required':
-      return 'Discount title is required.';
+      return 'Укажите название скидки.';
     case 'invalid_discount_type':
-      return 'Select a valid discount type.';
+      return 'Выберите корректный тип скидки.';
     case 'invalid_discount_value':
-      return 'Discount value must be greater than zero.';
+      return 'Значение скидки должно быть больше нуля.';
     case 'invalid_discount_percentage':
-      return 'Percentage discount must be 100 or lower.';
+      return 'Процент скидки не может быть больше 100.';
     case 'discount_value_exceeds_target_price':
-      return 'Fixed discount is higher than the lowest affected product price.';
+      return 'Фиксированная скидка больше минимальной цены затронутого товара.';
     case 'invalid_discount_starts_at':
     case 'invalid_discount_ends_at':
-      return 'Enter a valid discount schedule date.';
+      return 'Укажите корректную дату действия скидки.';
     case 'invalid_discount_schedule':
-      return 'Discount end date must be later than the start date.';
+      return 'Дата окончания должна быть позже даты начала.';
     case 'discount_not_found':
-      return 'This discount no longer exists.';
+      return 'Эта скидка больше не существует.';
     case 'admin_access_denied':
-      return 'You do not have access to this admin action.';
+      return 'У вас нет доступа к этому действию.';
     default:
-      return 'Could not save discount. Please retry.';
+      return 'Не удалось сохранить скидку. Попробуйте еще раз.';
   }
 }
 
@@ -143,20 +156,17 @@ function DiscountRow({ discount, targetOptionsByScope }: DiscountRowProps) {
           credentials: 'include',
           body: JSON.stringify(payload),
         });
-        const data = (await response.json().catch(() => null)) as
-          | { ok: true }
-          | { ok: false; error?: string }
-          | null;
+        const data = (await response.json().catch(() => null)) as { ok: true } | { ok: false; error?: string } | null;
 
         if (!response.ok || !data || !data.ok) {
           setErrorMessage(mapDiscountError(data && !data.ok ? data.error : undefined));
           return;
         }
 
-        setSuccessMessage('Discount saved.');
+        setSuccessMessage('Скидка сохранена.');
         router.refresh();
       } catch {
-        setErrorMessage('Network error while saving discount.');
+        setErrorMessage('Сетевая ошибка при сохранении скидки.');
       } finally {
         isSubmittingRef.current = false;
       }
@@ -183,10 +193,7 @@ function DiscountRow({ discount, targetOptionsByScope }: DiscountRowProps) {
           method: 'DELETE',
           credentials: 'include',
         });
-        const data = (await response.json().catch(() => null)) as
-          | { ok: true }
-          | { ok: false; error?: string }
-          | null;
+        const data = (await response.json().catch(() => null)) as { ok: true } | { ok: false; error?: string } | null;
 
         if (!response.ok || !data || !data.ok) {
           setErrorMessage(mapDiscountError(data && !data.ok ? data.error : undefined));
@@ -195,7 +202,7 @@ function DiscountRow({ discount, targetOptionsByScope }: DiscountRowProps) {
 
         router.refresh();
       } catch {
-        setErrorMessage('Network error while deleting discount.');
+        setErrorMessage('Сетевая ошибка при удалении скидки.');
       } finally {
         isSubmittingRef.current = false;
       }
@@ -207,9 +214,7 @@ function DiscountRow({ discount, targetOptionsByScope }: DiscountRowProps) {
       <div className={styles.adminCardHead}>
         <div>
           <h3 className={styles.adminCardTitle}>{discount.title}</h3>
-          <p className={styles.adminCardSub}>
-            {discount.targetTitle} · {discount.scope}
-          </p>
+          <p className={styles.adminCardSub}>{discount.targetTitle} В· {formatScopeLabel(discount.scope)}</p>
         </div>
         <div className={styles.adminBadgeRow}>
           <span className={styles.adminStatusBadge}>{formatStateLabel(discount.currentState)}</span>
@@ -220,33 +225,19 @@ function DiscountRow({ discount, targetOptionsByScope }: DiscountRowProps) {
       <div className={styles.adminForm}>
         <div className={styles.adminInlineRow}>
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Scope</span>
-            <select
-              className={styles.adminSelect}
-              value={scope}
-              onChange={(event) => {
-                const nextScope = event.target.value as DiscountScope;
-                setScope(nextScope);
-                setTargetId(targetOptionsByScope[nextScope][0]?.id ?? '');
-              }}
-            >
-              <option value="product">Product</option>
-              <option value="category">Category</option>
-              <option value="collection">Collection</option>
+            <span className={styles.adminLabel}>Область</span>
+            <select className={styles.adminSelect} value={scope} onChange={(event) => { const nextScope = event.target.value as DiscountScope; setScope(nextScope); setTargetId(targetOptionsByScope[nextScope][0]?.id ?? ''); }}>
+              <option value="product">Товар</option>
+              <option value="category">Категория</option>
+              <option value="collection">Подборка</option>
             </select>
           </label>
 
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Target</span>
-            <select
-              className={styles.adminSelect}
-              value={targetId}
-              onChange={(event) => setTargetId(event.target.value)}
-            >
+            <span className={styles.adminLabel}>Цель</span>
+            <select className={styles.adminSelect} value={targetId} onChange={(event) => setTargetId(event.target.value)}>
               {targetOptions.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.title}
-                </option>
+                <option key={option.id} value={option.id}>{option.title}</option>
               ))}
             </select>
           </label>
@@ -254,79 +245,49 @@ function DiscountRow({ discount, targetOptionsByScope }: DiscountRowProps) {
 
         <div className={styles.adminInlineRow}>
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Title</span>
-            <input
-              className={styles.adminInput}
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-            />
+            <span className={styles.adminLabel}>Название</span>
+            <input className={styles.adminInput} value={title} onChange={(event) => setTitle(event.target.value)} />
           </label>
 
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Type</span>
-            <select
-              className={styles.adminSelect}
-              value={type}
-              onChange={(event) => setType(event.target.value as DiscountType)}
-            >
-              <option value="percentage">Percentage off</option>
-              <option value="fixed">Fixed amount off</option>
+            <span className={styles.adminLabel}>Тип</span>
+            <select className={styles.adminSelect} value={type} onChange={(event) => setType(event.target.value as DiscountType)}>
+              <option value="percentage">Процент</option>
+              <option value="fixed">Фиксированная сумма</option>
             </select>
           </label>
         </div>
 
         <div className={styles.adminInlineRow}>
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Value</span>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              className={styles.adminInput}
-              value={value}
-              onChange={(event) => setValue(event.target.value)}
-            />
+            <span className={styles.adminLabel}>Значение</span>
+            <input type="number" min="0" step="0.01" className={styles.adminInput} value={value} onChange={(event) => setValue(event.target.value)} />
           </label>
 
           <label className={styles.adminCheckboxRow}>
-            <input
-              type="checkbox"
-              className={styles.adminCheckbox}
-              checked={isActive}
-              onChange={(event) => setIsActive(event.target.checked)}
-            />
-            <span className={styles.adminLabel}>Active now</span>
+            <input type="checkbox" className={styles.adminCheckbox} checked={isActive} onChange={(event) => setIsActive(event.target.checked)} />
+            <span className={styles.adminLabel}>Активна сейчас</span>
           </label>
         </div>
 
         <div className={styles.adminInlineRow}>
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Start at</span>
-            <input
-              type="datetime-local"
-              className={styles.adminInput}
-              value={startsAt}
-              onChange={(event) => setStartsAt(event.target.value)}
-            />
+            <span className={styles.adminLabel}>Начало</span>
+            <input type="datetime-local" className={styles.adminInput} value={startsAt} onChange={(event) => setStartsAt(event.target.value)} />
           </label>
 
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>End at</span>
-            <input
-              type="datetime-local"
-              className={styles.adminInput}
-              value={endsAt}
-              onChange={(event) => setEndsAt(event.target.value)}
-            />
+            <span className={styles.adminLabel}>Окончание</span>
+            <input type="datetime-local" className={styles.adminInput} value={endsAt} onChange={(event) => setEndsAt(event.target.value)} />
           </label>
         </div>
 
         <div className={styles.adminActions}>
           <button type="button" className={styles.adminActionButton} onClick={onSave} disabled={isPending}>
-            {isPending ? 'Saving...' : 'Save discount'}
+            {isPending ? 'Сохраняем...' : 'Сохранить'}
           </button>
           <button type="button" className={styles.adminDangerButton} onClick={onDelete} disabled={isPending}>
-            {isConfirmingDelete ? 'Confirm delete' : 'Delete'}
+            {isConfirmingDelete ? 'Подтвердить удаление' : 'Удалить'}
           </button>
         </div>
 
@@ -337,12 +298,7 @@ function DiscountRow({ discount, targetOptionsByScope }: DiscountRowProps) {
   );
 }
 
-export function AdminDiscountsManager({
-  discounts,
-  products,
-  categories,
-  collections,
-}: AdminDiscountsManagerProps) {
+export function AdminDiscountsManager({ discounts, products, categories, collections }: AdminDiscountsManagerProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [search, setSearch] = useState('');
@@ -351,21 +307,9 @@ export function AdminDiscountsManager({
   const [scope, setScope] = useState<DiscountScope>('product');
   const targetOptionsByScope = useMemo<Record<DiscountScope, DiscountTargetOption[]>>(
     () => ({
-      product: products.map((product) => ({
-        id: product.id,
-        title: product.title,
-        subtitle: product.slug,
-      })),
-      category: categories.map((category) => ({
-        id: category.id,
-        title: category.title,
-        subtitle: category.slug,
-      })),
-      collection: collections.map((collection) => ({
-        id: collection.id,
-        title: collection.title,
-        subtitle: collection.slug,
-      })),
+      product: products.map((product) => ({ id: product.id, title: product.title, subtitle: product.slug })),
+      category: categories.map((category) => ({ id: category.id, title: category.title, subtitle: category.slug })),
+      collection: collections.map((collection) => ({ id: collection.id, title: collection.title, subtitle: collection.slug })),
     }),
     [products, categories, collections],
   );
@@ -426,10 +370,7 @@ export function AdminDiscountsManager({
           credentials: 'include',
           body: JSON.stringify(payload),
         });
-        const data = (await response.json().catch(() => null)) as
-          | { ok: true; id?: string }
-          | { ok: false; error?: string }
-          | null;
+        const data = (await response.json().catch(() => null)) as { ok: true; id?: string } | { ok: false; error?: string } | null;
 
         if (!response.ok || !data || !data.ok) {
           setErrorMessage(mapDiscountError(data && !data.ok ? data.error : undefined));
@@ -441,10 +382,10 @@ export function AdminDiscountsManager({
         setIsActive(true);
         setStartsAt('');
         setEndsAt('');
-        setSuccessMessage('Discount created.');
+        setSuccessMessage('Скидка создана.');
         router.refresh();
       } catch {
-        setErrorMessage('Network error while creating discount.');
+        setErrorMessage('Сетевая ошибка при создании скидки.');
       } finally {
         isSubmittingRef.current = false;
       }
@@ -458,93 +399,64 @@ export function AdminDiscountsManager({
       <section className={styles.adminCard}>
         <div className={styles.adminCardHead}>
           <div>
-            <h2 className={styles.adminCardTitle}>Discount control</h2>
+            <h2 className={styles.adminCardTitle}>Управление скидками</h2>
             <p className={styles.adminCardSub}>
-              Manage one discount per product, category, or collection with clear timing and scope.
+              Одна скидка на товар, категорию или подборку с понятной областью и сроками действия.
             </p>
           </div>
           <div className={styles.adminBadgeRow}>
-            <span className={styles.adminStatusBadge}>{discounts.length} total</span>
-            <span className={styles.adminFeatureBadge}>{liveCount} live</span>
+            <span className={styles.adminStatusBadge}>{discounts.length} всего</span>
+            <span className={styles.adminFeatureBadge}>{liveCount} активных</span>
           </div>
         </div>
 
         <div className={styles.adminFiltersGrid}>
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Search</span>
-            <input
-              className={styles.adminInput}
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Title or target"
-            />
+            <span className={styles.adminLabel}>Поиск</span>
+            <input className={styles.adminInput} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Название или цель" />
           </label>
 
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Scope</span>
-            <select
-              className={styles.adminSelect}
-              value={scopeFilter}
-              onChange={(event) => setScopeFilter(event.target.value as 'all' | DiscountScope)}
-            >
-              <option value="all">All scopes</option>
-              <option value="product">Products</option>
-              <option value="category">Categories</option>
-              <option value="collection">Collections</option>
+            <span className={styles.adminLabel}>Область</span>
+            <select className={styles.adminSelect} value={scopeFilter} onChange={(event) => setScopeFilter(event.target.value as 'all' | DiscountScope)}>
+              <option value="all">Все области</option>
+              <option value="product">Товары</option>
+              <option value="category">Категории</option>
+              <option value="collection">Подборки</option>
             </select>
           </label>
 
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>State</span>
-            <select
-              className={styles.adminSelect}
-              value={stateFilter}
-              onChange={(event) =>
-                setStateFilter(event.target.value as 'all' | AdminDiscountItem['currentState'])
-              }
-            >
-              <option value="all">All states</option>
-              <option value="live">Live</option>
-              <option value="scheduled">Scheduled</option>
-              <option value="expired">Expired</option>
-              <option value="inactive">Inactive</option>
+            <span className={styles.adminLabel}>Состояние</span>
+            <select className={styles.adminSelect} value={stateFilter} onChange={(event) => setStateFilter(event.target.value as 'all' | AdminDiscountItem['currentState'])}>
+              <option value="all">Все состояния</option>
+              <option value="live">Активные</option>
+              <option value="scheduled">Запланированные</option>
+              <option value="expired">Завершенные</option>
+              <option value="inactive">Отключенные</option>
             </select>
           </label>
         </div>
       </section>
 
       <section className={styles.adminCard}>
-        <h2 className={styles.adminCardTitle}>Create discount</h2>
+        <h2 className={styles.adminCardTitle}>Создать скидку</h2>
         <form className={styles.adminForm} onSubmit={onCreate} aria-busy={isPending}>
           <div className={styles.adminInlineRow}>
             <label className={styles.adminField}>
-              <span className={styles.adminLabel}>Scope</span>
-              <select
-                className={styles.adminSelect}
-                value={scope}
-                onChange={(event) => {
-                  const nextScope = event.target.value as DiscountScope;
-                  setScope(nextScope);
-                  setTargetId(targetOptionsByScope[nextScope][0]?.id ?? '');
-                }}
-              >
-                <option value="product">Product</option>
-                <option value="category">Category</option>
-                <option value="collection">Collection</option>
+              <span className={styles.adminLabel}>Область</span>
+              <select className={styles.adminSelect} value={scope} onChange={(event) => { const nextScope = event.target.value as DiscountScope; setScope(nextScope); setTargetId(targetOptionsByScope[nextScope][0]?.id ?? ''); }}>
+                <option value="product">Товар</option>
+                <option value="category">Категория</option>
+                <option value="collection">Подборка</option>
               </select>
             </label>
 
             <label className={styles.adminField}>
-              <span className={styles.adminLabel}>Target</span>
-              <select
-                className={styles.adminSelect}
-                value={targetId}
-                onChange={(event) => setTargetId(event.target.value)}
-              >
+              <span className={styles.adminLabel}>Цель</span>
+              <select className={styles.adminSelect} value={targetId} onChange={(event) => setTargetId(event.target.value)}>
                 {currentTargetOptions.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.title}
-                  </option>
+                  <option key={option.id} value={option.id}>{option.title}</option>
                 ))}
               </select>
             </label>
@@ -552,72 +464,45 @@ export function AdminDiscountsManager({
 
           <div className={styles.adminInlineRow}>
             <label className={styles.adminField}>
-              <span className={styles.adminLabel}>Title</span>
+              <span className={styles.adminLabel}>Название</span>
               <input className={styles.adminInput} value={title} onChange={(event) => setTitle(event.target.value)} required />
             </label>
 
             <label className={styles.adminField}>
-              <span className={styles.adminLabel}>Type</span>
-              <select
-                className={styles.adminSelect}
-                value={type}
-                onChange={(event) => setType(event.target.value as DiscountType)}
-              >
-                <option value="percentage">Percentage off</option>
-                <option value="fixed">Fixed amount off</option>
+              <span className={styles.adminLabel}>Тип</span>
+              <select className={styles.adminSelect} value={type} onChange={(event) => setType(event.target.value as DiscountType)}>
+                <option value="percentage">Процент</option>
+                <option value="fixed">Фиксированная сумма</option>
               </select>
             </label>
           </div>
 
           <div className={styles.adminInlineRow}>
             <label className={styles.adminField}>
-              <span className={styles.adminLabel}>Value</span>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                className={styles.adminInput}
-                value={value}
-                onChange={(event) => setValue(event.target.value)}
-                required
-              />
+              <span className={styles.adminLabel}>Значение</span>
+              <input type="number" min="0" step="0.01" className={styles.adminInput} value={value} onChange={(event) => setValue(event.target.value)} required />
             </label>
 
             <label className={styles.adminCheckboxRow}>
-              <input
-                type="checkbox"
-                className={styles.adminCheckbox}
-                checked={isActive}
-                onChange={(event) => setIsActive(event.target.checked)}
-              />
-              <span className={styles.adminLabel}>Active now</span>
+              <input type="checkbox" className={styles.adminCheckbox} checked={isActive} onChange={(event) => setIsActive(event.target.checked)} />
+              <span className={styles.adminLabel}>Активна сейчас</span>
             </label>
           </div>
 
           <div className={styles.adminInlineRow}>
             <label className={styles.adminField}>
-              <span className={styles.adminLabel}>Start at</span>
-              <input
-                type="datetime-local"
-                className={styles.adminInput}
-                value={startsAt}
-                onChange={(event) => setStartsAt(event.target.value)}
-              />
+              <span className={styles.adminLabel}>Начало</span>
+              <input type="datetime-local" className={styles.adminInput} value={startsAt} onChange={(event) => setStartsAt(event.target.value)} />
             </label>
 
             <label className={styles.adminField}>
-              <span className={styles.adminLabel}>End at</span>
-              <input
-                type="datetime-local"
-                className={styles.adminInput}
-                value={endsAt}
-                onChange={(event) => setEndsAt(event.target.value)}
-              />
+              <span className={styles.adminLabel}>Окончание</span>
+              <input type="datetime-local" className={styles.adminInput} value={endsAt} onChange={(event) => setEndsAt(event.target.value)} />
             </label>
           </div>
 
           <button type="submit" className={styles.adminPrimaryButton} disabled={isPending}>
-            {isPending ? 'Creating...' : 'Create discount'}
+            {isPending ? 'Создаем...' : 'Создать скидку'}
           </button>
 
           {errorMessage && <p className={styles.adminError}>{errorMessage}</p>}
@@ -627,21 +512,13 @@ export function AdminDiscountsManager({
 
       {filteredDiscounts.length === 0 ? (
         <StoreEmptyState
-          title={discounts.length === 0 ? 'No discounts yet' : 'No matching discounts'}
-          description={
-            discounts.length === 0
-              ? 'Create the first discount to control product, category, or collection pricing.'
-              : 'Adjust filters or search query to see matching discounts.'
-          }
+          title={discounts.length === 0 ? 'Скидок пока нет' : 'Совпадений не найдено'}
+          description={discounts.length === 0 ? 'Создайте первую скидку для товаров, категорий или подборок.' : 'Измените фильтры или поисковый запрос.'}
         />
       ) : (
         <div className={styles.adminCardList}>
           {filteredDiscounts.map((discount) => (
-            <DiscountRow
-              key={discount.id}
-              discount={discount}
-              targetOptionsByScope={targetOptionsByScope}
-            />
+            <DiscountRow key={discount.id} discount={discount} targetOptionsByScope={targetOptionsByScope} />
           ))}
         </div>
       )}

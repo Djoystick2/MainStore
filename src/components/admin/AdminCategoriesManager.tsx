@@ -27,28 +27,28 @@ function slugify(value: string): string {
 
 function mapAdminCategoryError(error: string | undefined): string {
   if (!error) {
-    return 'Could not update category.';
+    return 'Не удалось обновить категорию.';
   }
 
   switch (error) {
     case 'not_configured':
-      return 'Admin backend is temporarily unavailable.';
+      return 'Админ-часть временно недоступна.';
     case 'category_title_required':
-      return 'Category title is required.';
+      return 'Укажите название категории.';
     case 'invalid_category_slug':
-      return 'Category slug should contain lowercase letters, digits, and hyphens.';
+      return 'Slug категории должен содержать строчные буквы, цифры и дефисы.';
     case 'invalid_category_sort_order':
-      return 'Display order should be a non-negative integer.';
+      return 'Порядок вывода должен быть неотрицательным целым числом.';
     case 'slug_conflict':
-      return 'This slug is already used by another category.';
+      return 'Этот slug уже используется другой категорией.';
     case 'category_not_found':
-      return 'This category is no longer available.';
+      return 'Эта категория больше недоступна.';
     case 'invalid_category_payload':
-      return 'Fill in all required category fields.';
+      return 'Заполните обязательные поля категории.';
     case 'admin_access_denied':
-      return 'You do not have access to this admin action.';
+      return 'У вас нет доступа к этому действию.';
     default:
-      return 'Could not save category. Please retry.';
+      return 'Не удалось сохранить категорию. Попробуйте еще раз.';
   }
 }
 
@@ -79,7 +79,7 @@ function CategoryRow({ category }: CategoryRowProps) {
 
       const parsedSortOrder = Number(sortOrder);
       if (!Number.isInteger(parsedSortOrder) || parsedSortOrder < 0) {
-        setErrorMessage('Display order should be a non-negative integer.');
+        setErrorMessage('Порядок вывода должен быть неотрицательным целым числом.');
         isSubmittingRef.current = false;
         return;
       }
@@ -112,10 +112,10 @@ function CategoryRow({ category }: CategoryRowProps) {
           return;
         }
 
-        setSuccessMessage('Category saved.');
+        setSuccessMessage('Категория сохранена.');
         router.refresh();
       } catch {
-        setErrorMessage('Network error while saving category.');
+        setErrorMessage('Сетевая ошибка при сохранении категории.');
       } finally {
         isSubmittingRef.current = false;
       }
@@ -157,7 +157,7 @@ function CategoryRow({ category }: CategoryRowProps) {
 
         router.refresh();
       } catch {
-        setErrorMessage('Network error while deleting category.');
+        setErrorMessage('Сетевая ошибка при удалении категории.');
       } finally {
         isSubmittingRef.current = false;
       }
@@ -170,18 +170,18 @@ function CategoryRow({ category }: CategoryRowProps) {
         <div>
           <h3 className={styles.adminCardTitle}>{category.title}</h3>
           <p className={styles.adminCardSub}>
-            {category.productsCount} linked products
+            {category.productsCount} связанных товаров
           </p>
         </div>
         <div className={styles.adminBadgeRow}>
-          <span className={styles.adminStatusBadge}>{isActive ? 'Visible' : 'Hidden'}</span>
+          <span className={styles.adminStatusBadge}>{isActive ? 'Видна' : 'Скрыта'}</span>
         </div>
       </div>
 
       <div className={styles.adminForm}>
         <div className={styles.adminInlineRow}>
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Title</span>
+            <span className={styles.adminLabel}>Название</span>
             <input
               className={styles.adminInput}
               value={title}
@@ -202,9 +202,9 @@ function CategoryRow({ category }: CategoryRowProps) {
                 className={styles.adminActionButton}
                 onClick={() => setSlug(slugify(title))}
                 disabled={!title.trim() || isPending}
-                aria-label="Generate category slug"
+                aria-label="Сгенерировать slug категории"
               >
-                Use title
+                Из названия
               </button>
             </div>
           </label>
@@ -212,7 +212,7 @@ function CategoryRow({ category }: CategoryRowProps) {
 
         <div className={styles.adminInlineRow}>
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Short text</span>
+            <span className={styles.adminLabel}>Короткий текст</span>
             <input
               className={styles.adminInput}
               value={shortText}
@@ -221,7 +221,7 @@ function CategoryRow({ category }: CategoryRowProps) {
           </label>
 
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Display order</span>
+            <span className={styles.adminLabel}>Порядок вывода</span>
             <input
               type="number"
               min="0"
@@ -234,7 +234,7 @@ function CategoryRow({ category }: CategoryRowProps) {
         </div>
 
         <label className={styles.adminField}>
-          <span className={styles.adminLabel}>Description</span>
+          <span className={styles.adminLabel}>Описание</span>
           <textarea
             className={styles.adminTextarea}
             value={description}
@@ -250,7 +250,7 @@ function CategoryRow({ category }: CategoryRowProps) {
             checked={isActive}
             onChange={(event) => setIsActive(event.target.checked)}
           />
-          <span className={styles.adminLabel}>Visible in storefront</span>
+          <span className={styles.adminLabel}>Показывать на витрине</span>
         </label>
 
         <div className={styles.adminActions}>
@@ -259,18 +259,18 @@ function CategoryRow({ category }: CategoryRowProps) {
             className={styles.adminActionButton}
             onClick={onSave}
             disabled={isPending}
-            aria-label={`Save category ${category.title}`}
+            aria-label={`Сохранить категорию ${category.title}`}
           >
-            {isPending ? 'Saving...' : 'Save category'}
+            {isPending ? 'Сохраняем...' : 'Сохранить'}
           </button>
           <button
             type="button"
             className={styles.adminDangerButton}
             onClick={onDelete}
             disabled={isPending}
-            aria-label={`Delete category ${category.title}`}
+            aria-label={`Удалить категорию ${category.title}`}
           >
-            {isConfirmingDelete ? 'Confirm delete' : 'Delete'}
+            {isConfirmingDelete ? 'Подтвердить удаление' : 'Удалить'}
           </button>
         </div>
 
@@ -326,7 +326,7 @@ export function AdminCategoriesManager({ categories }: AdminCategoriesManagerPro
 
       const parsedSortOrder = Number(sortOrder);
       if (!Number.isInteger(parsedSortOrder) || parsedSortOrder < 0) {
-        setErrorMessage('Display order should be a non-negative integer.');
+        setErrorMessage('Порядок вывода должен быть неотрицательным целым числом.');
         isSubmittingRef.current = false;
         return;
       }
@@ -365,10 +365,10 @@ export function AdminCategoriesManager({ categories }: AdminCategoriesManagerPro
         setShortText('');
         setSortOrder('0');
         setIsActive(true);
-        setSuccessMessage('Category created.');
+        setSuccessMessage('Категория создана.');
         router.refresh();
       } catch {
-        setErrorMessage('Network error while creating category.');
+        setErrorMessage('Сетевая ошибка при создании категории.');
       } finally {
         isSubmittingRef.current = false;
       }
@@ -380,29 +380,29 @@ export function AdminCategoriesManager({ categories }: AdminCategoriesManagerPro
       <section className={styles.adminCard}>
         <div className={styles.adminCardHead}>
           <div>
-            <h2 className={styles.adminCardTitle}>Categories</h2>
+            <h2 className={styles.adminCardTitle}>Категории</h2>
             <p className={styles.adminCardSub}>
-              Manage storefront navigation, visibility, text, and order.
+              Навигация, видимость, тексты и порядок вывода для витрины.
             </p>
           </div>
           <div className={styles.adminBadgeRow}>
-            <span className={styles.adminStatusBadge}>{categories.length} total</span>
+            <span className={styles.adminStatusBadge}>{categories.length} всего</span>
           </div>
         </div>
 
         <div className={styles.adminFiltersGrid}>
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Search</span>
+            <span className={styles.adminLabel}>Поиск</span>
             <input
               className={styles.adminInput}
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Title, slug, short text"
+              placeholder="Название, slug, текст"
             />
           </label>
 
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Visibility</span>
+            <span className={styles.adminLabel}>Видимость</span>
             <select
               className={styles.adminSelect}
               value={visibilityFilter}
@@ -410,21 +410,21 @@ export function AdminCategoriesManager({ categories }: AdminCategoriesManagerPro
                 setVisibilityFilter(event.target.value as 'all' | 'visible' | 'hidden')
               }
             >
-              <option value="all">All categories</option>
-              <option value="visible">Visible only</option>
-              <option value="hidden">Hidden only</option>
+              <option value="all">Все категории</option>
+              <option value="visible">Только видимые</option>
+              <option value="hidden">Только скрытые</option>
             </select>
           </label>
         </div>
       </section>
 
       <section className={styles.adminCard}>
-        <h2 className={styles.adminCardTitle}>Create category</h2>
+        <h2 className={styles.adminCardTitle}>Создать категорию</h2>
 
         <form className={styles.adminForm} onSubmit={onCreate} aria-busy={isPending}>
           <div className={styles.adminInlineRow}>
             <label className={styles.adminField}>
-              <span className={styles.adminLabel}>Title</span>
+              <span className={styles.adminLabel}>Название</span>
               <input
                 className={styles.adminInput}
                 value={title}
@@ -447,9 +447,9 @@ export function AdminCategoriesManager({ categories }: AdminCategoriesManagerPro
                   className={styles.adminActionButton}
                   onClick={() => setSlug(slugify(title))}
                   disabled={!title.trim() || isPending}
-                  aria-label="Generate category slug"
+                  aria-label="Сгенерировать slug категории"
                 >
-                  Use title
+                  Из названия
                 </button>
               </div>
             </label>
@@ -457,7 +457,7 @@ export function AdminCategoriesManager({ categories }: AdminCategoriesManagerPro
 
           <div className={styles.adminInlineRow}>
             <label className={styles.adminField}>
-              <span className={styles.adminLabel}>Short text</span>
+              <span className={styles.adminLabel}>Короткий текст</span>
               <input
                 className={styles.adminInput}
                 value={shortText}
@@ -465,7 +465,7 @@ export function AdminCategoriesManager({ categories }: AdminCategoriesManagerPro
               />
             </label>
             <label className={styles.adminField}>
-              <span className={styles.adminLabel}>Display order</span>
+              <span className={styles.adminLabel}>Порядок вывода</span>
               <input
                 type="number"
                 min="0"
@@ -478,7 +478,7 @@ export function AdminCategoriesManager({ categories }: AdminCategoriesManagerPro
           </div>
 
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Description</span>
+            <span className={styles.adminLabel}>Описание</span>
             <textarea
               className={styles.adminTextarea}
               value={description}
@@ -494,16 +494,16 @@ export function AdminCategoriesManager({ categories }: AdminCategoriesManagerPro
               checked={isActive}
               onChange={(event) => setIsActive(event.target.checked)}
             />
-            <span className={styles.adminLabel}>Visible in storefront</span>
+            <span className={styles.adminLabel}>Показывать на витрине</span>
           </label>
 
           <button
             type="submit"
             className={styles.adminPrimaryButton}
             disabled={isPending}
-            aria-label="Create category"
+            aria-label="Создать категорию"
           >
-            {isPending ? 'Creating...' : 'Create category'}
+            {isPending ? 'Создаем...' : 'Создать категорию'}
           </button>
 
           {errorMessage && <p className={styles.adminError}>{errorMessage}</p>}
@@ -513,11 +513,11 @@ export function AdminCategoriesManager({ categories }: AdminCategoriesManagerPro
 
       {filteredCategories.length === 0 ? (
         <StoreEmptyState
-          title={categories.length === 0 ? 'No categories yet' : 'No matching categories'}
+          title={categories.length === 0 ? 'Категорий пока нет' : 'Совпадений не найдено'}
           description={
             categories.length === 0
-              ? 'Create the first category to organize the catalog and storefront entry points.'
-              : 'Adjust filters or search query to see matching categories.'
+              ? 'Создайте первую категорию, чтобы упорядочить каталог и входы на витрине.'
+              : 'Измените фильтры или поисковый запрос.'
           }
         />
       ) : (

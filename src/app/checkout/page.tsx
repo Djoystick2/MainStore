@@ -25,7 +25,7 @@ export default async function CheckoutPage() {
   const discountLabel = formatStorePrice(cartData.discountTotalCents, currency);
 
   return (
-    <StoreScreen title="Checkout" subtitle="Shipping details and order review" back={true}>
+    <StoreScreen title="Оформление" subtitle="Данные доставки и проверка заказа" back={true}>
       {cartData.message && (
         <section
           className={classNames(
@@ -33,16 +33,16 @@ export default async function CheckoutPage() {
             cartData.status === 'error' && styles.dataNoticeError,
           )}
         >
-          <p className={styles.dataNoticeTitle}>Checkout update</p>
+          <p className={styles.dataNoticeTitle}>Обновление оформления</p>
           <p className={styles.dataNoticeText}>{cartData.message}</p>
           {(cartData.status === 'error' || cartData.status === 'not_configured') && (
             <div className={styles.dataNoticeActions}>
               <Link
                 href="/checkout"
                 className={styles.dataNoticeRetry}
-                aria-label="Retry loading checkout"
+                aria-label="Повторить загрузку оформления"
               >
-                Retry
+                Повторить
               </Link>
             </div>
           )}
@@ -51,52 +51,52 @@ export default async function CheckoutPage() {
 
       {isUnauthorized ? (
         <StoreEmptyState
-          title="Checkout needs Telegram session"
-          description="Open MainStore in Telegram to place orders."
-          actionLabel="Open catalog"
+          title="Нужна сессия Telegram"
+          description="Откройте MainStore в Telegram, чтобы оформлять заказы."
+          actionLabel="Открыть каталог"
           actionHref="/catalog"
         />
       ) : null}
 
       {isEmpty ? (
         <StoreEmptyState
-          title="Cart is empty"
-          description="Add products to cart before checkout."
-          actionLabel="Go to catalog"
+          title="Корзина пуста"
+          description="Добавьте товары в корзину перед оформлением."
+          actionLabel="Перейти в каталог"
           actionHref="/catalog"
         />
       ) : null}
 
       {isCheckoutUnavailable ? (
         <StoreEmptyState
-          title="Checkout is temporarily unavailable"
-          description="Review your cart and try again in a moment."
-          actionLabel="Back to cart"
+          title="Оформление временно недоступно"
+          description="Проверьте корзину и попробуйте снова чуть позже."
+          actionLabel="Вернуться в корзину"
           actionHref="/cart"
         />
       ) : null}
 
       {cartData.items.length > 0 && (
         <>
-          <StoreSection title="Order summary">
+          <StoreSection title="Сводка по заказу">
             <div className={styles.infoGrid}>
               <div className={styles.infoItem}>
-                <p className={styles.infoLabel}>Items</p>
+                <p className={styles.infoLabel}>Товаров</p>
                 <p className={styles.infoValue}>{cartData.itemCount}</p>
               </div>
               {cartData.discountTotalCents > 0 && (
                 <div className={styles.infoItem}>
-                  <p className={styles.infoLabel}>Before discounts</p>
+                  <p className={styles.infoLabel}>До скидок</p>
                   <p className={styles.infoValue}>{baseSubtotalLabel}</p>
                 </div>
               )}
               <div className={styles.infoItem}>
-                <p className={styles.infoLabel}>Total</p>
+                <p className={styles.infoLabel}>Итого</p>
                 <p className={styles.infoValue}>{totalLabel}</p>
               </div>
               {cartData.discountTotalCents > 0 && (
                 <div className={styles.infoItem}>
-                  <p className={styles.infoLabel}>Discounts</p>
+                  <p className={styles.infoLabel}>Скидка</p>
                   <p className={styles.infoValue}>{discountLabel}</p>
                 </div>
               )}
@@ -105,11 +105,11 @@ export default async function CheckoutPage() {
 
           <section className={styles.panel}>
             <p className={styles.panelText}>
-              Price and availability are confirmed on the server when you place the order.
+              Цена и наличие подтверждаются на сервере в момент оформления заказа.
             </p>
           </section>
 
-          <StoreSection title="Shipping information">
+          <StoreSection title="Доставка">
             <CheckoutForm
               initialFullName={profile?.displayName}
               subtotalCents={cartData.baseSubtotalCents}
@@ -122,9 +122,9 @@ export default async function CheckoutPage() {
           <Link
             href="/cart"
             className={styles.secondaryInlineLink}
-            aria-label="Back to cart"
+            aria-label="Вернуться в корзину"
           >
-            Back to cart
+            Вернуться в корзину
           </Link>
         </>
       )}

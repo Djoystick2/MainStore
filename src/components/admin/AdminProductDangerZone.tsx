@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useRef, useState, useTransition, type FormEventHandler } from 'react';
 import { useRouter } from 'next/navigation';
@@ -17,20 +17,20 @@ interface DeleteSummary {
 
 function mapDeleteError(error: string | undefined): string {
   if (!error) {
-    return 'Could not delete product.';
+    return 'Не удалось удалить товар.';
   }
 
   switch (error) {
     case 'not_configured':
-      return 'Admin backend is temporarily unavailable.';
+      return 'Админ-часть временно недоступна.';
     case 'product_not_found':
-      return 'This product is no longer available.';
+      return 'Этот товар больше недоступен.';
     case 'delete_precheck_failed':
-      return 'Could not prepare a safe deletion summary. Retry in a moment.';
+      return 'Не удалось подготовить безопасное удаление. Попробуйте чуть позже.';
     case 'admin_access_denied':
-      return 'You do not have access to this admin action.';
+      return 'У вас нет доступа к этому действию.';
     default:
-      return 'Could not delete product. Please retry.';
+      return 'Не удалось удалить товар. Попробуйте еще раз.';
   }
 }
 
@@ -81,7 +81,7 @@ export function AdminProductDangerZone({ product }: AdminProductDangerZoneProps)
         router.push('/admin/products');
         router.refresh();
       } catch {
-        setErrorMessage('Network error while deleting product.');
+        setErrorMessage('Сетевая ошибка при удалении товара.');
       } finally {
         isSubmittingRef.current = false;
       }
@@ -90,40 +90,39 @@ export function AdminProductDangerZone({ product }: AdminProductDangerZoneProps)
 
   return (
     <section className={styles.adminDangerCard}>
-      <h2 className={styles.adminCardTitle}>Delete product</h2>
+      <h2 className={styles.adminCardTitle}>Удаление товара</h2>
       <p className={styles.adminCardSub}>
-        This uses a controlled hard delete. Images, favorites, cart rows, and collection links are
-        removed. Order history is preserved by detaching historical `order_items` links.
+        Используется контролируемое полное удаление. Изображения, избранное, корзины и связи с подборками будут удалены, а история заказов сохранится через отвязку `order_items`.
       </p>
 
       <div className={styles.adminMetaGrid}>
         <div className={styles.adminMetaCell}>
-          <p className={styles.adminMetaLabel}>Images</p>
+          <p className={styles.adminMetaLabel}>Изображения</p>
           <p className={styles.adminMetaValue}>{product.imagesCount}</p>
         </div>
         <div className={styles.adminMetaCell}>
-          <p className={styles.adminMetaLabel}>Favorites</p>
+          <p className={styles.adminMetaLabel}>Избранное</p>
           <p className={styles.adminMetaValue}>{product.favoritesCount}</p>
         </div>
         <div className={styles.adminMetaCell}>
-          <p className={styles.adminMetaLabel}>In carts</p>
+          <p className={styles.adminMetaLabel}>В корзинах</p>
           <p className={styles.adminMetaValue}>{product.cartItemsCount}</p>
         </div>
         <div className={styles.adminMetaCell}>
-          <p className={styles.adminMetaLabel}>Order history links</p>
+          <p className={styles.adminMetaLabel}>Связи с заказами</p>
           <p className={styles.adminMetaValue}>{product.orderItemsCount}</p>
         </div>
       </div>
 
       <form className={styles.adminForm} onSubmit={handleDelete}>
         <label className={styles.adminField}>
-          <span className={styles.adminLabel}>Type the product slug to confirm</span>
+          <span className={styles.adminLabel}>Введите slug товара для подтверждения</span>
           <input
             className={styles.adminInput}
             value={confirmation}
             onChange={(event) => setConfirmation(event.target.value)}
             placeholder={product.slug}
-            aria-label="Confirm product deletion"
+            aria-label="Подтвердить удаление товара"
           />
         </label>
 
@@ -131,18 +130,19 @@ export function AdminProductDangerZone({ product }: AdminProductDangerZoneProps)
           type="submit"
           className={styles.adminDangerButton}
           disabled={!canDelete || isPending}
-          aria-label="Delete product permanently"
+          aria-label="Удалить товар навсегда"
         >
-          {isPending ? 'Deleting...' : 'Delete product'}
+          {isPending ? 'Удаляем...' : 'Удалить товар'}
         </button>
 
         {errorMessage && <p className={styles.adminError}>{errorMessage}</p>}
         {deleteSummary && (
           <p className={styles.adminSuccess}>
-            Product deleted. Preserved order history links: {deleteSummary.detachedOrderItemsCount}.
+            Товар удален. Сохранено связей истории заказов: {deleteSummary.detachedOrderItemsCount}.
           </p>
         )}
       </form>
     </section>
   );
 }
+

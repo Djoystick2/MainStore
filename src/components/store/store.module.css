@@ -176,6 +176,8 @@
   font-size: 14px;
   line-height: 1;
   font-weight: 700;
+  white-space: normal;
+  text-align: center;
 }
 
 .marketingGrid {
@@ -1026,6 +1028,8 @@
   align-items: center;
   justify-content: center;
   padding: 0 10px;
+  white-space: normal;
+  text-align: center;
 }
 
 .loadingBlock::after {
@@ -1098,8 +1102,10 @@
 
 .bottomNavLabel {
   font-size: 12px;
-  line-height: 1;
+  line-height: 1.1;
   font-weight: 700;
+  text-align: center;
+  white-space: normal;
 }
 
 .bottomNavLinkActive {
@@ -1244,6 +1250,7 @@
   font-size: 14px;
   line-height: 1;
   font-weight: 700;
+  white-space: normal;
 }
 
 .cartActionError {

@@ -3,8 +3,8 @@ import { StoreLoadingView } from '@/components/store/StoreLoadingView';
 export default function AdminCategoriesLoading() {
   return (
     <StoreLoadingView
-      title="Admin Categories"
-      subtitle="Loading category workspace"
+      title="Категории"
+      subtitle="Загружаем категории"
       back={true}
       showBottomNav={false}
       mode="admin"

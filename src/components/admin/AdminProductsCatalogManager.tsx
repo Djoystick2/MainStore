@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useState } from 'react';
@@ -14,10 +14,10 @@ import { AdminProductStatusControl } from './AdminProductStatusControl';
 import styles from './admin.module.css';
 
 const statusFilterOptions: Array<{ value: 'all' | ProductStatus; label: string }> = [
-  { value: 'all', label: 'All statuses' },
-  { value: 'active', label: 'Active' },
-  { value: 'draft', label: 'Draft' },
-  { value: 'archived', label: 'Archived' },
+  { value: 'all', label: 'Все статусы' },
+  { value: 'active', label: 'Активные' },
+  { value: 'draft', label: 'Черновики' },
+  { value: 'archived', label: 'Архив' },
 ];
 
 function formatPrice(amount: number, currency: string) {
@@ -28,15 +28,20 @@ function formatPrice(amount: number, currency: string) {
   }).format(amount);
 }
 
-interface AdminProductsCatalogManagerProps {
-  products: AdminProductListItem[];
-  categories: AdminCategoryOption[];
+function formatProductStatus(status: ProductStatus): string {
+  switch (status) {
+    case 'active':
+      return 'Активен';
+    case 'draft':
+      return 'Черновик';
+    case 'archived':
+      return 'Архив';
+    default:
+      return status;
+  }
 }
 
-export function AdminProductsCatalogManager({
-  products,
-  categories,
-}: AdminProductsCatalogManagerProps) {
+export function AdminProductsCatalogManager({ products, categories }: { products: AdminProductListItem[]; categories: AdminCategoryOption[]; }) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | ProductStatus>('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -46,43 +51,29 @@ export function AdminProductsCatalogManager({
   const searchValue = search.trim().toLowerCase();
   const filteredProducts = products.filter((product) => {
     if (searchValue) {
-      const haystack = [
-        product.title,
-        product.slug,
-        product.categoryTitle ?? '',
-      ]
-        .join(' ')
-        .toLowerCase();
-
+      const haystack = [product.title, product.slug, product.categoryTitle ?? ''].join(' ').toLowerCase();
       if (!haystack.includes(searchValue)) {
         return false;
       }
     }
-
     if (statusFilter !== 'all' && product.status !== statusFilter) {
       return false;
     }
-
     if (categoryFilter !== 'all' && product.categoryId !== categoryFilter) {
       return false;
     }
-
     if (featuredFilter === 'featured' && !product.isFeatured) {
       return false;
     }
-
     if (featuredFilter === 'standard' && product.isFeatured) {
       return false;
     }
-
     if (availabilityFilter === 'in_stock' && product.stockQuantity <= 0) {
       return false;
     }
-
     if (availabilityFilter === 'out_of_stock' && product.stockQuantity > 0) {
       return false;
     }
-
     return true;
   });
 
@@ -95,109 +86,77 @@ export function AdminProductsCatalogManager({
       <section className={styles.adminCard}>
         <div className={styles.adminCardHead}>
           <div>
-            <h2 className={styles.adminCardTitle}>Catalog overview</h2>
+            <h2 className={styles.adminCardTitle}>Обзор каталога</h2>
             <p className={styles.adminCardSub}>
-              Search, filter, publish, feature, and duplicate products from one place.
+              Ищите, фильтруйте, публикуйте, выделяйте и дублируйте товары из одного места.
             </p>
           </div>
           <div className={styles.adminBadgeRow}>
-            <span className={styles.adminStatusBadge}>{products.length} total</span>
-            <span className={styles.adminFeatureBadge}>{featuredProductsCount} featured</span>
-            <span className={styles.adminAvailabilityBadge}>{outOfStockCount} out of stock</span>
+            <span className={styles.adminStatusBadge}>{products.length} всего</span>
+            <span className={styles.adminFeatureBadge}>{featuredProductsCount} рекомендуемых</span>
+            <span className={styles.adminAvailabilityBadge}>{outOfStockCount} без остатка</span>
           </div>
         </div>
 
         <div className={styles.adminMetaGrid}>
           <div className={styles.adminMetaCell}>
-            <p className={styles.adminMetaLabel}>Active</p>
+            <p className={styles.adminMetaLabel}>Активные</p>
             <p className={styles.adminMetaValue}>{activeProductsCount}</p>
           </div>
           <div className={styles.adminMetaCell}>
-            <p className={styles.adminMetaLabel}>Draft + archived</p>
+            <p className={styles.adminMetaLabel}>Черновики и архив</p>
             <p className={styles.adminMetaValue}>{products.length - activeProductsCount}</p>
           </div>
           <div className={styles.adminMetaCell}>
-            <p className={styles.adminMetaLabel}>Filtered results</p>
+            <p className={styles.adminMetaLabel}>После фильтрации</p>
             <p className={styles.adminMetaValue}>{filteredProducts.length}</p>
           </div>
           <div className={styles.adminMetaCell}>
-            <p className={styles.adminMetaLabel}>Categories</p>
+            <p className={styles.adminMetaLabel}>Категории</p>
             <p className={styles.adminMetaValue}>{categories.length}</p>
           </div>
         </div>
 
         <div className={styles.adminFiltersGrid}>
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Search</span>
-            <input
-              className={styles.adminInput}
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Title, slug, category"
-              aria-label="Search products"
-            />
+            <span className={styles.adminLabel}>Поиск</span>
+            <input className={styles.adminInput} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Название, slug, категория" aria-label="Поиск товаров" />
           </label>
 
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Status</span>
-            <select
-              className={styles.adminSelect}
-              value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value as 'all' | ProductStatus)}
-            >
+            <span className={styles.adminLabel}>Статус</span>
+            <select className={styles.adminSelect} value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as 'all' | ProductStatus)}>
               {statusFilterOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
+                <option key={option.value} value={option.value}>{option.label}</option>
               ))}
             </select>
           </label>
 
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Category</span>
-            <select
-              className={styles.adminSelect}
-              value={categoryFilter}
-              onChange={(event) => setCategoryFilter(event.target.value)}
-            >
-              <option value="all">All categories</option>
+            <span className={styles.adminLabel}>Категория</span>
+            <select className={styles.adminSelect} value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}>
+              <option value="all">Все категории</option>
               {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.title}
-                </option>
+                <option key={category.id} value={category.id}>{category.title}</option>
               ))}
             </select>
           </label>
 
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Featured</span>
-            <select
-              className={styles.adminSelect}
-              value={featuredFilter}
-              onChange={(event) =>
-                setFeaturedFilter(event.target.value as 'all' | 'featured' | 'standard')
-              }
-            >
-              <option value="all">All products</option>
-              <option value="featured">Featured only</option>
-              <option value="standard">Standard only</option>
+            <span className={styles.adminLabel}>Рекомендация</span>
+            <select className={styles.adminSelect} value={featuredFilter} onChange={(event) => setFeaturedFilter(event.target.value as 'all' | 'featured' | 'standard')}>
+              <option value="all">Все товары</option>
+              <option value="featured">Только рекомендуемые</option>
+              <option value="standard">Без рекомендации</option>
             </select>
           </label>
 
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Availability</span>
-            <select
-              className={styles.adminSelect}
-              value={availabilityFilter}
-              onChange={(event) =>
-                setAvailabilityFilter(
-                  event.target.value as 'all' | 'in_stock' | 'out_of_stock',
-                )
-              }
-            >
-              <option value="all">All availability</option>
-              <option value="in_stock">In stock</option>
-              <option value="out_of_stock">Out of stock</option>
+            <span className={styles.adminLabel}>Наличие</span>
+            <select className={styles.adminSelect} value={availabilityFilter} onChange={(event) => setAvailabilityFilter(event.target.value as 'all' | 'in_stock' | 'out_of_stock')}>
+              <option value="all">Все</option>
+              <option value="in_stock">В наличии</option>
+              <option value="out_of_stock">Нет в наличии</option>
             </select>
           </label>
         </div>
@@ -205,31 +164,22 @@ export function AdminProductsCatalogManager({
 
       {filteredProducts.length === 0 ? (
         <StoreEmptyState
-          title={products.length === 0 ? 'No products yet' : 'No matches found'}
-          description={
-            products.length === 0
-              ? 'Create the first product to start managing the catalog.'
-              : 'Adjust filters or search query to see matching products.'
-          }
+          title={products.length === 0 ? 'Товаров пока нет' : 'Совпадений не найдено'}
+          description={products.length === 0 ? 'Создайте первый товар, чтобы начать управлять каталогом.' : 'Измените фильтры или поисковый запрос.'}
         />
       ) : (
         <div className={styles.adminCardList}>
           {filteredProducts.map((product) => {
-            const stockLabel = product.stockQuantity > 0 ? 'In stock' : 'Out of stock';
+            const stockLabel = product.stockQuantity > 0 ? 'В наличии' : 'Нет в наличии';
 
             return (
               <article key={product.id} className={styles.adminCard}>
                 <div className={styles.adminProductListRow}>
                   <div className={styles.adminProductListMedia}>
                     {product.primaryImageUrl ? (
-                      <div
-                        className={styles.adminProductListImage}
-                        style={{
-                          backgroundImage: `linear-gradient(rgba(12, 18, 31, 0.12), rgba(12, 18, 31, 0.12)), url(${product.primaryImageUrl})`,
-                        }}
-                      />
+                      <div className={styles.adminProductListImage} style={{ backgroundImage: `linear-gradient(rgba(12, 18, 31, 0.12), rgba(12, 18, 31, 0.12)), url(${product.primaryImageUrl})` }} />
                     ) : (
-                      <div className={styles.adminProductListPlaceholder}>No image</div>
+                      <div className={styles.adminProductListPlaceholder}>Нет изображения</div>
                     )}
                   </div>
 
@@ -244,69 +194,44 @@ export function AdminProductsCatalogManager({
                       </div>
                       <div className={styles.adminBadgeRow}>
                         <span className={classNames(storeStyles.orderStatusBadge, styles.adminCompactBadge)}>
-                          {product.status}
+                          {formatProductStatus(product.status)}
                         </span>
                         {product.appliedDiscount && (
-                          <span className={styles.adminFeatureBadge}>
-                            {product.appliedDiscount.badgeText}
-                          </span>
+                          <span className={styles.adminFeatureBadge}>{product.appliedDiscount.badgeText}</span>
                         )}
-                        {product.isFeatured && (
-                          <span className={styles.adminFeatureBadge}>Featured</span>
-                        )}
+                        {product.isFeatured && <span className={styles.adminFeatureBadge}>Рекомендуемый</span>}
                         <span className={styles.adminAvailabilityBadge}>{stockLabel}</span>
                       </div>
                     </div>
 
                     <div className={styles.adminMetaGrid}>
                       <div className={styles.adminMetaCell}>
-                        <p className={styles.adminMetaLabel}>Price</p>
-                        <p className={styles.adminMetaValue}>
-                          {formatPrice(product.price, product.currency)}
-                        </p>
-                        {product.displayCompareAtPrice &&
-                          product.displayCompareAtPrice > product.price && (
-                            <p className={styles.adminCardSub}>
-                              Was {formatPrice(product.displayCompareAtPrice, product.currency)}
-                            </p>
-                          )}
+                        <p className={styles.adminMetaLabel}>Цена</p>
+                        <p className={styles.adminMetaValue}>{formatPrice(product.price, product.currency)}</p>
+                        {product.displayCompareAtPrice && product.displayCompareAtPrice > product.price && (
+                          <p className={styles.adminCardSub}>Было {formatPrice(product.displayCompareAtPrice, product.currency)}</p>
+                        )}
                       </div>
                       <div className={styles.adminMetaCell}>
-                        <p className={styles.adminMetaLabel}>Stock</p>
+                        <p className={styles.adminMetaLabel}>Остаток</p>
                         <p className={styles.adminMetaValue}>{product.stockQuantity}</p>
                       </div>
                       <div className={styles.adminMetaCell}>
-                        <p className={styles.adminMetaLabel}>Updated</p>
-                        <p className={styles.adminMetaValue}>
-                          {new Date(product.updatedAt).toLocaleDateString('en-US')}
-                        </p>
+                        <p className={styles.adminMetaLabel}>Обновлен</p>
+                        <p className={styles.adminMetaValue}>{new Date(product.updatedAt).toLocaleDateString('ru-RU')}</p>
                       </div>
                       <div className={styles.adminMetaCell}>
-                        <p className={styles.adminMetaLabel}>Discount</p>
-                        <p className={styles.adminMetaValue}>
-                          {product.appliedDiscount
-                            ? `${product.appliedDiscount.targetTitle} · ${product.appliedDiscount.scope}`
-                            : 'No active discount'}
-                        </p>
+                        <p className={styles.adminMetaLabel}>Скидка</p>
+                        <p className={styles.adminMetaValue}>{product.appliedDiscount ? `${product.appliedDiscount.targetTitle} В· ${product.appliedDiscount.scope}` : 'Нет активной скидки'}</p>
                       </div>
                     </div>
 
                     <div className={styles.adminStackActions}>
-                      <AdminProductStatusControl
-                        productId={product.id}
-                        initialStatus={product.status}
-                      />
-                      <AdminProductFeatureToggle
-                        productId={product.id}
-                        initialIsFeatured={product.isFeatured}
-                      />
+                      <AdminProductStatusControl productId={product.id} initialStatus={product.status} />
+                      <AdminProductFeatureToggle productId={product.id} initialIsFeatured={product.isFeatured} />
                       <div className={styles.adminActions}>
-                        <Link
-                          href={`/admin/products/${product.id}/edit`}
-                          className={styles.adminActionLink}
-                          aria-label={`Open ${product.title}`}
-                        >
-                          Open card
+                        <Link href={`/admin/products/${product.id}/edit`} className={styles.adminActionLink} aria-label={`Открыть товар ${product.title}`}>
+                          Открыть
                         </Link>
                         <AdminProductDuplicateButton productId={product.id} />
                       </div>
@@ -321,3 +246,4 @@ export function AdminProductsCatalogManager({
     </section>
   );
 }
+

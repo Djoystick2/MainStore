@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useRef, useState, useTransition, type FormEventHandler } from 'react';
 import { useRouter } from 'next/navigation';
@@ -27,23 +27,23 @@ interface AssignmentRowProps {
 
 function mapCollectionBindingError(error: string | undefined): string {
   if (!error) {
-    return 'Could not update collection link.';
+    return 'Не удалось обновить связь с подборкой.';
   }
 
   switch (error) {
     case 'not_configured':
-      return 'Admin backend is temporarily unavailable.';
+      return 'Админ-часть временно недоступна.';
     case 'collection_not_found':
     case 'product_not_found':
-      return 'Requested product or collection is no longer available.';
+      return 'Товар или подборка больше недоступны.';
     case 'invalid_collection_sort_order':
-      return 'Collection sort order should be a non-negative integer.';
+      return 'Порядок в подборке должен быть неотрицательным целым числом.';
     case 'invalid_product_collection_payload':
-      return 'Collection assignment payload is invalid.';
+      return 'Некорректные данные связи с подборкой.';
     case 'admin_access_denied':
-      return 'You do not have access to this admin action.';
+      return 'У вас нет доступа к этому действию.';
     default:
-      return 'Could not update collection link. Please retry.';
+      return 'Не удалось обновить связь с подборкой. Попробуйте еще раз.';
   }
 }
 
@@ -60,7 +60,7 @@ function AssignmentRow({
   const onSave = async () => {
     const parsedSortOrder = Number(sortOrder);
     if (!Number.isInteger(parsedSortOrder) || parsedSortOrder < 0) {
-      onFeedback('error', 'Collection sort order should be a non-negative integer.');
+      onFeedback('error', 'Порядок в подборке должен быть неотрицательным целым числом.');
       return;
     }
 
@@ -87,10 +87,10 @@ function AssignmentRow({
         return;
       }
 
-      onFeedback('success', 'Collection link saved.');
+      onFeedback('success', 'Связь с подборкой сохранена.');
       router.refresh();
     } catch {
-      onFeedback('error', 'Network error while saving collection link.');
+      onFeedback('error', 'Сетевая ошибка при сохранении связи.');
     } finally {
       onBusyChange(false);
     }
@@ -117,10 +117,10 @@ function AssignmentRow({
         return;
       }
 
-      onFeedback('success', 'Collection link removed.');
+      onFeedback('success', 'Связь с подборкой удалена.');
       router.refresh();
     } catch {
-      onFeedback('error', 'Network error while removing collection link.');
+      onFeedback('error', 'Сетевая ошибка при удалении связи.');
     } finally {
       onBusyChange(false);
     }
@@ -142,16 +142,16 @@ function AssignmentRow({
           className={styles.adminInput}
           value={sortOrder}
           onChange={(event) => setSortOrder(event.target.value)}
-          aria-label={`Sort order for ${assignment.title}`}
+          aria-label={`Порядок для ${assignment.title}`}
         />
         <button
           type="button"
           className={styles.adminActionButton}
           onClick={onSave}
           disabled={isDisabled}
-          aria-label={`Save ${assignment.title} collection link`}
+          aria-label={`Сохранить связь с подборкой ${assignment.title}`}
         >
-          Save
+          Сохранить
         </button>
       </div>
       <div className={styles.adminActions}>
@@ -160,9 +160,9 @@ function AssignmentRow({
           className={styles.adminDangerButton}
           onClick={onRemove}
           disabled={isDisabled}
-          aria-label={`Remove from ${assignment.title}`}
+          aria-label={`Убрать из подборки ${assignment.title}`}
         >
-          Remove
+          Удалить
         </button>
       </div>
     </article>
@@ -199,7 +199,7 @@ export function AdminProductCollectionsManager({
 
       const parsedSortOrder = Number(sortOrder);
       if (!Number.isInteger(parsedSortOrder) || parsedSortOrder < 0) {
-        setErrorMessage('Collection sort order should be a non-negative integer.');
+        setErrorMessage('Порядок в подборке должен быть неотрицательным целым числом.');
         isSubmittingRef.current = false;
         return;
       }
@@ -226,10 +226,10 @@ export function AdminProductCollectionsManager({
           return;
         }
 
-        setSuccessMessage('Collection link saved.');
+        setSuccessMessage('Связь с подборкой сохранена.');
         router.refresh();
       } catch {
-        setErrorMessage('Network error while linking collection.');
+        setErrorMessage('Сетевая ошибка при добавлении в подборку.');
       } finally {
         isSubmittingRef.current = false;
       }
@@ -240,19 +240,19 @@ export function AdminProductCollectionsManager({
     <section className={styles.adminCard}>
       <div className={styles.adminCardHead}>
         <div>
-          <h2 className={styles.adminCardTitle}>Product collections</h2>
+          <h2 className={styles.adminCardTitle}>Подборки товара</h2>
           <p className={styles.adminCardSub}>
-            Add the product to curated collections and control its order inside each one.
+            Добавляйте товар в подборки и управляйте его порядком внутри них.
           </p>
         </div>
-        <span className={styles.adminStatusBadge}>{assignments.length} links</span>
+        <span className={styles.adminStatusBadge}>{assignments.length} связей</span>
       </div>
 
       {availableCollections.length > 0 && (
         <form className={styles.adminForm} onSubmit={onAssign} aria-busy={isPending}>
           <div className={styles.adminInlineRow}>
             <label className={styles.adminField}>
-              <span className={styles.adminLabel}>Collection</span>
+              <span className={styles.adminLabel}>Подборка</span>
               <select
                 className={styles.adminSelect}
                 value={collectionId}
@@ -267,7 +267,7 @@ export function AdminProductCollectionsManager({
             </label>
 
             <label className={styles.adminField}>
-              <span className={styles.adminLabel}>Sort order</span>
+              <span className={styles.adminLabel}>Порядок</span>
               <input
                 type="number"
                 min="0"
@@ -283,17 +283,17 @@ export function AdminProductCollectionsManager({
             type="submit"
             className={styles.adminPrimaryButton}
             disabled={isPending}
-            aria-label="Assign product to collection"
+            aria-label="Добавить товар в подборку"
           >
-            {isPending ? 'Saving...' : 'Add to collection'}
+            {isPending ? 'Сохраняем...' : 'Добавить в подборку'}
           </button>
         </form>
       )}
 
       {assignments.length === 0 ? (
         <StoreEmptyState
-          title="No collection links yet"
-          description="Use collections to surface this product in curated storefront sections."
+          title="Связей с подборками пока нет"
+          description="Используйте подборки, чтобы выводить товар в тематических блоках витрины."
         />
       ) : (
         <div className={styles.adminCardList}>
@@ -322,7 +322,7 @@ export function AdminProductCollectionsManager({
       )}
 
       {availableCollections.length === 0 && collections.length > 0 && (
-        <p className={styles.adminCardSub}>This product is already linked to every available collection.</p>
+        <p className={styles.adminCardSub}>Товар уже добавлен во все доступные подборки.</p>
       )}
 
       {errorMessage && <p className={styles.adminError}>{errorMessage}</p>}
@@ -330,3 +330,4 @@ export function AdminProductCollectionsManager({
     </section>
   );
 }
+

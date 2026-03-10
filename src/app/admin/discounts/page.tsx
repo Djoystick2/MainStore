@@ -28,7 +28,7 @@ export default async function AdminDiscountsPage() {
     collectionsResult.status === 'error';
 
   return (
-    <AdminScreen title="Admin Discounts" subtitle="Manage pricing rules for products, categories, and collections" back={true}>
+    <AdminScreen title="Скидки" subtitle="Правила цен для товаров, категорий и подборок" back={true}>
       {message && (
         <section
           className={classNames(
@@ -36,12 +36,12 @@ export default async function AdminDiscountsPage() {
             hasError && storeStyles.dataNoticeError,
           )}
         >
-          <p className={storeStyles.dataNoticeTitle}>Discounts update</p>
+          <p className={storeStyles.dataNoticeTitle}>Обновление скидок</p>
           <p className={storeStyles.dataNoticeText}>{message}</p>
           {hasError && (
             <div className={storeStyles.dataNoticeActions}>
-              <Link href="/admin/discounts" className={storeStyles.dataNoticeRetry} aria-label="Retry loading discounts">
-                Retry
+              <Link href="/admin/discounts" className={storeStyles.dataNoticeRetry} aria-label="Повторить загрузку скидок">
+                Повторить
               </Link>
             </div>
           )}
@@ -60,8 +60,8 @@ export default async function AdminDiscountsPage() {
         />
       ) : (
         <StoreEmptyState
-          title="Discount workspace unavailable"
-          description="Discount data is temporarily unavailable. Retry in a moment."
+          title="Раздел скидок недоступен"
+          description="Данные по скидкам временно недоступны. Попробуйте чуть позже."
         />
       )}
     </AdminScreen>

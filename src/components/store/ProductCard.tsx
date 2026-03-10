@@ -58,7 +58,7 @@ export function ProductCard({ product, href, compact = false }: ProductCardProps
     <Link
       href={href}
       className={styles.productLink}
-      aria-label={`Open product ${product.title}`}
+      aria-label={`Открыть товар ${product.title}`}
     >
       {card}
     </Link>

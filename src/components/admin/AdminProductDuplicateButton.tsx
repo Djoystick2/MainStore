@@ -7,20 +7,20 @@ import styles from './admin.module.css';
 
 function mapDuplicateError(error: string | undefined): string {
   if (!error) {
-    return 'Could not duplicate product.';
+    return 'Не удалось дублировать товар.';
   }
 
   switch (error) {
     case 'not_configured':
-      return 'Admin backend is temporarily unavailable.';
+      return 'Админ-часть временно недоступна.';
     case 'product_not_found':
-      return 'This product is no longer available.';
+      return 'Этот товар больше недоступен.';
     case 'duplicate_slug_generation_failed':
-      return 'Could not prepare a unique slug for the duplicate.';
+      return 'Не удалось подготовить уникальный slug для копии.';
     case 'admin_access_denied':
-      return 'You do not have access to this admin action.';
+      return 'У вас нет доступа к этому действию.';
     default:
-      return 'Could not duplicate product. Please retry.';
+      return 'Не удалось дублировать товар. Попробуйте еще раз.';
   }
 }
 
@@ -31,7 +31,7 @@ interface AdminProductDuplicateButtonProps {
 
 export function AdminProductDuplicateButton({
   productId,
-  label = 'Duplicate',
+  label = 'Дублировать',
 }: AdminProductDuplicateButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -67,7 +67,7 @@ export function AdminProductDuplicateButton({
 
         router.push(`/admin/products/${data.id}/edit`);
       } catch {
-        setErrorMessage('Network error while duplicating product.');
+        setErrorMessage('Сетевая ошибка при дублировании товара.');
       } finally {
         isSubmittingRef.current = false;
       }
@@ -81,9 +81,9 @@ export function AdminProductDuplicateButton({
         className={styles.adminActionButton}
         onClick={handleDuplicate}
         disabled={isPending}
-        aria-label="Duplicate product"
+        aria-label="Дублировать товар"
       >
-        {isPending ? 'Duplicating...' : label}
+        {isPending ? 'Дублируем...' : label}
       </button>
       {errorMessage && <p className={styles.adminError}>{errorMessage}</p>}
     </>

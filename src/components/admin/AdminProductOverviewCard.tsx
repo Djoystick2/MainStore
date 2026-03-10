@@ -1,4 +1,4 @@
-import type { AdminProductDetail } from '@/features/admin';
+﻿import type { AdminProductDetail } from '@/features/admin';
 
 import styles from './admin.module.css';
 
@@ -10,12 +10,25 @@ function formatPrice(amount: number, currency: string) {
   }).format(amount);
 }
 
+function formatProductStatus(status: AdminProductDetail['status']): string {
+  switch (status) {
+    case 'draft':
+      return 'Черновик';
+    case 'active':
+      return 'Активен';
+    case 'archived':
+      return 'Архив';
+    default:
+      return status;
+  }
+}
+
 interface AdminProductOverviewCardProps {
   product: AdminProductDetail;
 }
 
 export function AdminProductOverviewCard({ product }: AdminProductOverviewCardProps) {
-  const stockLabel = product.stockQuantity > 0 ? 'In stock' : 'Out of stock';
+  const stockLabel = product.stockQuantity > 0 ? 'В наличии' : 'Нет в наличии';
 
   return (
     <section className={styles.adminCard}>
@@ -29,7 +42,7 @@ export function AdminProductOverviewCard({ product }: AdminProductOverviewCardPr
               }}
             />
           ) : (
-            <div className={styles.adminProductOverviewPlaceholder}>No primary image</div>
+            <div className={styles.adminProductOverviewPlaceholder}>Нет главного изображения</div>
           )}
         </div>
 
@@ -40,63 +53,63 @@ export function AdminProductOverviewCard({ product }: AdminProductOverviewCardPr
               <p className={styles.adminCardSub}>{product.slug}</p>
             </div>
             <div className={styles.adminBadgeRow}>
-              <span className={styles.adminStatusBadge}>{product.status}</span>
-              {product.isFeatured && <span className={styles.adminFeatureBadge}>Featured</span>}
+              <span className={styles.adminStatusBadge}>{formatProductStatus(product.status)}</span>
+              {product.isFeatured && <span className={styles.adminFeatureBadge}>Рекомендуемый</span>}
               <span className={styles.adminAvailabilityBadge}>{stockLabel}</span>
             </div>
           </div>
 
           <div className={styles.adminMetaGrid}>
             <div className={styles.adminMetaCell}>
-              <p className={styles.adminMetaLabel}>Price</p>
+              <p className={styles.adminMetaLabel}>Цена</p>
               <p className={styles.adminMetaValue}>{formatPrice(product.price, product.currency)}</p>
               {product.displayCompareAtPrice && product.displayCompareAtPrice > product.price && (
                 <p className={styles.adminCardSub}>
-                  Was {formatPrice(product.displayCompareAtPrice, product.currency)}
+                  Было {formatPrice(product.displayCompareAtPrice, product.currency)}
                 </p>
               )}
             </div>
             <div className={styles.adminMetaCell}>
-              <p className={styles.adminMetaLabel}>Stock</p>
+              <p className={styles.adminMetaLabel}>Остаток</p>
               <p className={styles.adminMetaValue}>{product.stockQuantity}</p>
             </div>
             <div className={styles.adminMetaCell}>
-              <p className={styles.adminMetaLabel}>Category</p>
-              <p className={styles.adminMetaValue}>{product.categoryTitle ?? 'No category'}</p>
+              <p className={styles.adminMetaLabel}>Категория</p>
+              <p className={styles.adminMetaValue}>{product.categoryTitle ?? 'Без категории'}</p>
             </div>
             <div className={styles.adminMetaCell}>
-              <p className={styles.adminMetaLabel}>Discount</p>
+              <p className={styles.adminMetaLabel}>Скидка</p>
               <p className={styles.adminMetaValue}>
                 {product.appliedDiscount
-                  ? `${product.appliedDiscount.badgeText} · ${product.appliedDiscount.scope}`
-                  : 'No active discount'}
+                  ? `${product.appliedDiscount.badgeText} В· ${product.appliedDiscount.scope}`
+                  : 'Нет активной скидки'}
               </p>
             </div>
           </div>
 
           <div className={styles.adminMetaGrid}>
             <div className={styles.adminMetaCell}>
-              <p className={styles.adminMetaLabel}>Collections</p>
+              <p className={styles.adminMetaLabel}>Подборки</p>
               <p className={styles.adminMetaValue}>
                 {product.collectionTitles.length > 0
                   ? product.collectionTitles.join(', ')
-                  : 'No collections'}
+                  : 'Нет подборок'}
               </p>
             </div>
             <div className={styles.adminMetaCell}>
-              <p className={styles.adminMetaLabel}>Images</p>
+              <p className={styles.adminMetaLabel}>Изображения</p>
               <p className={styles.adminMetaValue}>{product.imagesCount}</p>
             </div>
             <div className={styles.adminMetaCell}>
-              <p className={styles.adminMetaLabel}>Favorites</p>
+              <p className={styles.adminMetaLabel}>Избранное</p>
               <p className={styles.adminMetaValue}>{product.favoritesCount}</p>
             </div>
             <div className={styles.adminMetaCell}>
-              <p className={styles.adminMetaLabel}>In carts</p>
+              <p className={styles.adminMetaLabel}>В корзинах</p>
               <p className={styles.adminMetaValue}>{product.cartItemsCount}</p>
             </div>
             <div className={styles.adminMetaCell}>
-              <p className={styles.adminMetaLabel}>Order history links</p>
+              <p className={styles.adminMetaLabel}>Связи с заказами</p>
               <p className={styles.adminMetaValue}>{product.orderItemsCount}</p>
             </div>
           </div>
@@ -105,3 +118,4 @@ export function AdminProductOverviewCard({ product }: AdminProductOverviewCardPr
     </section>
   );
 }
+

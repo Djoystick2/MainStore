@@ -9,22 +9,35 @@ import styles from './admin.module.css';
 
 const statusOptions: ProductStatus[] = ['draft', 'active', 'archived'];
 
+function formatProductStatus(status: ProductStatus): string {
+  switch (status) {
+    case 'draft':
+      return 'Черновик';
+    case 'active':
+      return 'Активен';
+    case 'archived':
+      return 'Архив';
+    default:
+      return status;
+  }
+}
+
 function mapAdminProductStatusError(error: string | undefined): string {
   if (!error) {
-    return 'Could not update status.';
+    return 'Не удалось обновить статус.';
   }
 
   switch (error) {
     case 'not_configured':
-      return 'Admin backend is temporarily unavailable.';
+      return 'Админ-часть временно недоступна.';
     case 'invalid_status':
-      return 'Selected status is invalid.';
+      return 'Выбран некорректный статус.';
     case 'product_not_found':
-      return 'This product is no longer available.';
+      return 'Этот товар больше недоступен.';
     case 'admin_access_denied':
-      return 'You do not have access to this admin action.';
+      return 'У вас нет доступа к этому действию.';
     default:
-      return 'Could not update status. Please retry.';
+      return 'Не удалось обновить статус. Попробуйте еще раз.';
   }
 }
 
@@ -76,10 +89,10 @@ export function AdminProductStatusControl({
         }
 
         setSavedStatus(status);
-        setSuccessMessage('Status updated.');
+        setSuccessMessage('Статус обновлен.');
         router.refresh();
       } catch {
-        setErrorMessage('Network error while updating status.');
+        setErrorMessage('Сетевая ошибка при обновлении статуса.');
       } finally {
         isSubmittingRef.current = false;
       }
@@ -92,11 +105,11 @@ export function AdminProductStatusControl({
         value={status}
         onChange={(event) => setStatus(event.target.value as ProductStatus)}
         className={styles.adminSelect}
-        aria-label="Product status"
+        aria-label="Статус товара"
       >
         {statusOptions.map((option) => (
           <option key={option} value={option}>
-            {option}
+            {formatProductStatus(option)}
           </option>
         ))}
       </select>
@@ -105,9 +118,9 @@ export function AdminProductStatusControl({
         className={styles.adminActionButton}
         onClick={handleSave}
         disabled={isPending || status === savedStatus}
-        aria-label="Save product status"
+        aria-label="Сохранить статус товара"
       >
-        {isPending ? 'Saving...' : 'Save status'}
+        {isPending ? 'Сохраняем...' : 'Сохранить статус'}
       </button>
       {errorMessage && <p className={styles.adminError}>{errorMessage}</p>}
       {successMessage && <p className={styles.adminSuccess}>{successMessage}</p>}

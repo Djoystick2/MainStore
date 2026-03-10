@@ -10,7 +10,7 @@ import { getOrdersForProfile } from '@/features/orders/data';
 import styles from '@/components/store/store.module.css';
 
 function formatOrderDate(value: string): string {
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat('ru-RU', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -20,17 +20,17 @@ function formatOrderDate(value: string): string {
 function formatOrderStatus(status: string): string {
   switch (status) {
     case 'pending':
-      return 'Pending';
+      return 'Ожидает';
     case 'confirmed':
-      return 'Confirmed';
+      return 'Подтвержден';
     case 'processing':
-      return 'Processing';
+      return 'В обработке';
     case 'shipped':
-      return 'Shipped';
+      return 'Отправлен';
     case 'delivered':
-      return 'Delivered';
+      return 'Доставлен';
     case 'cancelled':
-      return 'Cancelled';
+      return 'Отменен';
     default:
       return status;
   }
@@ -61,7 +61,7 @@ export default async function OrdersPage() {
   const isSessionMissing = ordersData.status === 'unauthorized';
 
   return (
-    <StoreScreen title="My Orders" subtitle="Track each purchase in one place">
+    <StoreScreen title="Мои заказы" subtitle="Отслеживайте все покупки в одном месте">
       {ordersData.message && (
         <section
           className={classNames(
@@ -69,16 +69,16 @@ export default async function OrdersPage() {
             ordersData.status === 'error' && styles.dataNoticeError,
           )}
         >
-          <p className={styles.dataNoticeTitle}>Orders update</p>
+          <p className={styles.dataNoticeTitle}>Обновление заказов</p>
           <p className={styles.dataNoticeText}>{ordersData.message}</p>
           {(ordersData.status === 'error' || ordersData.status === 'not_configured') && (
             <div className={styles.dataNoticeActions}>
               <Link
                 href="/orders"
                 className={styles.dataNoticeRetry}
-                aria-label="Retry loading orders"
+                aria-label="Повторить загрузку заказов"
               >
-                Retry
+                Повторить
               </Link>
             </div>
           )}
@@ -87,21 +87,21 @@ export default async function OrdersPage() {
 
       {isSessionMissing ? (
         <StoreEmptyState
-          title="Orders need Telegram session"
-          description="Open MainStore in Telegram to access your order history."
-          actionLabel="Open catalog"
+          title="Нужна сессия Telegram"
+          description="Откройте MainStore в Telegram, чтобы увидеть историю заказов."
+          actionLabel="Открыть каталог"
           actionHref="/catalog"
         />
       ) : null}
 
-      <StoreSection title="Order stats">
+      <StoreSection title="Статистика заказов">
         <div className={styles.infoGrid}>
           <div className={styles.infoItem}>
-            <p className={styles.infoLabel}>Total orders</p>
+            <p className={styles.infoLabel}>Всего заказов</p>
             <p className={styles.infoValue}>{ordersData.totalOrders}</p>
           </div>
           <div className={styles.infoItem}>
-            <p className={styles.infoLabel}>In progress</p>
+            <p className={styles.infoLabel}>В работе</p>
             <p className={styles.infoValue}>{ordersData.inProgressOrders}</p>
           </div>
         </div>
@@ -109,26 +109,26 @@ export default async function OrdersPage() {
 
       {ordersData.status === 'ok' && ordersData.orders.length === 0 ? (
         <StoreEmptyState
-          title="No orders yet"
-          description="Place your first order from checkout and it will appear here."
-          actionLabel="Browse catalog"
+          title="Заказов пока нет"
+          description="Оформите первый заказ, и он появится здесь."
+          actionLabel="Открыть каталог"
           actionHref="/catalog"
         />
       ) : null}
 
       {ordersData.orders.length > 0 && (
-        <StoreSection title="Recent orders">
+        <StoreSection title="Последние заказы">
           <div className={styles.orderList}>
             {ordersData.orders.map((order) => (
               <Link
                 key={order.id}
                 href={`/orders/${order.id}`}
                 className={styles.orderCard}
-                aria-label={`Open order ${order.id}`}
+                aria-label={`Открыть заказ ${order.id}`}
               >
                 <div className={styles.orderCardHeader}>
                   <p className={styles.orderCardId}>
-                    Order #{order.id.slice(0, 8).toUpperCase()}
+                    Заказ #{order.id.slice(0, 8).toUpperCase()}
                   </p>
                   <span
                     className={classNames(
@@ -144,7 +144,7 @@ export default async function OrdersPage() {
                   <p className={styles.orderMetaItem}>
                     {formatStorePrice(order.totalCents, order.currency)}
                   </p>
-                  <p className={styles.orderMetaItem}>{order.itemsCount} items</p>
+                  <p className={styles.orderMetaItem}>{order.itemsCount} шт.</p>
                 </div>
               </Link>
             ))}

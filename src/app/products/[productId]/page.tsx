@@ -15,6 +15,19 @@ import { getProductStorefrontData } from '@/features/storefront/data';
 import { getFavoriteProductIdsForProfile } from '@/features/user-store/data';
 import styles from '@/components/store/store.module.css';
 
+function formatDiscountScope(scope: string): string {
+  switch (scope) {
+    case 'product':
+      return 'товара';
+    case 'category':
+      return 'категории';
+    case 'collection':
+      return 'подборки';
+    default:
+      return scope;
+  }
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -27,7 +40,7 @@ export async function generateMetadata({
   if (!product) {
     return {
       title: 'Product | MainStore',
-      description: 'Browse product details in MainStore catalog.',
+      description: 'Посмотрите детали товара в каталоге MainStore.',
     };
   }
 
@@ -78,8 +91,8 @@ export default async function ProductPage({
 
   return (
     <StoreScreen
-      title="Product"
-      subtitle={product ? product.title : 'Product details'}
+      title="Товар"
+      subtitle={product ? product.title : 'Детали товара'}
       back={true}
       showBottomNav={false}
     >
@@ -92,7 +105,7 @@ export default async function ProductPage({
               styles.dataNoticeError,
           )}
         >
-          <p className={styles.dataNoticeTitle}>Product update</p>
+          <p className={styles.dataNoticeTitle}>Обновление товара</p>
           <p className={styles.dataNoticeText}>{productData.message}</p>
           {(productData.status === 'error' ||
             productData.status === 'fallback_error' ||
@@ -101,9 +114,9 @@ export default async function ProductPage({
               <Link
                 href={product ? `/products/${product.slug}` : `/products/${productId}`}
                 className={styles.dataNoticeRetry}
-                aria-label="Retry loading product"
+                aria-label="Повторить загрузку товара"
               >
-                Retry
+                Повторить
               </Link>
             </div>
           )}
@@ -112,9 +125,9 @@ export default async function ProductPage({
 
       {!product ? (
         <StoreEmptyState
-          title="Product not found"
-          description="The requested product is missing or inactive. Open the catalog to continue browsing."
-          actionLabel="Go to catalog"
+          title="Товар не найден"
+          description="Товар не найден или сейчас неактивен. Откройте каталог, чтобы продолжить."
+          actionLabel="Перейти в каталог"
           actionHref="/catalog"
         />
       ) : (
@@ -134,7 +147,7 @@ export default async function ProductPage({
                 </div>
                 {product.appliedDiscount && (
                   <p className={styles.detailDiscountNote}>
-                    {product.appliedDiscount.badgeText} from {product.appliedDiscount.scope} discount &quot;{product.appliedDiscount.title}&quot;.
+                    {product.appliedDiscount.badgeText} по скидке {formatDiscountScope(product.appliedDiscount.scope)} «{product.appliedDiscount.title}».
                   </p>
                 )}
                 <p className={styles.detailDescription}>{product.description}</p>
@@ -152,23 +165,23 @@ export default async function ProductPage({
                   <Link
                     href="/catalog"
                     className={styles.secondaryInlineLink}
-                    aria-label="Back to catalog"
+                    aria-label="Вернуться в каталог"
                   >
-                    Back to catalog
+                    Вернуться в каталог
                   </Link>
                 </div>
               </div>
             </section>
 
             <section className={styles.panel}>
-              <h2 className={styles.panelTitle}>Share and reopen anytime</h2>
+              <h2 className={styles.panelTitle}>Поделиться и открыть позже</h2>
               <p className={styles.panelText}>
-                Product link works as a direct path and can be opened both inside Telegram and in a browser.
+                Ссылка на товар работает как прямой путь и открывается и в Telegram, и в браузере.
               </p>
             </section>
 
             {productData.relatedProducts.length > 0 && (
-              <StoreSection title="You may also like">
+              <StoreSection title="Может пригодиться">
                 <div className={styles.scrollRow}>
                   {productData.relatedProducts.map((item) => (
                     <ProductCard

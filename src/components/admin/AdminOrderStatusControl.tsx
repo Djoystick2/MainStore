@@ -16,20 +16,39 @@ const statusOptions: OrderStatus[] = [
   'cancelled',
 ];
 
+function formatOrderStatus(status: OrderStatus): string {
+  switch (status) {
+    case 'pending':
+      return 'Ожидает';
+    case 'confirmed':
+      return 'Подтвержден';
+    case 'processing':
+      return 'В обработке';
+    case 'shipped':
+      return 'Отправлен';
+    case 'delivered':
+      return 'Доставлен';
+    case 'cancelled':
+      return 'Отменен';
+    default:
+      return status;
+  }
+}
+
 function mapAdminOrderStatusError(error: string | undefined): string {
   if (!error) {
-    return 'Could not update order status.';
+    return 'Не удалось обновить статус заказа.';
   }
 
   switch (error) {
     case 'not_configured':
-      return 'Admin backend is temporarily unavailable.';
+      return 'Админ-часть временно недоступна.';
     case 'invalid_order_status':
-      return 'Selected order status is invalid.';
+      return 'Выбран некорректный статус заказа.';
     case 'admin_access_denied':
-      return 'You do not have access to this admin action.';
+      return 'У вас нет доступа к этому действию.';
     default:
-      return 'Could not update order status. Please retry.';
+      return 'Не удалось обновить статус заказа. Попробуйте еще раз.';
   }
 }
 
@@ -81,10 +100,10 @@ export function AdminOrderStatusControl({
         }
 
         setSavedStatus(status);
-        setSuccessMessage('Order status updated.');
+        setSuccessMessage('Статус заказа обновлен.');
         router.refresh();
       } catch {
-        setErrorMessage('Network error while updating order status.');
+        setErrorMessage('Сетевая ошибка при обновлении статуса.');
       } finally {
         isSubmittingRef.current = false;
       }
@@ -94,16 +113,16 @@ export function AdminOrderStatusControl({
   return (
     <div className={styles.adminForm}>
       <label className={styles.adminField}>
-        <span className={styles.adminLabel}>Order status</span>
+        <span className={styles.adminLabel}>Статус заказа</span>
         <select
           value={status}
           onChange={(event) => setStatus(event.target.value as OrderStatus)}
           className={styles.adminSelect}
-          aria-label="Order status"
+          aria-label="Статус заказа"
         >
           {statusOptions.map((option) => (
             <option key={option} value={option}>
-              {option}
+              {formatOrderStatus(option)}
             </option>
           ))}
         </select>
@@ -114,9 +133,9 @@ export function AdminOrderStatusControl({
         className={styles.adminPrimaryLink}
         onClick={handleSave}
         disabled={isPending || status === savedStatus}
-        aria-label="Update order status"
+        aria-label="Обновить статус заказа"
       >
-        {isPending ? 'Updating...' : 'Update status'}
+        {isPending ? 'Обновляем...' : 'Обновить статус'}
       </button>
 
       {errorMessage && <p className={styles.adminError}>{errorMessage}</p>}

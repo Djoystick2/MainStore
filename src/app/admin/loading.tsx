@@ -3,8 +3,8 @@ import { StoreLoadingView } from '@/components/store/StoreLoadingView';
 export default function AdminLoading() {
   return (
     <StoreLoadingView
-      title="Admin"
-      subtitle="Loading admin workspace"
+      title="Админка"
+      subtitle="Загружаем рабочую область"
       back={true}
       showBottomNav={false}
       mode="admin"

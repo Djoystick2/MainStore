@@ -7,18 +7,18 @@ import styles from './admin.module.css';
 
 function mapFeaturedToggleError(error: string | undefined): string {
   if (!error) {
-    return 'Could not update featured state.';
+    return 'Не удалось обновить признак продвижения.';
   }
 
   switch (error) {
     case 'not_configured':
-      return 'Admin backend is temporarily unavailable.';
+      return 'Админ-часть временно недоступна.';
     case 'product_not_found':
-      return 'This product is no longer available.';
+      return 'Этот товар больше недоступен.';
     case 'admin_access_denied':
-      return 'You do not have access to this admin action.';
+      return 'У вас нет доступа к этому действию.';
     default:
-      return 'Could not update featured state. Please retry.';
+      return 'Не удалось обновить признак продвижения. Попробуйте еще раз.';
   }
 }
 
@@ -70,10 +70,10 @@ export function AdminProductFeatureToggle({
         }
 
         setSavedIsFeatured(isFeatured);
-        setSuccessMessage(isFeatured ? 'Product promoted.' : 'Featured state cleared.');
+        setSuccessMessage(isFeatured ? 'Товар выделен.' : 'Выделение снято.');
         router.refresh();
       } catch {
-        setErrorMessage('Network error while updating featured state.');
+        setErrorMessage('Сетевая ошибка при обновлении признака.');
       } finally {
         isSubmittingRef.current = false;
       }
@@ -89,16 +89,16 @@ export function AdminProductFeatureToggle({
           checked={isFeatured}
           onChange={(event) => setIsFeatured(event.target.checked)}
         />
-        <span className={styles.adminLabel}>Featured</span>
+        <span className={styles.adminLabel}>Рекомендуемый</span>
       </label>
       <button
         type="button"
         className={styles.adminActionButton}
         onClick={handleSave}
         disabled={isPending || isFeatured === savedIsFeatured}
-        aria-label="Save featured state"
+        aria-label="Сохранить признак рекомендации"
       >
-        {isPending ? 'Saving...' : 'Save featured'}
+        {isPending ? 'Сохраняем...' : 'Сохранить'}
       </button>
       {errorMessage && <p className={styles.adminError}>{errorMessage}</p>}
       {successMessage && <p className={styles.adminSuccess}>{successMessage}</p>}

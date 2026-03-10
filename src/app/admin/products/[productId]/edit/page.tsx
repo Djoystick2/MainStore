@@ -24,7 +24,7 @@ export default async function AdminEditProductPage({
   const detailResult = await getAdminProductDetail(productId);
 
   return (
-    <AdminScreen title="Edit Product" subtitle="Manage content, publication, images, and deletion" back={true}>
+    <AdminScreen title="Карточка товара" subtitle="Контент, публикация, изображения и удаление" back={true}>
       {detailResult.message && (
         <section
           className={classNames(
@@ -32,16 +32,16 @@ export default async function AdminEditProductPage({
             detailResult.status === 'error' && storeStyles.dataNoticeError,
           )}
         >
-          <p className={storeStyles.dataNoticeTitle}>Product details update</p>
+          <p className={storeStyles.dataNoticeTitle}>Обновление карточки товара</p>
           <p className={storeStyles.dataNoticeText}>{detailResult.message}</p>
           {(detailResult.status === 'error' || detailResult.status === 'not_configured') && (
             <div className={storeStyles.dataNoticeActions}>
               <Link
                 href={`/admin/products/${productId}/edit`}
                 className={storeStyles.dataNoticeRetry}
-                aria-label="Retry loading product details"
+                aria-label="Повторить загрузку карточки товара"
               >
-                Retry
+                Повторить
               </Link>
             </div>
           )}
@@ -50,18 +50,18 @@ export default async function AdminEditProductPage({
 
       <div className={adminStyles.adminActions}>
         <Link href="/admin/products" className={adminStyles.adminActionLink}>
-          Back to products
+          К товарам
         </Link>
         {detailResult.product && (
-          <AdminProductDuplicateButton productId={detailResult.product.id} label="Duplicate card" />
+          <AdminProductDuplicateButton productId={detailResult.product.id} label="Дублировать" />
         )}
       </div>
 
       {!detailResult.product ? (
         <StoreEmptyState
-          title="Product not found"
-          description="Requested product does not exist."
-          actionLabel="Back to products"
+          title="Товар не найден"
+          description="Запрошенный товар не существует."
+          actionLabel="К товарам"
           actionHref="/admin/products"
         />
       ) : (
@@ -69,9 +69,9 @@ export default async function AdminEditProductPage({
           <AdminProductOverviewCard product={detailResult.product} />
 
           <section className={adminStyles.adminCard}>
-            <h2 className={adminStyles.adminCardTitle}>Quick controls</h2>
+            <h2 className={adminStyles.adminCardTitle}>Быстрые действия</h2>
             <p className={adminStyles.adminCardSub}>
-              Adjust publication and promotion without opening the full form.
+              Меняйте публикацию и продвижение без полной формы.
             </p>
             <div className={adminStyles.adminStackActions}>
               <AdminProductStatusControl

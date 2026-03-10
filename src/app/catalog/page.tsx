@@ -90,21 +90,21 @@ export default async function CatalogPage({
     searchQuery || (selectedCategory && selectedCategory.id !== 'all') || selectedCollection,
   );
   const resultsTitle = selectedCollection
-    ? `${selectedCollection.title} collection`
+    ? `Подборка «${selectedCollection.title}»`
     : selectedCategory && selectedCategory.id !== 'all'
-      ? `${selectedCategory.title} products`
-      : 'All products';
+      ? selectedCategory.title
+      : 'Все товары';
 
   return (
-    <StoreScreen title="Catalog" subtitle="Find products by category, collection, or keyword">
+    <StoreScreen title="Каталог" subtitle="Ищите товары по категории, подборке или названию">
       <form action="/catalog" method="get" className={styles.searchRow}>
         <input
           className={styles.searchInput}
           name="q"
           type="text"
-          placeholder="Search products"
+          placeholder="Поиск товаров"
           defaultValue={searchQueryRaw}
-          aria-label="Search products"
+          aria-label="Поиск товаров"
         />
         {selectedCategory && selectedCategory.id !== 'all' && (
           <input type="hidden" name="category" value={selectedCategory.slug} />
@@ -115,9 +115,9 @@ export default async function CatalogPage({
         <button
           type="submit"
           className={styles.filterButton}
-          aria-label="Apply catalog search"
+          aria-label="Применить поиск по каталогу"
         >
-          Search
+          Найти
         </button>
       </form>
 
@@ -136,7 +136,7 @@ export default async function CatalogPage({
                 ? selectedCategory.id === category.id
                 : index === 0) && styles.chipActive,
             )}
-            aria-label={`Filter by ${category.title}`}
+            aria-label={`Фильтр по категории ${category.title}`}
           >
             {category.title}
           </Link>
@@ -144,7 +144,7 @@ export default async function CatalogPage({
       </div>
 
       {catalogData.collections.length > 0 && (
-        <StoreSection title="Curated collections">
+        <StoreSection title="Подборки">
           <div className={styles.collectionRail}>
             {catalogData.collections.slice(0, 6).map((collection) => (
               <Link
@@ -162,11 +162,11 @@ export default async function CatalogPage({
                   styles.collectionCard,
                   selectedCollection?.slug === collection.slug && styles.collectionCardActive,
                 )}
-                aria-label={`Open ${collection.title} collection`}
+                aria-label={`Открыть подборку ${collection.title}`}
               >
                 <p className={styles.collectionTitle}>{collection.title}</p>
                 <p className={styles.collectionDescription}>
-                  {collection.description || 'Curated picks'}
+                  {collection.description || 'Подборка товаров'}
                 </p>
                 <div className={styles.collectionItems}>
                   {collection.products.slice(0, 2).map((product) => (
@@ -188,7 +188,7 @@ export default async function CatalogPage({
             catalogData.status === 'fallback_error' && styles.dataNoticeError,
           )}
         >
-          <p className={styles.dataNoticeTitle}>Catalog update</p>
+          <p className={styles.dataNoticeTitle}>Обновление каталога</p>
           <p className={styles.dataNoticeText}>{catalogData.message}</p>
           {(catalogData.status === 'fallback_error' ||
             catalogData.status === 'fallback_env') && (
@@ -196,9 +196,9 @@ export default async function CatalogPage({
               <Link
                 href="/catalog"
                 className={styles.dataNoticeRetry}
-                aria-label="Retry loading catalog"
+                aria-label="Повторить загрузку каталога"
               >
-                Retry
+                Повторить
               </Link>
             </div>
           )}
@@ -206,8 +206,8 @@ export default async function CatalogPage({
       )}
 
       {hasActiveFilters && (
-        <Link href="/catalog" className={styles.secondaryInlineLink} aria-label="Clear all filters">
-          Clear filters
+        <Link href="/catalog" className={styles.secondaryInlineLink} aria-label="Сбросить все фильтры">
+          Сбросить фильтры
         </Link>
       )}
 
@@ -229,14 +229,14 @@ export default async function CatalogPage({
       <StoreSection title={resultsTitle}>
         {catalogData.status === 'empty' ? (
           <StoreEmptyState
-            title="Catalog is empty"
-            description="There are no active products yet. Publish products in admin and return here."
+            title="Каталог пуст"
+            description="Активных товаров пока нет. Опубликуйте их в админке и вернитесь сюда."
           />
         ) : filteredProducts.length === 0 ? (
           <StoreEmptyState
-            title="No products matched"
-            description="Try another category or reset search filters."
-            actionLabel="Reset filters"
+            title="Ничего не найдено"
+            description="Попробуйте другую категорию или сбросьте фильтры."
+            actionLabel="Сбросить фильтры"
             actionHref="/catalog"
           />
         ) : (

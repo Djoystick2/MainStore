@@ -11,7 +11,7 @@ import { getOrderDetailForProfile } from '@/features/orders/data';
 import styles from '@/components/store/store.module.css';
 
 function formatOrderDate(value: string): string {
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat('ru-RU', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -21,17 +21,17 @@ function formatOrderDate(value: string): string {
 function formatOrderStatus(status: string): string {
   switch (status) {
     case 'pending':
-      return 'Pending';
+      return 'Ожидает';
     case 'confirmed':
-      return 'Confirmed';
+      return 'Подтвержден';
     case 'processing':
-      return 'Processing';
+      return 'В обработке';
     case 'shipped':
-      return 'Shipped';
+      return 'Отправлен';
     case 'delivered':
-      return 'Delivered';
+      return 'Доставлен';
     case 'cancelled':
-      return 'Cancelled';
+      return 'Отменен';
     default:
       return status;
   }
@@ -81,7 +81,7 @@ export default async function OrderDetailPage({
   const order = orderData.order;
 
   return (
-    <StoreScreen title="Order" subtitle="Order details and delivery info" back={true}>
+    <StoreScreen title="Заказ" subtitle="Детали заказа и доставка" back={true}>
       {orderData.message && (
         <section
           className={classNames(
@@ -89,16 +89,16 @@ export default async function OrderDetailPage({
             orderData.status === 'error' && styles.dataNoticeError,
           )}
         >
-          <p className={styles.dataNoticeTitle}>Order update</p>
+          <p className={styles.dataNoticeTitle}>Обновление заказа</p>
           <p className={styles.dataNoticeText}>{orderData.message}</p>
           {(orderData.status === 'error' || orderData.status === 'not_configured') && (
             <div className={styles.dataNoticeActions}>
               <Link
                 href={`/orders/${orderId}`}
                 className={styles.dataNoticeRetry}
-                aria-label="Retry loading order details"
+                aria-label="Повторить загрузку заказа"
               >
-                Retry
+                Повторить
               </Link>
             </div>
           )}
@@ -107,18 +107,18 @@ export default async function OrderDetailPage({
 
       {orderData.status === 'unauthorized' ? (
         <StoreEmptyState
-          title="Order details need Telegram session"
-          description="Open MainStore in Telegram to view your orders."
-          actionLabel="Open catalog"
+          title="Нужна сессия Telegram"
+          description="Откройте MainStore в Telegram, чтобы посмотреть свои заказы."
+          actionLabel="Открыть каталог"
           actionHref="/catalog"
         />
       ) : null}
 
       {orderData.status === 'not_found' ? (
         <StoreEmptyState
-          title="Order not found"
-          description="This order does not exist or does not belong to your account."
-          actionLabel="Back to orders"
+          title="Заказ не найден"
+          description="Такого заказа нет или он не относится к вашему аккаунту."
+          actionLabel="К заказам"
           actionHref="/orders"
         />
       ) : null}
@@ -128,7 +128,7 @@ export default async function OrderDetailPage({
           <section className={styles.panel}>
             <div className={styles.orderCardHeader}>
               <h2 className={styles.panelTitle}>
-                Order #{order.id.slice(0, 8).toUpperCase()}
+                Заказ #{order.id.slice(0, 8).toUpperCase()}
               </h2>
               <span
                 className={classNames(
@@ -142,24 +142,24 @@ export default async function OrderDetailPage({
             <p className={styles.panelText}>{formatOrderDate(order.createdAt)}</p>
           </section>
 
-          <StoreSection title="Summary">
+          <StoreSection title="Сводка">
             <div className={styles.infoGrid}>
               <div className={styles.infoItem}>
-                <p className={styles.infoLabel}>Subtotal</p>
+                <p className={styles.infoLabel}>Подытог</p>
                 <p className={styles.infoValue}>
                   {formatStorePrice(order.subtotalCents, order.currency)}
                 </p>
               </div>
               {order.discountCents > 0 && (
                 <div className={styles.infoItem}>
-                  <p className={styles.infoLabel}>Discounts</p>
+                  <p className={styles.infoLabel}>Скидка</p>
                   <p className={styles.infoValue}>
                     {formatStorePrice(order.discountCents, order.currency)}
                   </p>
                 </div>
               )}
               <div className={styles.infoItem}>
-                <p className={styles.infoLabel}>Total</p>
+                <p className={styles.infoLabel}>Итого</p>
                 <p className={styles.infoValue}>
                   {formatStorePrice(order.totalCents, order.currency)}
                 </p>
@@ -167,29 +167,29 @@ export default async function OrderDetailPage({
             </div>
           </StoreSection>
 
-          <StoreSection title="Shipping">
+          <StoreSection title="Доставка">
             <div className={styles.orderDetailsGrid}>
               <p className={styles.orderDetailsValue}>
-                {order.customerDisplayName || 'Customer'}
+                {order.customerDisplayName || 'Покупатель'}
               </p>
               <p className={styles.orderDetailsValue}>
-                {order.customerPhone || 'Phone not specified'}
+                {order.customerPhone || 'Телефон не указан'}
               </p>
               <p className={styles.orderDetailsMuted}>
-                {order.shippingAddress.city || 'City not specified'}
+                {order.shippingAddress.city || 'Город не указан'}
               </p>
               <p className={styles.orderDetailsMuted}>
-                {order.shippingAddress.addressLine || 'Address not specified'}
+                {order.shippingAddress.addressLine || 'Адрес не указан'}
               </p>
               {order.shippingAddress.postalCode && (
                 <p className={styles.orderDetailsMuted}>
-                  Postal: {order.shippingAddress.postalCode}
+                  Индекс: {order.shippingAddress.postalCode}
                 </p>
               )}
             </div>
           </StoreSection>
 
-          <StoreSection title="Items">
+          <StoreSection title="Товары">
             <div className={styles.orderItemsList}>
               {order.items.map((item) => {
                 const preview = (
@@ -217,7 +217,7 @@ export default async function OrderDetailPage({
                       key={item.id}
                       href={`/products/${item.productSlug}`}
                       className={styles.orderItemRow}
-                      aria-label={`Open ${item.productTitle}`}
+                      aria-label={`Открыть товар ${item.productTitle}`}
                     >
                       {preview}
                     </Link>
@@ -235,7 +235,7 @@ export default async function OrderDetailPage({
 
           {order.notes && (
             <section className={styles.panel}>
-              <h2 className={styles.panelTitle}>Customer comment</h2>
+              <h2 className={styles.panelTitle}>Комментарий покупателя</h2>
               <p className={styles.panelText}>{order.notes}</p>
             </section>
           )}

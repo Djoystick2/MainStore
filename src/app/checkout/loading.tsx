@@ -3,8 +3,8 @@ import { StoreLoadingView } from '@/components/store/StoreLoadingView';
 export default function CheckoutLoading() {
   return (
     <StoreLoadingView
-      title="Checkout"
-      subtitle="Loading checkout details"
+      title="Оформление"
+      subtitle="Загружаем оформление"
       back={true}
       showBottomNav={true}
       mode="cart"

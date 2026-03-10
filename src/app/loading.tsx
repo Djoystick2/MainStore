@@ -3,8 +3,8 @@ import { StoreLoadingView } from '@/components/store/StoreLoadingView';
 export default function HomeLoading() {
   return (
     <StoreLoadingView
-      title="Home"
-      subtitle="Loading storefront"
+      title="Главная"
+      subtitle="Загружаем витрину"
       back={false}
       showBottomNav={true}
       mode="home"

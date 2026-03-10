@@ -10,8 +10,8 @@ export default async function AdminLayout({ children }: PropsWithChildren) {
   if (!access.ok) {
     return (
       <AdminScreen
-        title="Admin"
-        subtitle="Restricted workspace"
+        title="Админка"
+        subtitle="Доступ ограничен"
         back={true}
       >
         <AdminNoAccessState reason={access.reason ?? 'forbidden'} />

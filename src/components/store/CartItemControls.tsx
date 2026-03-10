@@ -14,12 +14,12 @@ interface CartItemControlsProps {
 
 function mapCartError(error: string): string {
   if (error === 'unauthorized') {
-    return 'Open MainStore in Telegram to manage cart.';
+    return 'Откройте MainStore в Telegram, чтобы управлять корзиной.';
   }
   if (error === 'not_configured') {
-    return 'Cart is temporarily unavailable.';
+    return 'Корзина временно недоступна.';
   }
-  return 'Could not update cart item.';
+  return 'Не удалось обновить товар в корзине.';
 }
 
 export function CartItemControls({ itemId, quantity }: CartItemControlsProps) {
@@ -62,11 +62,11 @@ export function CartItemControls({ itemId, quantity }: CartItemControlsProps) {
         }
 
         setStatusMessage(
-          normalizedQuantity === 0 ? 'Item removed from cart.' : 'Cart item updated.',
+          normalizedQuantity === 0 ? 'Товар удален из корзины.' : 'Корзина обновлена.',
         );
         router.refresh();
       } catch {
-        setStatusMessage('Network error while updating cart item.');
+        setStatusMessage('Сетевая ошибка при обновлении корзины.');
         setIsError(true);
       } finally {
         isSubmittingRef.current = false;
@@ -103,10 +103,10 @@ export function CartItemControls({ itemId, quantity }: CartItemControlsProps) {
           return;
         }
 
-        setStatusMessage('Item removed from cart.');
+        setStatusMessage('Товар удален из корзины.');
         router.refresh();
       } catch {
-        setStatusMessage('Network error while removing cart item.');
+        setStatusMessage('Сетевая ошибка при удалении товара.');
         setIsError(true);
       } finally {
         isSubmittingRef.current = false;
@@ -116,13 +116,13 @@ export function CartItemControls({ itemId, quantity }: CartItemControlsProps) {
 
   return (
     <div className={styles.cartItemControls}>
-      <div className={styles.quantityControl} aria-label="Cart item quantity controls">
+      <div className={styles.quantityControl} aria-label="Управление количеством">
         <button
           type="button"
           className={styles.quantityButton}
           onClick={() => updateQuantity(quantity - 1)}
           disabled={isPending}
-          aria-label="Decrease quantity"
+          aria-label="Уменьшить количество"
         >
           -
         </button>
@@ -134,7 +134,7 @@ export function CartItemControls({ itemId, quantity }: CartItemControlsProps) {
           className={styles.quantityButton}
           onClick={() => updateQuantity(quantity + 1)}
           disabled={isPending}
-          aria-label="Increase quantity"
+          aria-label="Увеличить количество"
         >
           +
         </button>
@@ -145,9 +145,9 @@ export function CartItemControls({ itemId, quantity }: CartItemControlsProps) {
         className={styles.cartRemoveButton}
         onClick={removeItem}
         disabled={isPending}
-        aria-label="Remove item from cart"
+        aria-label="Удалить товар из корзины"
       >
-        Remove
+        Удалить
       </button>
 
       {statusMessage && (

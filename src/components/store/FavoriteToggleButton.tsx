@@ -15,12 +15,12 @@ interface FavoriteToggleButtonProps {
 
 function mapFavoriteError(error: string): string {
   if (error === 'unauthorized') {
-    return 'Open MainStore in Telegram to use favorites.';
+    return 'Откройте MainStore в Telegram, чтобы пользоваться избранным.';
   }
   if (error === 'not_configured') {
-    return 'Favorites are temporarily unavailable.';
+    return 'Избранное временно недоступно.';
   }
-  return 'Could not update favorites.';
+  return 'Не удалось обновить избранное.';
 }
 
 export function FavoriteToggleButton({
@@ -37,9 +37,9 @@ export function FavoriteToggleButton({
 
   const label = useMemo(() => {
     if (isFavorited) {
-      return compact ? 'Saved' : 'Saved in favorites';
+      return compact ? 'Сохранено' : 'В избранном';
     }
-    return compact ? 'Save' : 'Add to favorites';
+    return compact ? 'Сохранить' : 'В избранное';
   }, [compact, isFavorited]);
 
   const handleToggle = () => {
@@ -76,11 +76,11 @@ export function FavoriteToggleButton({
         }
 
         setIsFavorited(payload.favorited);
-        setStatusMessage(payload.favorited ? 'Added to favorites.' : 'Removed from favorites.');
+        setStatusMessage(payload.favorited ? 'Добавлено в избранное.' : 'Удалено из избранного.');
         setIsError(false);
         router.refresh();
       } catch {
-        setStatusMessage('Network error while updating favorites.');
+        setStatusMessage('Сетевая ошибка при обновлении избранного.');
         setIsError(true);
       } finally {
         isSubmittingRef.current = false;
@@ -101,9 +101,9 @@ export function FavoriteToggleButton({
         onClick={handleToggle}
         disabled={isPending}
         aria-pressed={isFavorited}
-        aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+        aria-label={isFavorited ? 'Убрать из избранного' : 'Добавить в избранное'}
       >
-        {isPending ? 'Saving...' : label}
+        {isPending ? 'Сохраняем...' : label}
       </button>
       {!compact && statusMessage && (
         <p

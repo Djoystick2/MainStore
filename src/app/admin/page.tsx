@@ -11,7 +11,7 @@ export default async function AdminPage() {
   const dashboard = await getAdminDashboardData();
 
   return (
-    <AdminScreen title="Admin Dashboard" subtitle="Manage catalog and orders">
+    <AdminScreen title="Админка" subtitle="Управление каталогом и заказами">
       {dashboard.message && (
         <section
           className={classNames(
@@ -19,16 +19,16 @@ export default async function AdminPage() {
             dashboard.status === 'error' && storeStyles.dataNoticeError,
           )}
         >
-          <p className={storeStyles.dataNoticeTitle}>Admin update</p>
+          <p className={storeStyles.dataNoticeTitle}>Обновление админки</p>
           <p className={storeStyles.dataNoticeText}>{dashboard.message}</p>
           {(dashboard.status === 'error' || dashboard.status === 'not_configured') && (
             <div className={storeStyles.dataNoticeActions}>
               <Link
                 href="/admin"
                 className={storeStyles.dataNoticeRetry}
-                aria-label="Retry loading admin dashboard"
+                aria-label="Повторить загрузку админки"
               >
-                Retry
+                Повторить
               </Link>
             </div>
           )}
@@ -38,24 +38,24 @@ export default async function AdminPage() {
       {dashboard.dashboard ? (
         <>
           <section className={storeStyles.section}>
-            <h2 className={storeStyles.sectionTitle}>Store metrics</h2>
+            <h2 className={storeStyles.sectionTitle}>Показатели магазина</h2>
             <div className={storeStyles.infoGrid}>
               <div className={storeStyles.infoItem}>
-                <p className={storeStyles.infoLabel}>Products</p>
+                <p className={storeStyles.infoLabel}>Товары</p>
                 <p className={storeStyles.infoValue}>{dashboard.dashboard.productsCount}</p>
               </div>
               <div className={storeStyles.infoItem}>
-                <p className={storeStyles.infoLabel}>Orders</p>
+                <p className={storeStyles.infoLabel}>Заказы</p>
                 <p className={storeStyles.infoValue}>{dashboard.dashboard.ordersCount}</p>
               </div>
               <div className={storeStyles.infoItem}>
-                <p className={storeStyles.infoLabel}>Active products</p>
+                <p className={storeStyles.infoLabel}>Активные товары</p>
                 <p className={storeStyles.infoValue}>
                   {dashboard.dashboard.activeProductsCount}
                 </p>
               </div>
               <div className={storeStyles.infoItem}>
-                <p className={storeStyles.infoLabel}>Pending orders</p>
+                <p className={storeStyles.infoLabel}>Ожидающие заказы</p>
                 <p className={storeStyles.infoValue}>
                   {dashboard.dashboard.pendingOrdersCount}
                 </p>
@@ -64,27 +64,27 @@ export default async function AdminPage() {
           </section>
 
           <section className={adminStyles.adminCard}>
-            <h2 className={adminStyles.adminCardTitle}>Management links</h2>
+            <h2 className={adminStyles.adminCardTitle}>Разделы управления</h2>
             <div className={adminStyles.adminActions}>
               <Link href="/admin/products" className={adminStyles.adminPrimaryLink}>
-                Open products
+                Товары
               </Link>
               <Link href="/admin/discounts" className={adminStyles.adminActionLink}>
-                Open discounts
+                Скидки
               </Link>
               <Link href="/admin/orders" className={adminStyles.adminActionLink}>
-                Open orders
+                Заказы
               </Link>
               <Link href="/admin/import" className={adminStyles.adminActionLink}>
-                Import scaffold
+                Импорт
               </Link>
             </div>
           </section>
         </>
       ) : (
         <StoreEmptyState
-          title="Admin data is unavailable"
-          description="Admin data is temporarily unavailable. Retry in a moment."
+          title="Данные админки недоступны"
+          description="Попробуйте обновить страницу чуть позже."
         />
       )}
     </AdminScreen>

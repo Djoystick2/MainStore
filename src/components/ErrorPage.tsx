@@ -16,7 +16,7 @@ export function ErrorPage({
   const details =
     process.env.NODE_ENV === 'development'
       ? error.message
-      : 'Try reopening this screen from the main navigation.';
+      : 'Попробуйте открыть этот экран заново из основной навигации.';
 
   return (
     <main
@@ -39,7 +39,7 @@ export function ErrorPage({
         }}
       >
         <h2 style={{ margin: '0 0 8px', fontSize: '24px', lineHeight: 1.1 }}>
-          Something went wrong
+          Что-то пошло не так
         </h2>
         <p style={{ margin: 0, color: '#5f6b7e', lineHeight: 1.4 }}>{details}</p>
         <div
@@ -63,7 +63,7 @@ export function ErrorPage({
                 fontWeight: 700,
               }}
             >
-              Try again
+              Повторить
             </button>
           )}
           <Link
@@ -81,7 +81,7 @@ export function ErrorPage({
               fontWeight: 700,
             }}
           >
-            Go home
+            На главную
           </Link>
         </div>
       </section>

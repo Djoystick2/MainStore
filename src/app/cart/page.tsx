@@ -38,7 +38,7 @@ export default async function CartPage() {
     : '$0';
 
   return (
-    <StoreScreen title="Cart" subtitle="Review items before checkout">
+    <StoreScreen title="Корзина" subtitle="Проверьте товары перед оформлением">
       {cartData.message && (
         <section
           className={classNames(
@@ -46,37 +46,37 @@ export default async function CartPage() {
             cartData.status === 'error' && styles.dataNoticeError,
           )}
         >
-          <p className={styles.dataNoticeTitle}>Cart update</p>
+          <p className={styles.dataNoticeTitle}>Обновление корзины</p>
           <p className={styles.dataNoticeText}>{cartData.message}</p>
           {(cartData.status === 'error' || cartData.status === 'not_configured') && (
             <div className={styles.dataNoticeActions}>
-              <Link href="/cart" className={styles.dataNoticeRetry} aria-label="Retry loading cart">
-                Retry
+              <Link href="/cart" className={styles.dataNoticeRetry} aria-label="Повторить загрузку корзины">
+                Повторить
               </Link>
             </div>
           )}
         </section>
       )}
 
-      <StoreSection title="Summary">
+      <StoreSection title="Сводка">
         <div className={styles.infoGrid}>
           <div className={styles.infoItem}>
-            <p className={styles.infoLabel}>Items</p>
+            <p className={styles.infoLabel}>Товаров</p>
             <p className={styles.infoValue}>{cartData.itemCount}</p>
           </div>
           {cartData.discountTotalCents > 0 && (
             <div className={styles.infoItem}>
-              <p className={styles.infoLabel}>Before discounts</p>
+              <p className={styles.infoLabel}>До скидок</p>
               <p className={styles.infoValue}>{baseSubtotalLabel}</p>
             </div>
           )}
           <div className={styles.infoItem}>
-            <p className={styles.infoLabel}>Total</p>
+            <p className={styles.infoLabel}>Итого</p>
             <p className={styles.infoValue}>{subtotalLabel}</p>
           </div>
           {cartData.discountTotalCents > 0 && (
             <div className={styles.infoItem}>
-              <p className={styles.infoLabel}>You save</p>
+              <p className={styles.infoLabel}>Экономия</p>
               <p className={styles.infoValue}>{discountLabel}</p>
             </div>
           )}
@@ -87,39 +87,39 @@ export default async function CartPage() {
         <Link
           href="/checkout"
           className={styles.primaryLinkButton}
-          aria-label="Proceed to checkout"
+          aria-label="Перейти к оформлению"
         >
-          Proceed to checkout
+          К оформлению
         </Link>
       )}
 
       {isSessionMissing ? (
         <StoreEmptyState
-          title="Cart needs Telegram session"
-          description="Open MainStore in Telegram to load your personal cart."
-          actionLabel="Browse catalog"
+          title="Нужна сессия Telegram"
+          description="Откройте MainStore в Telegram, чтобы загрузить личную корзину."
+          actionLabel="Открыть каталог"
           actionHref="/catalog"
         />
       ) : null}
 
       {isEmpty ? (
         <StoreEmptyState
-          title="Your cart is empty"
-          description="Add products from catalog and they will appear here."
-          actionLabel="Go to catalog"
+          title="Корзина пуста"
+          description="Добавьте товары из каталога, и они появятся здесь."
+          actionLabel="Перейти в каталог"
           actionHref="/catalog"
         />
       ) : null}
 
       {cartData.items.length > 0 && (
-        <StoreSection title="Items in cart">
+        <StoreSection title="Товары в корзине">
           <div className={styles.cartList}>
             {cartData.items.map((item) => (
               <article key={item.id} className={styles.cartItem}>
                 <Link
                   href={`/products/${item.product.slug}`}
                   className={styles.cartItemPreview}
-                  aria-label={`Open ${item.product.title}`}
+                  aria-label={`Открыть товар ${item.product.title}`}
                 >
                   <div
                     className={styles.cartItemImage}
@@ -146,7 +146,7 @@ export default async function CartPage() {
                       </p>
                     )}
                     <p className={styles.cartItemLineTotal}>
-                      Line total: {formatStorePrice(item.lineTotalCents, item.product.currency)}
+                      Сумма: {formatStorePrice(item.lineTotalCents, item.product.currency)}
                     </p>
                   </div>
                 </Link>
@@ -159,9 +159,9 @@ export default async function CartPage() {
       )}
 
       <section className={styles.panel}>
-        <h2 className={styles.panelTitle}>Checkout without payment integration</h2>
+        <h2 className={styles.panelTitle}>Оплата пока не подключена</h2>
         <p className={styles.panelText}>
-          Payment providers are intentionally not connected at this stage.
+          На этом этапе платежные провайдеры намеренно не подключены.
         </p>
       </section>
     </StoreScreen>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useRef, useState, useTransition, type FormEventHandler } from 'react';
 import { useRouter } from 'next/navigation';
@@ -12,12 +12,6 @@ import type {
 import styles from './admin.module.css';
 
 const statusOptions: ProductStatus[] = ['draft', 'active', 'archived'];
-
-interface AdminProductFormProps {
-  mode: 'create' | 'edit';
-  product?: AdminProductDetail | null;
-  categories: AdminCategoryOption[];
-}
 
 function toNullableNumber(value: string): number | null {
   if (!value.trim()) {
@@ -36,44 +30,57 @@ function slugify(value: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+function formatProductStatus(status: ProductStatus): string {
+  switch (status) {
+    case 'draft':
+      return 'Черновик';
+    case 'active':
+      return 'Активен';
+    case 'archived':
+      return 'Архив';
+    default:
+      return status;
+  }
+}
+
 function mapAdminProductError(error: string | undefined): string {
   if (!error) {
-    return 'Could not save product.';
+    return 'Не удалось сохранить товар.';
   }
 
   switch (error) {
     case 'not_configured':
-      return 'Admin backend is temporarily unavailable.';
+      return 'Админ-часть временно недоступна.';
     case 'invalid_slug':
-      return 'Slug should use lowercase letters, digits, and hyphens only.';
+      return 'Slug должен содержать только строчные буквы, цифры и дефисы.';
     case 'slug_conflict':
-      return 'This slug is already used by another product.';
+      return 'Этот slug уже используется другим товаром.';
     case 'title_required':
-      return 'Product title is required.';
+      return 'Укажите название товара.';
     case 'invalid_status':
-      return 'Selected status is invalid.';
+      return 'Выбран некорректный статус.';
     case 'currency_required':
-      return 'Currency is required.';
+      return 'Укажите валюту.';
     case 'invalid_currency':
-      return 'Currency should use a 3-letter code like USD.';
+      return 'Валюта должна быть в 3-буквенном коде, например USD.';
     case 'invalid_price':
-      return 'Price should be a valid non-negative number.';
+      return 'Цена должна быть корректным неотрицательным числом.';
     case 'compare_at_price_less_than_price':
-      return 'Compare-at price should be greater than or equal to price.';
+      return 'Старая цена должна быть больше или равна текущей.';
     case 'invalid_stock_quantity':
-      return 'Stock quantity should be a valid non-negative integer.';
+      return 'Остаток должен быть корректным неотрицательным целым числом.';
     case 'invalid_category':
-      return 'Selected category is no longer available.';
+      return 'Выбранная категория больше недоступна.';
     case 'product_not_found':
-      return 'This product is no longer available.';
+      return 'Этот товар больше недоступен.';
     case 'admin_access_denied':
-      return 'You do not have access to this admin action.';
+      return 'У вас нет доступа к этому действию.';
     default:
-      return 'Could not save product. Please retry.';
+      return 'Не удалось сохранить товар. Попробуйте еще раз.';
   }
 }
 
-export function AdminProductForm({ mode, product, categories }: AdminProductFormProps) {
+export function AdminProductForm({ mode, product, categories }: { mode: 'create' | 'edit'; product?: AdminProductDetail | null; categories: AdminCategoryOption[]; }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -83,32 +90,19 @@ export function AdminProductForm({ mode, product, categories }: AdminProductForm
   const [title, setTitle] = useState(product?.title ?? '');
   const [shortDescription, setShortDescription] = useState(product?.shortDescription ?? '');
   const [description, setDescription] = useState(product?.description ?? '');
-  const [price, setPrice] = useState(
-    product?.price !== undefined ? String(product.price) : '',
-  );
-  const [compareAtPrice, setCompareAtPrice] = useState(
-    product?.compareAtPrice !== null && product?.compareAtPrice !== undefined
-      ? String(product.compareAtPrice)
-      : '',
-  );
+  const [price, setPrice] = useState(product?.price !== undefined ? String(product.price) : '');
+  const [compareAtPrice, setCompareAtPrice] = useState(product?.compareAtPrice !== null && product?.compareAtPrice !== undefined ? String(product.compareAtPrice) : '');
   const [currency, setCurrency] = useState(product?.currency ?? 'USD');
   const [status, setStatus] = useState<ProductStatus>(product?.status ?? 'draft');
-  const [stockQuantity, setStockQuantity] = useState(
-    product?.stockQuantity !== undefined ? String(product.stockQuantity) : '0',
-  );
+  const [stockQuantity, setStockQuantity] = useState(product?.stockQuantity !== undefined ? String(product.stockQuantity) : '0');
   const [categoryId, setCategoryId] = useState(product?.categoryId ?? '');
   const [isFeatured, setIsFeatured] = useState(product?.isFeatured ?? false);
   const isSubmittingRef = useRef(false);
 
-  const heading = mode === 'create' ? 'Create product card' : 'Edit product card';
-  const primaryActionLabel =
-    mode === 'create'
-      ? isPending
-        ? 'Creating...'
-        : 'Create product'
-      : isPending
-        ? 'Saving...'
-        : 'Save changes';
+  const heading = mode === 'create' ? 'Создание товара' : 'Редактирование товара';
+  const primaryActionLabel = mode === 'create'
+    ? isPending ? 'Создаем...' : 'Создать товар'
+    : isPending ? 'Сохраняем...' : 'Сохранить изменения';
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
@@ -127,19 +121,19 @@ export function AdminProductForm({ mode, product, categories }: AdminProductForm
       const parsedCompareAtPrice = toNullableNumber(compareAtPrice);
 
       if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
-        setErrorMessage('Price should be a valid non-negative number.');
+        setErrorMessage('Цена должна быть корректным неотрицательным числом.');
         isSubmittingRef.current = false;
         return;
       }
 
       if (!Number.isInteger(parsedStock) || parsedStock < 0) {
-        setErrorMessage('Stock quantity should be a non-negative integer.');
+        setErrorMessage('Остаток должен быть неотрицательным целым числом.');
         isSubmittingRef.current = false;
         return;
       }
 
       if (parsedCompareAtPrice !== null && parsedCompareAtPrice < parsedPrice) {
-        setErrorMessage('Compare-at price should be greater than or equal to price.');
+        setErrorMessage('Старая цена должна быть больше или равна текущей.');
         isSubmittingRef.current = false;
         return;
       }
@@ -158,8 +152,7 @@ export function AdminProductForm({ mode, product, categories }: AdminProductForm
         categoryId: categoryId || null,
       };
 
-      const endpoint =
-        mode === 'create' ? '/api/admin/products' : `/api/admin/products/${product?.id}`;
+      const endpoint = mode === 'create' ? '/api/admin/products' : `/api/admin/products/${product?.id}`;
       const method = mode === 'create' ? 'POST' : 'PATCH';
 
       try {
@@ -186,10 +179,10 @@ export function AdminProductForm({ mode, product, categories }: AdminProductForm
           return;
         }
 
-        setSuccessMessage('Product card updated.');
+        setSuccessMessage('Карточка товара обновлена.');
         router.refresh();
       } catch {
-        setErrorMessage('Network error while saving product.');
+        setErrorMessage('Сетевая ошибка при сохранении товара.');
       } finally {
         isSubmittingRef.current = false;
       }
@@ -202,48 +195,32 @@ export function AdminProductForm({ mode, product, categories }: AdminProductForm
         <div>
           <h2 className={styles.adminCardTitle}>{heading}</h2>
           <p className={styles.adminCardSub}>
-            Keep pricing, publishing, descriptions, and availability aligned in one form.
+            Цена, публикация, тексты и наличие собраны в одной форме.
           </p>
         </div>
-        <span className={styles.adminStatusBadge}>{status}</span>
+        <span className={styles.adminStatusBadge}>{formatProductStatus(status)}</span>
       </div>
 
       <form className={styles.adminForm} onSubmit={handleSubmit} aria-busy={isPending}>
         <section className={styles.adminFormSection}>
           <div className={styles.adminFormSectionHead}>
-            <h3 className={styles.adminFormSectionTitle}>Core identity</h3>
+            <h3 className={styles.adminFormSectionTitle}>Основа карточки</h3>
             <p className={styles.adminFormSectionText}>
-              Title and slug define the public product card.
+              Название и slug формируют публичную карточку товара.
             </p>
           </div>
 
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Title</span>
-            <input
-              className={styles.adminInput}
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              required
-            />
+            <span className={styles.adminLabel}>Название</span>
+            <input className={styles.adminInput} value={title} onChange={(event) => setTitle(event.target.value)} required />
           </label>
 
           <label className={styles.adminField}>
             <span className={styles.adminLabel}>Slug</span>
             <div className={styles.adminInlineActionRow}>
-              <input
-                className={styles.adminInput}
-                value={slug}
-                onChange={(event) => setSlug(event.target.value)}
-                required
-              />
-              <button
-                type="button"
-                className={styles.adminActionButton}
-                onClick={() => setSlug(slugify(title))}
-                disabled={!title.trim() || isPending}
-                aria-label="Generate slug from title"
-              >
-                Use title
+              <input className={styles.adminInput} value={slug} onChange={(event) => setSlug(event.target.value)} required />
+              <button type="button" className={styles.adminActionButton} onClick={() => setSlug(slugify(title))} disabled={!title.trim() || isPending} aria-label="Сгенерировать slug из названия">
+                Из названия
               </button>
             </div>
           </label>
@@ -251,153 +228,92 @@ export function AdminProductForm({ mode, product, categories }: AdminProductForm
 
         <section className={styles.adminFormSection}>
           <div className={styles.adminFormSectionHead}>
-            <h3 className={styles.adminFormSectionTitle}>Pricing and availability</h3>
+            <h3 className={styles.adminFormSectionTitle}>Цена и наличие</h3>
             <p className={styles.adminFormSectionText}>
-              Use these fields to control what is sellable right now.
+              Здесь управляются текущая цена и доступность товара.
             </p>
           </div>
 
           <div className={styles.adminInlineRow}>
             <label className={styles.adminField}>
-              <span className={styles.adminLabel}>Price</span>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                className={styles.adminInput}
-                value={price}
-                onChange={(event) => setPrice(event.target.value)}
-                required
-              />
+              <span className={styles.adminLabel}>Цена</span>
+              <input type="number" min="0" step="0.01" className={styles.adminInput} value={price} onChange={(event) => setPrice(event.target.value)} required />
             </label>
 
             <label className={styles.adminField}>
-              <span className={styles.adminLabel}>Compare-at price</span>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                className={styles.adminInput}
-                value={compareAtPrice}
-                onChange={(event) => setCompareAtPrice(event.target.value)}
-              />
+              <span className={styles.adminLabel}>Старая цена</span>
+              <input type="number" min="0" step="0.01" className={styles.adminInput} value={compareAtPrice} onChange={(event) => setCompareAtPrice(event.target.value)} />
             </label>
           </div>
 
           <div className={styles.adminInlineRow}>
             <label className={styles.adminField}>
-              <span className={styles.adminLabel}>Currency</span>
-              <input
-                className={styles.adminInput}
-                value={currency}
-                onChange={(event) => setCurrency(event.target.value.toUpperCase())}
-                maxLength={3}
-                required
-              />
+              <span className={styles.adminLabel}>Валюта</span>
+              <input className={styles.adminInput} value={currency} onChange={(event) => setCurrency(event.target.value.toUpperCase())} maxLength={3} required />
             </label>
 
             <label className={styles.adminField}>
-              <span className={styles.adminLabel}>Stock quantity</span>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                className={styles.adminInput}
-                value={stockQuantity}
-                onChange={(event) => setStockQuantity(event.target.value)}
-                required
-              />
+              <span className={styles.adminLabel}>Остаток</span>
+              <input type="number" min="0" step="1" className={styles.adminInput} value={stockQuantity} onChange={(event) => setStockQuantity(event.target.value)} required />
             </label>
           </div>
         </section>
 
         <section className={styles.adminFormSection}>
           <div className={styles.adminFormSectionHead}>
-            <h3 className={styles.adminFormSectionTitle}>Publishing</h3>
+            <h3 className={styles.adminFormSectionTitle}>Публикация</h3>
             <p className={styles.adminFormSectionText}>
-              Control visibility, promotion, and category placement.
+              Управляйте видимостью, продвижением и категорией товара.
             </p>
           </div>
 
           <div className={styles.adminInlineRow}>
             <label className={styles.adminField}>
-              <span className={styles.adminLabel}>Status</span>
-              <select
-                className={styles.adminSelect}
-                value={status}
-                onChange={(event) => setStatus(event.target.value as ProductStatus)}
-              >
+              <span className={styles.adminLabel}>Статус</span>
+              <select className={styles.adminSelect} value={status} onChange={(event) => setStatus(event.target.value as ProductStatus)}>
                 {statusOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
+                  <option key={option} value={option}>{formatProductStatus(option)}</option>
                 ))}
               </select>
             </label>
 
             <label className={styles.adminField}>
-              <span className={styles.adminLabel}>Category</span>
-              <select
-                className={styles.adminSelect}
-                value={categoryId}
-                onChange={(event) => setCategoryId(event.target.value)}
-              >
-                <option value="">No category</option>
+              <span className={styles.adminLabel}>Категория</span>
+              <select className={styles.adminSelect} value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
+                <option value="">Без категории</option>
                 {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.title}
-                  </option>
+                  <option key={category.id} value={category.id}>{category.title}</option>
                 ))}
               </select>
             </label>
           </div>
 
           <label className={styles.adminCheckboxRow}>
-            <input
-              type="checkbox"
-              className={styles.adminCheckbox}
-              checked={isFeatured}
-              onChange={(event) => setIsFeatured(event.target.checked)}
-            />
-            <span className={styles.adminLabel}>Feature this product in storefront</span>
+            <input type="checkbox" className={styles.adminCheckbox} checked={isFeatured} onChange={(event) => setIsFeatured(event.target.checked)} />
+            <span className={styles.adminLabel}>Показывать как рекомендуемый</span>
           </label>
         </section>
 
         <section className={styles.adminFormSection}>
           <div className={styles.adminFormSectionHead}>
-            <h3 className={styles.adminFormSectionTitle}>Descriptions</h3>
+            <h3 className={styles.adminFormSectionTitle}>Описания</h3>
             <p className={styles.adminFormSectionText}>
-              Keep short copy tight and long copy useful for the product page.
+              Короткий текст для карточки, полный текст для страницы товара.
             </p>
           </div>
 
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Short description</span>
-            <textarea
-              className={styles.adminTextarea}
-              value={shortDescription}
-              onChange={(event) => setShortDescription(event.target.value)}
-              rows={3}
-            />
+            <span className={styles.adminLabel}>Короткое описание</span>
+            <textarea className={styles.adminTextarea} value={shortDescription} onChange={(event) => setShortDescription(event.target.value)} rows={3} />
           </label>
 
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Description</span>
-            <textarea
-              className={styles.adminTextarea}
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              rows={5}
-            />
+            <span className={styles.adminLabel}>Полное описание</span>
+            <textarea className={styles.adminTextarea} value={description} onChange={(event) => setDescription(event.target.value)} rows={5} />
           </label>
         </section>
 
-        <button
-          type="submit"
-          className={styles.adminPrimaryButton}
-          disabled={isPending}
-          aria-label={mode === 'create' ? 'Create product' : 'Save product'}
-        >
+        <button type="submit" className={styles.adminPrimaryButton} disabled={isPending} aria-label={mode === 'create' ? 'Создать товар' : 'Сохранить товар'}>
           {primaryActionLabel}
         </button>
 
@@ -407,3 +323,4 @@ export function AdminProductForm({ mode, product, categories }: AdminProductForm
     </section>
   );
 }
+

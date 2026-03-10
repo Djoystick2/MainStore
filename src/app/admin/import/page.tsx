@@ -5,16 +5,16 @@ import { StoreSection } from '@/components/store/StoreSection';
 
 export default function AdminImportPage() {
   return (
-    <AdminScreen title="Catalog Import" subtitle="Upload Excel, validate rows, and import safely">
-      <StoreSection title="Excel Import">
+    <AdminScreen title="Импорт каталога" subtitle="Загрузка Excel, проверка строк и безопасный импорт">
+      <StoreSection title="Импорт Excel">
         <AdminCatalogImportFlow />
       </StoreSection>
-      <StoreSection title="Supported formats">
+      <StoreSection title="Поддерживаемые форматы">
         <section className={adminStyles.adminCard}>
-          <h2 className={adminStyles.adminCardTitle}>File types</h2>
+          <h2 className={adminStyles.adminCardTitle}>Типы файлов</h2>
           <p className={adminStyles.adminCardSub}>XLSX, XLS, XLSM, XLTX</p>
           <p className={adminStyles.adminCardSub}>
-            Import works in preview-first mode. Data is written only after explicit confirmation.
+            Импорт работает по схеме preview-first. Запись в базу происходит только после явного подтверждения.
           </p>
         </section>
       </StoreSection>

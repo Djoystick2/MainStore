@@ -17,7 +17,7 @@ export default async function FavoritesPage() {
   const hasProducts = favoritesData.products.length > 0;
 
   return (
-    <StoreScreen title="Favorites" subtitle="Save products for later">
+    <StoreScreen title="Избранное" subtitle="Сохраняйте товары на потом">
       {favoritesData.message && (
         <section
           className={classNames(
@@ -25,16 +25,16 @@ export default async function FavoritesPage() {
             favoritesData.status === 'error' && styles.dataNoticeError,
           )}
         >
-          <p className={styles.dataNoticeTitle}>Favorites update</p>
+          <p className={styles.dataNoticeTitle}>Обновление избранного</p>
           <p className={styles.dataNoticeText}>{favoritesData.message}</p>
           {(favoritesData.status === 'error' || favoritesData.status === 'not_configured') && (
             <div className={styles.dataNoticeActions}>
               <Link
                 href="/favorites"
                 className={styles.dataNoticeRetry}
-                aria-label="Retry loading favorites"
+                aria-label="Повторить загрузку избранного"
               >
-                Retry
+                Повторить
               </Link>
             </div>
           )}
@@ -43,13 +43,13 @@ export default async function FavoritesPage() {
 
       {isSessionMissing ? (
         <StoreEmptyState
-          title="Favorites need Telegram session"
-          description="Open MainStore in Telegram to load your personal favorites."
-          actionLabel="Open catalog"
+          title="Нужна сессия Telegram"
+          description="Откройте MainStore в Telegram, чтобы загрузить личное избранное."
+          actionLabel="Открыть каталог"
           actionHref="/catalog"
         />
       ) : (
-        <StoreSection title="Saved picks">
+        <StoreSection title="Сохраненные товары">
           {hasProducts ? (
             <div className={styles.catalogGrid}>
               {favoritesData.products.map((product) => (
@@ -65,9 +65,9 @@ export default async function FavoritesPage() {
             </div>
           ) : (
             <StoreEmptyState
-              title="Favorites are empty"
-              description="Save products from product pages and they will appear here."
-              actionLabel="Explore catalog"
+              title="Избранное пусто"
+              description="Сохраняйте товары со страницы товара, и они появятся здесь."
+              actionLabel="Открыть каталог"
               actionHref="/catalog"
             />
           )}

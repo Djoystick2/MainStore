@@ -14,18 +14,18 @@ interface AddToCartButtonProps {
 
 function mapAddToCartError(error: string): string {
   if (error === 'unauthorized') {
-    return 'Open MainStore in Telegram to use cart actions.';
+    return 'Откройте MainStore в Telegram, чтобы работать с корзиной.';
   }
   if (error === 'not_configured') {
-    return 'Cart is temporarily unavailable.';
+    return 'Корзина временно недоступна.';
   }
   if (error === 'product_not_found') {
-    return 'This product is not available.';
+    return 'Этот товар сейчас недоступен.';
   }
   if (error === 'invalid_quantity') {
-    return 'Could not add this quantity to cart.';
+    return 'Не удалось добавить такое количество.';
   }
-  return 'Could not add the product to cart.';
+  return 'Не удалось добавить товар в корзину.';
 }
 
 export function AddToCartButton({ productId, className }: AddToCartButtonProps) {
@@ -66,11 +66,11 @@ export function AddToCartButton({ productId, className }: AddToCartButtonProps) 
           return;
         }
 
-        setStatusMessage('Added to cart. You can continue shopping or open cart.');
+        setStatusMessage('Товар добавлен в корзину.');
         setIsError(false);
         router.refresh();
       } catch {
-        setStatusMessage('Network error while updating cart.');
+        setStatusMessage('Сетевая ошибка при обновлении корзины.');
         setIsError(true);
       } finally {
         isSubmittingRef.current = false;
@@ -85,9 +85,9 @@ export function AddToCartButton({ productId, className }: AddToCartButtonProps) 
         className={classNames(className, styles.actionButtonReset)}
         onClick={handleClick}
         disabled={isPending}
-        aria-label="Add product to cart"
+        aria-label="Добавить товар в корзину"
       >
-        {isPending ? 'Adding...' : 'Add to cart'}
+        {isPending ? 'Добавляем...' : 'В корзину'}
       </button>
       {statusMessage && (
         <p

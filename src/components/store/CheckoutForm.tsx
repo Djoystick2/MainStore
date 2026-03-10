@@ -25,24 +25,24 @@ interface PlaceOrderSuccess {
 
 function mapCheckoutError(error: string): string {
   if (error === 'unauthorized') {
-    return 'Open MainStore in Telegram to place an order.';
+    return 'Откройте MainStore в Telegram, чтобы оформить заказ.';
   }
   if (error === 'invalid_input') {
-    return 'Please fill all required shipping fields.';
+    return 'Заполните обязательные поля доставки.';
   }
   if (error === 'empty_cart') {
-    return 'Your cart is empty. Add products and try again.';
+    return 'Корзина пуста. Добавьте товары и попробуйте снова.';
   }
   if (error === 'unavailable_items') {
-    return 'Some products in cart are no longer available. Review your cart.';
+    return 'Часть товаров больше недоступна. Проверьте корзину.';
   }
   if (error === 'mixed_currency') {
-    return 'Checkout supports only one currency per order.';
+    return 'В одном заказе поддерживается только одна валюта.';
   }
   if (error === 'not_configured') {
-    return 'Checkout is temporarily unavailable.';
+    return 'Оформление временно недоступно.';
   }
-  return 'Could not create order. Please try again.';
+  return 'Не удалось оформить заказ. Попробуйте еще раз.';
 }
 
 export function CheckoutForm({
@@ -116,7 +116,7 @@ export function CheckoutForm({
           currency: payload.currency,
         });
       } catch {
-        setErrorMessage('Network error during checkout. Please try again.');
+        setErrorMessage('Сетевая ошибка при оформлении заказа.');
       } finally {
         isSubmittingRef.current = false;
       }
@@ -126,26 +126,26 @@ export function CheckoutForm({
   if (success) {
     return (
       <section className={styles.checkoutSuccess}>
-        <h2 className={styles.checkoutSuccessTitle}>Order created</h2>
+        <h2 className={styles.checkoutSuccessTitle}>Заказ оформлен</h2>
         <p className={styles.checkoutSuccessText}>
-          Total: {formatStorePrice(success.totalCents, success.currency)}
+          Итого: {formatStorePrice(success.totalCents, success.currency)}
         </p>
         <p className={styles.checkoutHint}>
-          Order ID: #{success.orderId.slice(0, 8).toUpperCase()}
+          Номер заказа: #{success.orderId.slice(0, 8).toUpperCase()}
         </p>
         <Link
           href={`/orders/${success.orderId}`}
           className={styles.primaryLinkButton}
-          aria-label="Open created order"
+          aria-label="Открыть созданный заказ"
         >
-          Open order
+          Открыть заказ
         </Link>
         <Link
           href="/catalog"
           className={styles.secondaryInlineLink}
-          aria-label="Continue shopping"
+          aria-label="Продолжить покупки"
         >
-          Continue shopping
+          Продолжить покупки
         </Link>
       </section>
     );
@@ -155,7 +155,7 @@ export function CheckoutForm({
     <form className={styles.checkoutForm} onSubmit={handleSubmit}>
       <div className={styles.checkoutFields}>
         <label className={styles.checkoutField}>
-          <span className={styles.checkoutLabel}>Full name</span>
+            <span className={styles.checkoutLabel}>Имя и фамилия</span>
           <input
             className={styles.checkoutInput}
             value={fullName}
@@ -166,7 +166,7 @@ export function CheckoutForm({
         </label>
 
         <label className={styles.checkoutField}>
-          <span className={styles.checkoutLabel}>Phone</span>
+            <span className={styles.checkoutLabel}>Телефон</span>
           <input
             className={styles.checkoutInput}
             value={phone}
@@ -177,7 +177,7 @@ export function CheckoutForm({
         </label>
 
         <label className={styles.checkoutField}>
-          <span className={styles.checkoutLabel}>City</span>
+            <span className={styles.checkoutLabel}>Город</span>
           <input
             className={styles.checkoutInput}
             value={city}
@@ -188,7 +188,7 @@ export function CheckoutForm({
         </label>
 
         <label className={styles.checkoutField}>
-          <span className={styles.checkoutLabel}>Address line</span>
+            <span className={styles.checkoutLabel}>Адрес</span>
           <input
             className={styles.checkoutInput}
             value={addressLine}
@@ -199,7 +199,7 @@ export function CheckoutForm({
         </label>
 
         <label className={styles.checkoutField}>
-          <span className={styles.checkoutLabel}>Postal code</span>
+            <span className={styles.checkoutLabel}>Индекс</span>
           <input
             className={styles.checkoutInput}
             value={postalCode}
@@ -209,7 +209,7 @@ export function CheckoutForm({
         </label>
 
         <label className={styles.checkoutField}>
-          <span className={styles.checkoutLabel}>Comment (optional)</span>
+            <span className={styles.checkoutLabel}>Комментарий</span>
           <textarea
             className={styles.checkoutTextarea}
             value={notes}
@@ -221,15 +221,15 @@ export function CheckoutForm({
 
       <div className={styles.checkoutTotals}>
         <p className={styles.checkoutHint}>
-          Before discounts: {formatStorePrice(subtotalCents, currency)}
+          До скидок: {formatStorePrice(subtotalCents, currency)}
         </p>
         {discountCents > 0 && (
           <p className={styles.checkoutHint}>
-            Discounts: {formatStorePrice(discountCents, currency)}
+            Скидка: {formatStorePrice(discountCents, currency)}
           </p>
         )}
         <p className={styles.checkoutHint}>
-          Place order total: {formatStorePrice(totalCents, currency)}
+          К оплате: {formatStorePrice(totalCents, currency)}
         </p>
       </div>
 
@@ -247,9 +247,9 @@ export function CheckoutForm({
         type="submit"
         className={styles.primaryButton}
         disabled={isPending}
-        aria-label="Place order"
+        aria-label="Оформить заказ"
       >
-        {isPending ? 'Placing order...' : 'Place order'}
+        {isPending ? 'Оформляем...' : 'Оформить заказ'}
       </button>
     </form>
   );

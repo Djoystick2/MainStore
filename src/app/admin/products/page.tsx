@@ -14,7 +14,7 @@ export default async function AdminProductsPage() {
   const hasError = productsResult.status === 'error';
 
   return (
-    <AdminScreen title="Admin Products" subtitle="Manage the catalog as a complete content layer">
+    <AdminScreen title="Товары" subtitle="Управление каталогом как цельным контентным слоем">
       {combinedMessage && (
         <section
           className={classNames(
@@ -22,16 +22,16 @@ export default async function AdminProductsPage() {
             hasError && storeStyles.dataNoticeError,
           )}
         >
-          <p className={storeStyles.dataNoticeTitle}>Products update</p>
+          <p className={storeStyles.dataNoticeTitle}>Обновление товаров</p>
           <p className={storeStyles.dataNoticeText}>{combinedMessage}</p>
           {hasError && (
             <div className={storeStyles.dataNoticeActions}>
               <Link
                 href="/admin/products"
                 className={storeStyles.dataNoticeRetry}
-                aria-label="Retry loading admin products"
+                aria-label="Повторить загрузку товаров"
               >
-                Retry
+                Повторить
               </Link>
             </div>
           )}
@@ -41,15 +41,15 @@ export default async function AdminProductsPage() {
       <Link
         href="/admin/products/new"
         className={adminStyles.adminPrimaryLink}
-        aria-label="Create product"
+        aria-label="Создать товар"
       >
-        Create product
+        Создать товар
       </Link>
 
       {productsResult.products.length === 0 ? (
         <StoreEmptyState
-          title="No products"
-          description="Create your first product from admin panel."
+          title="Товаров пока нет"
+          description="Создайте первый товар в админке."
         />
       ) : (
         <AdminProductsCatalogManager

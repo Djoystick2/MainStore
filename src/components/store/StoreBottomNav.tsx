@@ -18,32 +18,32 @@ const navItems: NavItem[] = [
   {
     href: '/',
     icon: 'HM',
-    label: 'Home',
+    label: 'Главная',
     isActive: (pathname) => pathname === '/',
   },
   {
     href: '/catalog',
     icon: 'CT',
-    label: 'Catalog',
+    label: 'Каталог',
     isActive: (pathname) =>
       pathname === '/catalog' || pathname.startsWith('/products/'),
   },
   {
     href: '/cart',
     icon: 'CR',
-    label: 'Cart',
+    label: 'Корзина',
     isActive: (pathname) => pathname === '/cart' || pathname === '/checkout',
   },
   {
     href: '/favorites',
     icon: 'FV',
-    label: 'Favorites',
+    label: 'Избранное',
     isActive: (pathname) => pathname === '/favorites',
   },
   {
     href: '/profile',
     icon: 'PF',
-    label: 'Profile',
+    label: 'Профиль',
     isActive: (pathname) =>
       pathname === '/profile' ||
       pathname.startsWith('/orders') ||
@@ -55,7 +55,7 @@ export function StoreBottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className={styles.bottomNavShell} aria-label="Store navigation">
+    <nav className={styles.bottomNavShell} aria-label="Навигация магазина">
       <div className={styles.bottomNav}>
         {navItems.map((item) => {
           const isActive = item.isActive(pathname);

@@ -17,7 +17,7 @@ interface ProductShareButtonProps {
 }
 
 function mapShareError(): string {
-  return 'Could not prepare a share link right now. Please try again.';
+  return 'Не удалось подготовить ссылку. Попробуйте еще раз.';
 }
 
 export function ProductShareButton({
@@ -42,7 +42,7 @@ export function ProductShareButton({
           `/products/${productSlug}`,
           window.location.origin,
         );
-        const shareText = `Take a look at ${productTitle} in MainStore`;
+        const shareText = `Посмотрите товар «${productTitle}» в MainStore`;
 
         if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
           try {
@@ -51,7 +51,7 @@ export function ProductShareButton({
               text: shareText,
               url: productUrl,
             });
-            setStatusMessage('Share dialog opened.');
+            setStatusMessage('Окно отправки открыто.');
             return;
           } catch (error) {
             if (
@@ -71,17 +71,17 @@ export function ProductShareButton({
             '_blank',
             'noopener,noreferrer',
           );
-          setStatusMessage('Telegram share opened.');
+          setStatusMessage('Окно Telegram открыто.');
           return;
         }
 
         if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
           await navigator.clipboard.writeText(productUrl);
-          setStatusMessage('Product link copied to clipboard.');
+          setStatusMessage('Ссылка на товар скопирована.');
           return;
         }
 
-        setStatusMessage(`Copy this link: ${productUrl}`);
+        setStatusMessage(`Скопируйте ссылку: ${productUrl}`);
       } catch {
         setStatusMessage(mapShareError());
         setIsError(true);
@@ -100,9 +100,9 @@ export function ProductShareButton({
         )}
         onClick={handleShare}
         disabled={isPending}
-        aria-label="Share this product"
+        aria-label="Поделиться товаром"
       >
-        {isPending ? 'Preparing...' : 'Share product'}
+        {isPending ? 'Готовим...' : 'Поделиться'}
       </button>
       {statusMessage && (
         <p

@@ -19,7 +19,7 @@ export default async function AdminOrdersPage() {
   const ordersResult = await getAdminOrders();
 
   return (
-    <AdminScreen title="Admin Orders" subtitle="Manage order status and details">
+    <AdminScreen title="Заказы" subtitle="Управление статусами и деталями заказов">
       {ordersResult.message && (
         <section
           className={classNames(
@@ -27,16 +27,16 @@ export default async function AdminOrdersPage() {
             ordersResult.status === 'error' && storeStyles.dataNoticeError,
           )}
         >
-          <p className={storeStyles.dataNoticeTitle}>Orders update</p>
+          <p className={storeStyles.dataNoticeTitle}>Обновление заказов</p>
           <p className={storeStyles.dataNoticeText}>{ordersResult.message}</p>
           {(ordersResult.status === 'error' || ordersResult.status === 'not_configured') && (
             <div className={storeStyles.dataNoticeActions}>
               <Link
                 href="/admin/orders"
                 className={storeStyles.dataNoticeRetry}
-                aria-label="Retry loading admin orders"
+                aria-label="Повторить загрузку заказов"
               >
-                Retry
+                Повторить
               </Link>
             </div>
           )}
@@ -45,18 +45,18 @@ export default async function AdminOrdersPage() {
 
       {ordersResult.orders.length === 0 ? (
         <StoreEmptyState
-          title="No orders yet"
-          description="Orders will appear here after customer checkout."
+          title="Заказов пока нет"
+          description="Заказы появятся здесь после оформления клиентами."
         />
       ) : (
         <section className={storeStyles.section}>
-          <h2 className={storeStyles.sectionTitle}>All orders</h2>
+          <h2 className={storeStyles.sectionTitle}>Все заказы</h2>
           <div className={adminStyles.adminCardList}>
             {ordersResult.orders.map((order) => (
               <article key={order.id} className={adminStyles.adminCard}>
                 <div className={adminStyles.adminCardHead}>
                   <h3 className={adminStyles.adminCardTitle}>
-                    Order #{order.id.slice(0, 8).toUpperCase()}
+                    Заказ #{order.id.slice(0, 8).toUpperCase()}
                   </h3>
                   <span className={storeStyles.orderStatusBadge}>{order.status}</span>
                 </div>
@@ -65,25 +65,25 @@ export default async function AdminOrdersPage() {
                 </p>
                 <div className={adminStyles.adminMetaGrid}>
                   <div className={adminStyles.adminMetaCell}>
-                    <p className={adminStyles.adminMetaLabel}>Total</p>
+                    <p className={adminStyles.adminMetaLabel}>Итого</p>
                     <p className={adminStyles.adminMetaValue}>
                       {formatPrice(order.totalAmount, order.currency)}
                     </p>
                   </div>
                   <div className={adminStyles.adminMetaCell}>
-                    <p className={adminStyles.adminMetaLabel}>Items</p>
+                    <p className={adminStyles.adminMetaLabel}>Товаров</p>
                     <p className={adminStyles.adminMetaValue}>{order.itemsCount}</p>
                   </div>
                   <div className={adminStyles.adminMetaCell}>
-                    <p className={adminStyles.adminMetaLabel}>Date</p>
+                    <p className={adminStyles.adminMetaLabel}>Дата</p>
                     <p className={adminStyles.adminMetaValue}>
                       {new Date(order.createdAt).toLocaleDateString('en-US')}
                     </p>
                   </div>
                   <div className={adminStyles.adminMetaCell}>
-                    <p className={adminStyles.adminMetaLabel}>User</p>
+                    <p className={adminStyles.adminMetaLabel}>Пользователь</p>
                     <p className={adminStyles.adminMetaValue}>
-                      {order.customerUsername || 'n/a'}
+                      {order.customerUsername || 'н/д'}
                     </p>
                   </div>
                 </div>
@@ -92,7 +92,7 @@ export default async function AdminOrdersPage() {
                     href={`/admin/orders/${order.id}`}
                     className={adminStyles.adminActionLink}
                   >
-                    Open details
+                    Открыть
                   </Link>
                 </div>
               </article>

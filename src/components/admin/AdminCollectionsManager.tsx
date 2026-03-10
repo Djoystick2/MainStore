@@ -27,28 +27,28 @@ function slugify(value: string): string {
 
 function mapAdminCollectionError(error: string | undefined): string {
   if (!error) {
-    return 'Could not update collection.';
+    return 'Не удалось обновить подборку.';
   }
 
   switch (error) {
     case 'not_configured':
-      return 'Admin backend is temporarily unavailable.';
+      return 'Админ-часть временно недоступна.';
     case 'collection_title_required':
-      return 'Collection title is required.';
+      return 'Укажите название подборки.';
     case 'invalid_collection_slug':
-      return 'Collection slug should contain lowercase letters, digits, and hyphens.';
+      return 'Slug подборки должен содержать строчные буквы, цифры и дефисы.';
     case 'invalid_collection_sort_order':
-      return 'Display order should be a non-negative integer.';
+      return 'Порядок вывода должен быть неотрицательным целым числом.';
     case 'slug_conflict':
-      return 'This slug is already used by another collection.';
+      return 'Этот slug уже используется другой подборкой.';
     case 'collection_not_found':
-      return 'This collection is no longer available.';
+      return 'Эта подборка больше недоступна.';
     case 'invalid_collection_payload':
-      return 'Fill in all required collection fields.';
+      return 'Заполните обязательные поля подборки.';
     case 'admin_access_denied':
-      return 'You do not have access to this admin action.';
+      return 'У вас нет доступа к этому действию.';
     default:
-      return 'Could not save collection. Please retry.';
+      return 'Не удалось сохранить подборку. Попробуйте еще раз.';
   }
 }
 
@@ -80,7 +80,7 @@ function CollectionRow({ collection }: CollectionRowProps) {
 
       const parsedSortOrder = Number(sortOrder);
       if (!Number.isInteger(parsedSortOrder) || parsedSortOrder < 0) {
-        setErrorMessage('Display order should be a non-negative integer.');
+        setErrorMessage('Порядок вывода должен быть неотрицательным целым числом.');
         isSubmittingRef.current = false;
         return;
       }
@@ -114,10 +114,10 @@ function CollectionRow({ collection }: CollectionRowProps) {
           return;
         }
 
-        setSuccessMessage('Collection saved.');
+        setSuccessMessage('Подборка сохранена.');
         router.refresh();
       } catch {
-        setErrorMessage('Network error while saving collection.');
+        setErrorMessage('Сетевая ошибка при сохранении подборки.');
       } finally {
         isSubmittingRef.current = false;
       }
@@ -159,7 +159,7 @@ function CollectionRow({ collection }: CollectionRowProps) {
 
         router.refresh();
       } catch {
-        setErrorMessage('Network error while deleting collection.');
+        setErrorMessage('Сетевая ошибка при удалении подборки.');
       } finally {
         isSubmittingRef.current = false;
       }
@@ -171,18 +171,18 @@ function CollectionRow({ collection }: CollectionRowProps) {
       <div className={styles.adminCardHead}>
         <div>
           <h3 className={styles.adminCardTitle}>{collection.title}</h3>
-          <p className={styles.adminCardSub}>{collection.productsCount} linked products</p>
+          <p className={styles.adminCardSub}>{collection.productsCount} связанных товаров</p>
         </div>
         <div className={styles.adminBadgeRow}>
-          {isFeatured && <span className={styles.adminFeatureBadge}>Featured</span>}
-          <span className={styles.adminStatusBadge}>{isActive ? 'Visible' : 'Hidden'}</span>
+          {isFeatured && <span className={styles.adminFeatureBadge}>Рекомендуемая</span>}
+          <span className={styles.adminStatusBadge}>{isActive ? 'Видна' : 'Скрыта'}</span>
         </div>
       </div>
 
       <div className={styles.adminForm}>
         <div className={styles.adminInlineRow}>
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Title</span>
+            <span className={styles.adminLabel}>Название</span>
             <input
               className={styles.adminInput}
               value={title}
@@ -203,9 +203,9 @@ function CollectionRow({ collection }: CollectionRowProps) {
                 className={styles.adminActionButton}
                 onClick={() => setSlug(slugify(title))}
                 disabled={!title.trim() || isPending}
-                aria-label="Generate collection slug"
+                aria-label="Сгенерировать slug подборки"
               >
-                Use title
+                Из названия
               </button>
             </div>
           </label>
@@ -213,7 +213,7 @@ function CollectionRow({ collection }: CollectionRowProps) {
 
         <div className={styles.adminInlineRow}>
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Short text</span>
+            <span className={styles.adminLabel}>Короткий текст</span>
             <input
               className={styles.adminInput}
               value={shortText}
@@ -221,7 +221,7 @@ function CollectionRow({ collection }: CollectionRowProps) {
             />
           </label>
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Display order</span>
+            <span className={styles.adminLabel}>Порядок вывода</span>
             <input
               type="number"
               min="0"
@@ -234,7 +234,7 @@ function CollectionRow({ collection }: CollectionRowProps) {
         </div>
 
         <label className={styles.adminField}>
-          <span className={styles.adminLabel}>Description</span>
+          <span className={styles.adminLabel}>Описание</span>
           <textarea
             className={styles.adminTextarea}
             value={description}
@@ -251,7 +251,7 @@ function CollectionRow({ collection }: CollectionRowProps) {
               checked={isActive}
               onChange={(event) => setIsActive(event.target.checked)}
             />
-            <span className={styles.adminLabel}>Visible in storefront</span>
+            <span className={styles.adminLabel}>Показывать на витрине</span>
           </label>
 
           <label className={styles.adminCheckboxRow}>
@@ -261,7 +261,7 @@ function CollectionRow({ collection }: CollectionRowProps) {
               checked={isFeatured}
               onChange={(event) => setIsFeatured(event.target.checked)}
             />
-            <span className={styles.adminLabel}>Feature on storefront</span>
+            <span className={styles.adminLabel}>Показывать как рекомендуемую</span>
           </label>
         </div>
 
@@ -271,18 +271,18 @@ function CollectionRow({ collection }: CollectionRowProps) {
             className={styles.adminActionButton}
             onClick={onSave}
             disabled={isPending}
-            aria-label={`Save collection ${collection.title}`}
+            aria-label={`Сохранить подборку ${collection.title}`}
           >
-            {isPending ? 'Saving...' : 'Save collection'}
+            {isPending ? 'Сохраняем...' : 'Сохранить'}
           </button>
           <button
             type="button"
             className={styles.adminDangerButton}
             onClick={onDelete}
             disabled={isPending}
-            aria-label={`Delete collection ${collection.title}`}
+            aria-label={`Удалить подборку ${collection.title}`}
           >
-            {isConfirmingDelete ? 'Confirm delete' : 'Delete'}
+            {isConfirmingDelete ? 'Подтвердить удаление' : 'Удалить'}
           </button>
         </div>
 
@@ -345,7 +345,7 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
 
       const parsedSortOrder = Number(sortOrder);
       if (!Number.isInteger(parsedSortOrder) || parsedSortOrder < 0) {
-        setErrorMessage('Display order should be a non-negative integer.');
+        setErrorMessage('Порядок вывода должен быть неотрицательным целым числом.');
         isSubmittingRef.current = false;
         return;
       }
@@ -386,10 +386,10 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
         setSortOrder('0');
         setIsActive(true);
         setIsFeatured(false);
-        setSuccessMessage('Collection created.');
+        setSuccessMessage('Подборка создана.');
         router.refresh();
       } catch {
-        setErrorMessage('Network error while creating collection.');
+        setErrorMessage('Сетевая ошибка при создании подборки.');
       } finally {
         isSubmittingRef.current = false;
       }
@@ -401,29 +401,29 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
       <section className={styles.adminCard}>
         <div className={styles.adminCardHead}>
           <div>
-            <h2 className={styles.adminCardTitle}>Collections</h2>
+            <h2 className={styles.adminCardTitle}>Подборки</h2>
             <p className={styles.adminCardSub}>
-              Manage curated storefront sections, visibility, promotion, and order.
+              Управляйте разделами витрины, видимостью, продвижением и порядком.
             </p>
           </div>
           <div className={styles.adminBadgeRow}>
-            <span className={styles.adminStatusBadge}>{collections.length} total</span>
+            <span className={styles.adminStatusBadge}>{collections.length} всего</span>
           </div>
         </div>
 
         <div className={styles.adminFiltersGrid}>
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Search</span>
+            <span className={styles.adminLabel}>Поиск</span>
             <input
               className={styles.adminInput}
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Title, slug, short text"
+              placeholder="Название, slug, текст"
             />
           </label>
 
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Visibility</span>
+            <span className={styles.adminLabel}>Видимость</span>
             <select
               className={styles.adminSelect}
               value={visibilityFilter}
@@ -431,14 +431,14 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
                 setVisibilityFilter(event.target.value as 'all' | 'visible' | 'hidden')
               }
             >
-              <option value="all">All collections</option>
-              <option value="visible">Visible only</option>
-              <option value="hidden">Hidden only</option>
+              <option value="all">Все подборки</option>
+              <option value="visible">Только видимые</option>
+              <option value="hidden">Только скрытые</option>
             </select>
           </label>
 
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Featured</span>
+            <span className={styles.adminLabel}>Рекомендация</span>
             <select
               className={styles.adminSelect}
               value={featuredFilter}
@@ -446,21 +446,21 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
                 setFeaturedFilter(event.target.value as 'all' | 'featured' | 'standard')
               }
             >
-              <option value="all">All collections</option>
-              <option value="featured">Featured only</option>
-              <option value="standard">Standard only</option>
+              <option value="all">Все подборки</option>
+              <option value="featured">Только рекомендуемые</option>
+              <option value="standard">Без рекомендации</option>
             </select>
           </label>
         </div>
       </section>
 
       <section className={styles.adminCard}>
-        <h2 className={styles.adminCardTitle}>Create collection</h2>
+        <h2 className={styles.adminCardTitle}>Создать подборку</h2>
 
         <form className={styles.adminForm} onSubmit={onCreate} aria-busy={isPending}>
           <div className={styles.adminInlineRow}>
             <label className={styles.adminField}>
-              <span className={styles.adminLabel}>Title</span>
+              <span className={styles.adminLabel}>Название</span>
               <input
                 className={styles.adminInput}
                 value={title}
@@ -483,9 +483,9 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
                   className={styles.adminActionButton}
                   onClick={() => setSlug(slugify(title))}
                   disabled={!title.trim() || isPending}
-                  aria-label="Generate collection slug"
+                  aria-label="Сгенерировать slug подборки"
                 >
-                  Use title
+                  Из названия
                 </button>
               </div>
             </label>
@@ -493,7 +493,7 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
 
           <div className={styles.adminInlineRow}>
             <label className={styles.adminField}>
-              <span className={styles.adminLabel}>Short text</span>
+              <span className={styles.adminLabel}>Короткий текст</span>
               <input
                 className={styles.adminInput}
                 value={shortText}
@@ -501,7 +501,7 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
               />
             </label>
             <label className={styles.adminField}>
-              <span className={styles.adminLabel}>Display order</span>
+              <span className={styles.adminLabel}>Порядок вывода</span>
               <input
                 type="number"
                 min="0"
@@ -514,7 +514,7 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
           </div>
 
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Description</span>
+            <span className={styles.adminLabel}>Описание</span>
             <textarea
               className={styles.adminTextarea}
               value={description}
@@ -531,7 +531,7 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
                 checked={isActive}
                 onChange={(event) => setIsActive(event.target.checked)}
               />
-              <span className={styles.adminLabel}>Visible in storefront</span>
+              <span className={styles.adminLabel}>Показывать на витрине</span>
             </label>
 
             <label className={styles.adminCheckboxRow}>
@@ -541,7 +541,7 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
                 checked={isFeatured}
                 onChange={(event) => setIsFeatured(event.target.checked)}
               />
-              <span className={styles.adminLabel}>Feature on storefront</span>
+              <span className={styles.adminLabel}>Показывать как рекомендуемую</span>
             </label>
           </div>
 
@@ -549,9 +549,9 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
             type="submit"
             className={styles.adminPrimaryButton}
             disabled={isPending}
-            aria-label="Create collection"
+            aria-label="Создать подборку"
           >
-            {isPending ? 'Creating...' : 'Create collection'}
+            {isPending ? 'Создаем...' : 'Создать подборку'}
           </button>
 
           {errorMessage && <p className={styles.adminError}>{errorMessage}</p>}
@@ -561,11 +561,11 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
 
       {filteredCollections.length === 0 ? (
         <StoreEmptyState
-          title={collections.length === 0 ? 'No collections yet' : 'No matching collections'}
+          title={collections.length === 0 ? 'Подборок пока нет' : 'Совпадений не найдено'}
           description={
             collections.length === 0
-              ? 'Create the first collection to power curated storefront sections.'
-              : 'Adjust filters or search query to see matching collections.'
+              ? 'Создайте первую подборку для витрины и контентных блоков.'
+              : 'Измените фильтры или поисковый запрос.'
           }
         />
       ) : (

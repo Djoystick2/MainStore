@@ -12,7 +12,7 @@ export default async function AdminCreateProductPage() {
   const categoriesResult = await getAdminCategories();
 
   return (
-    <AdminScreen title="Create Product" subtitle="Add new product to catalog" back={true}>
+    <AdminScreen title="Создание товара" subtitle="Добавьте новый товар в каталог" back={true}>
       {categoriesResult.message && (
         <section
           className={classNames(
@@ -20,7 +20,7 @@ export default async function AdminCreateProductPage() {
             categoriesResult.status === 'error' && storeStyles.dataNoticeError,
           )}
         >
-          <p className={storeStyles.dataNoticeTitle}>Categories update</p>
+          <p className={storeStyles.dataNoticeTitle}>Обновление категорий</p>
           <p className={storeStyles.dataNoticeText}>{categoriesResult.message}</p>
           {(categoriesResult.status === 'error' ||
             categoriesResult.status === 'not_configured') && (
@@ -28,9 +28,9 @@ export default async function AdminCreateProductPage() {
               <Link
                 href="/admin/products/new"
                 className={storeStyles.dataNoticeRetry}
-                aria-label="Retry loading categories"
+                aria-label="Повторить загрузку категорий"
               >
-                Retry
+                Повторить
               </Link>
             </div>
           )}
@@ -38,15 +38,15 @@ export default async function AdminCreateProductPage() {
       )}
 
       <Link href="/admin/products" className={adminStyles.adminActionLink}>
-        Back to products
+        К товарам
       </Link>
 
       {categoriesResult.status === 'ok' ? (
         <AdminProductForm mode="create" categories={categoriesResult.categories} />
       ) : (
         <StoreEmptyState
-          title="Cannot load categories"
-          description="Categories are temporarily unavailable. Retry in a moment."
+          title="Не удалось загрузить категории"
+          description="Категории временно недоступны. Попробуйте чуть позже."
         />
       )}
     </AdminScreen>

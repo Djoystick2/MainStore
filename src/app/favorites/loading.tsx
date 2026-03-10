@@ -3,8 +3,8 @@ import { StoreLoadingView } from '@/components/store/StoreLoadingView';
 export default function FavoritesLoading() {
   return (
     <StoreLoadingView
-      title="Favorites"
-      subtitle="Loading favorites"
+      title="Избранное"
+      subtitle="Загружаем избранное"
       back={false}
       showBottomNav={true}
       mode="catalog"
