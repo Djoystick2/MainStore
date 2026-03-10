@@ -43,7 +43,7 @@ function profileRowToCurrentProfile(row: ProfileRow): CurrentProfile {
 
 export type UpsertTelegramProfileResult =
   | { ok: true; profile: CurrentProfile }
-  | { ok: false; reason: string };
+  | { ok: false; reason: string; details?: string[] };
 
 export async function upsertProfileFromTelegramIdentity(
   user: TelegramIdentity,
@@ -65,14 +65,18 @@ export async function upsertProfileFromTelegramIdentity(
     .maybeSingle();
 
   if (existingProfileResult.error) {
-    return { ok: false, reason: existingProfileResult.error.message };
+    return {
+      ok: false,
+      reason: 'profile_lookup_failed',
+      details: [existingProfileResult.error.message],
+    };
   }
 
   const existingProfile = existingProfileResult.data as ProfileRow | null;
   const profileId = existingProfile?.id ?? toUuidFromTelegramId(telegramUserId);
 
   if (!existingProfile) {
-    const email = `tg-${telegramUserId}@telegram.mainstore.local`;
+    const email = `tg-${telegramUserId}@mainstore.example.com`;
     const authCreateResult = await adminClient.auth.admin.createUser({
       id: profileId,
       email,
@@ -93,7 +97,11 @@ export async function upsertProfileFromTelegramIdentity(
         authCreateResult.error.message.includes('exists');
 
       if (!isAlreadyRegistered) {
-        return { ok: false, reason: authCreateResult.error.message };
+        return {
+          ok: false,
+          reason: 'auth_user_create_failed',
+          details: [authCreateResult.error.message],
+        };
       }
     }
   }
@@ -132,7 +140,10 @@ export async function upsertProfileFromTelegramIdentity(
   if (typedUpsertResult.error || !typedUpsertResult.data) {
     return {
       ok: false,
-      reason: typedUpsertResult.error?.message || 'profile_upsert_failed',
+      reason: 'profile_upsert_failed',
+      details: typedUpsertResult.error?.message
+        ? [typedUpsertResult.error.message]
+        : undefined,
     };
   }
 

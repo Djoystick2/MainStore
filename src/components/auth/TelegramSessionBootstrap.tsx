@@ -87,9 +87,9 @@ function TelegramSessionBootstrapEffect({
 
         if (!response.ok) {
           const payload = (await response.json().catch(() => null)) as
-            | { error?: string; details?: string[] }
+            | { error?: string; reason?: string; details?: string[] }
             | null;
-          const errorMessage = payload?.error ?? `HTTP ${response.status}`;
+          const errorMessage = payload?.reason ?? payload?.error ?? `HTTP ${response.status}`;
 
           if (process.env.NODE_ENV === 'development') {
             console.warn(

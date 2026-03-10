@@ -20,6 +20,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         ok: false,
+        reason: 'bootstrap_not_configured',
         error: 'Server session bootstrap is not configured.',
         details: [
           getTelegramVerificationMissingEnvMessage(),
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
     body = (await request.json()) as BootstrapBody;
   } catch {
     return NextResponse.json(
-      { ok: false, error: 'Invalid request body.' },
+      { ok: false, reason: 'invalid_request_body', error: 'Invalid request body.' },
       { status: 400 },
     );
   }
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
   const initDataRaw = body.initDataRaw;
   if (!initDataRaw) {
     return NextResponse.json(
-      { ok: false, error: 'initDataRaw is required.' },
+      { ok: false, reason: 'init_data_missing', error: 'initDataRaw is required.' },
       { status: 400 },
     );
   }
@@ -51,7 +52,11 @@ export async function POST(request: Request) {
   const verification = verifyTelegramInitData(initDataRaw);
   if (!verification.ok) {
     return NextResponse.json(
-      { ok: false, error: `Telegram init data verification failed: ${verification.reason}` },
+      {
+        ok: false,
+        reason: verification.reason,
+        error: `Telegram init data verification failed: ${verification.reason}`,
+      },
       { status: 401 },
     );
   }
@@ -63,10 +68,20 @@ export async function POST(request: Request) {
     const details =
       upsertResult.reason === 'supabase_service_role_missing'
         ? [getSupabaseAdminMissingEnvMessage()]
-        : undefined;
+        : upsertResult.details;
+
+    console.error('[MainStore] Telegram bootstrap profile upsert failed', {
+      reason: upsertResult.reason,
+      details: upsertResult.details ?? [],
+    });
 
     return NextResponse.json(
-      { ok: false, error: `Profile upsert failed: ${upsertResult.reason}`, details },
+      {
+        ok: false,
+        reason: upsertResult.reason,
+        error: `Profile upsert failed: ${upsertResult.reason}`,
+        details,
+      },
       { status: statusCode },
     );
   }

@@ -18,7 +18,7 @@ export function TelegramSessionRequiredState({
   fallbackActionHref,
   retryHref,
 }: TelegramSessionRequiredStateProps) {
-  const { status, hasInitData, isTelegramRuntime } = useTelegramSessionBootstrapState();
+  const { status, hasInitData, isTelegramRuntime, error } = useTelegramSessionBootstrapState();
 
   if (hasInitData && (status === 'pending' || status === 'ready')) {
     return (
@@ -30,10 +30,14 @@ export function TelegramSessionRequiredState({
   }
 
   if (hasInitData && status === 'failed') {
+    const failureDescription = error
+      ? `Mini App открыт из Telegram, но серверная сессия не создалась. Код: ${error}.`
+      : 'Mini App открыт из Telegram, но серверная сессия не создалась. Обновите экран или откройте магазин заново из бота.';
+
     return (
       <StoreEmptyState
         title="Не удалось подтвердить сессию Telegram"
-        description="Mini App открыт из Telegram, но серверная сессия не создалась. Обновите экран или откройте магазин заново из бота."
+        description={failureDescription}
         actionLabel="Обновить экран"
         actionHref={retryHref}
       />
