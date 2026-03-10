@@ -12,6 +12,18 @@ interface ProductCardProps {
   compact?: boolean;
 }
 
+function getStockBadge(product: StoreProduct): { label: string; className: string } | null {
+  if (product.stockState === 'out_of_stock') {
+    return { label: 'Нет в наличии', className: styles.productStatusDanger };
+  }
+
+  if (product.stockState === 'low_stock') {
+    return { label: 'Мало в наличии', className: styles.productStatusWarn };
+  }
+
+  return null;
+}
+
 export function ProductCard({ product, href, compact = false }: ProductCardProps) {
   const imageStyle = product.imageUrl
     ? {
@@ -20,6 +32,7 @@ export function ProductCard({ product, href, compact = false }: ProductCardProps
         backgroundSize: 'cover',
       }
     : { background: product.imageGradient };
+  const stockBadge = getStockBadge(product);
 
   const card = (
     <article className={classNames(styles.productCard, compact && styles.productCardCompact)}>
@@ -34,6 +47,15 @@ export function ProductCard({ product, href, compact = false }: ProductCardProps
             <p className={styles.productDiscountBadge}>{product.appliedDiscount.badgeText}</p>
           ) : null}
         </div>
+
+        {product.categoryTitle || stockBadge ? (
+          <div className={styles.productMetaRow}>
+            {product.categoryTitle ? <span className={styles.productMetaBadge}>{product.categoryTitle}</span> : null}
+            {stockBadge ? (
+              <span className={classNames(styles.productMetaBadge, stockBadge.className)}>{stockBadge.label}</span>
+            ) : null}
+          </div>
+        ) : null}
 
         <p className={styles.productDescription}>{product.shortDescription || product.description}</p>
 

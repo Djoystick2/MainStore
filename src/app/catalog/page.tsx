@@ -6,7 +6,10 @@ import { StoreScreen } from '@/components/store/StoreScreen';
 import { StoreSection } from '@/components/store/StoreSection';
 import { classNames } from '@/css/classnames';
 import { getCatalogStorefrontData } from '@/features/storefront/data';
+import type { StoreProduct } from '@/components/store/types';
 import styles from '@/components/store/store.module.css';
+
+type CatalogSort = 'popular' | 'newest' | 'price_asc' | 'price_desc' | 'discount';
 
 function normalizeQueryValue(value: string | string[] | undefined): string {
   if (Array.isArray(value)) {
@@ -16,14 +19,42 @@ function normalizeQueryValue(value: string | string[] | undefined): string {
   return (value ?? '').trim();
 }
 
+function normalizeBooleanFlag(value: string | string[] | undefined): boolean {
+  const normalized = normalizeQueryValue(value);
+  return normalized === '1' || normalized === 'true';
+}
+
+function normalizeSort(value: string | string[] | undefined): CatalogSort {
+  const normalized = normalizeQueryValue(value);
+
+  if (
+    normalized === 'newest' ||
+    normalized === 'price_asc' ||
+    normalized === 'price_desc' ||
+    normalized === 'discount'
+  ) {
+    return normalized;
+  }
+
+  return 'popular';
+}
+
 function buildCatalogHref({
   query,
   category,
   collection,
+  sort,
+  availability,
+  discounted,
+  featured,
 }: {
   query?: string;
   category?: string;
   collection?: string;
+  sort?: CatalogSort;
+  availability?: string;
+  discounted?: boolean;
+  featured?: boolean;
 }): string {
   const params = new URLSearchParams();
 
@@ -36,9 +67,56 @@ function buildCatalogHref({
   if (collection) {
     params.set('collection', collection);
   }
+  if (sort && sort !== 'popular') {
+    params.set('sort', sort);
+  }
+  if (availability) {
+    params.set('availability', availability);
+  }
+  if (discounted) {
+    params.set('discounted', '1');
+  }
+  if (featured) {
+    params.set('featured', '1');
+  }
 
   const search = params.toString();
   return search ? `/catalog?${search}` : '/catalog';
+}
+
+function sortProducts(products: StoreProduct[], sort: CatalogSort): StoreProduct[] {
+  const sorted = [...products];
+
+  sorted.sort((left, right) => {
+    switch (sort) {
+      case 'newest':
+        return (right.createdAt ?? '').localeCompare(left.createdAt ?? '');
+      case 'price_asc':
+        return left.priceCents - right.priceCents;
+      case 'price_desc':
+        return right.priceCents - left.priceCents;
+      case 'discount': {
+        const discountDelta = (right.discountAmountCents ?? 0) - (left.discountAmountCents ?? 0);
+        if (discountDelta !== 0) {
+          return discountDelta;
+        }
+        return (right.popularityScore ?? 0) - (left.popularityScore ?? 0);
+      }
+      case 'popular':
+      default: {
+        const popularityDelta = (right.popularityScore ?? 0) - (left.popularityScore ?? 0);
+        if (popularityDelta !== 0) {
+          return popularityDelta;
+        }
+        if (right.isFeatured !== left.isFeatured) {
+          return right.isFeatured ? 1 : -1;
+        }
+        return (right.createdAt ?? '').localeCompare(left.createdAt ?? '');
+      }
+    }
+  });
+
+  return sorted;
 }
 
 export default async function CatalogPage({
@@ -52,6 +130,11 @@ export default async function CatalogPage({
   const searchQuery = searchQueryRaw.toLowerCase();
   const selectedCategorySlug = normalizeQueryValue(params.category);
   const selectedCollectionSlug = normalizeQueryValue(params.collection);
+  const selectedSort = normalizeSort(params.sort);
+  const selectedAvailability = normalizeQueryValue(params.availability);
+  const discountedOnly = normalizeBooleanFlag(params.discounted);
+  const featuredOnly = normalizeBooleanFlag(params.featured);
+
   const selectedCategory = catalogData.categories.find((category) => category.slug === selectedCategorySlug);
   const selectedCollection = catalogData.collections.find((collection) => collection.slug === selectedCollectionSlug);
   const collectionProductIdSet = new Set(selectedCollection?.products.map((product) => product.id) ?? []);
@@ -65,52 +148,109 @@ export default async function CatalogPage({
       return false;
     }
 
+    if (selectedAvailability === 'in_stock' && product.stockState === 'out_of_stock') {
+      return false;
+    }
+
+    if (discountedOnly && !product.appliedDiscount) {
+      return false;
+    }
+
+    if (featuredOnly && !product.isFeatured) {
+      return false;
+    }
+
     if (!searchQuery) {
       return true;
     }
 
-    const searchableText = [product.title, product.shortDescription ?? '', product.description]
+    const searchableText = [
+      product.title,
+      product.shortDescription ?? '',
+      product.description,
+      product.categoryTitle ?? '',
+      ...(product.collections ?? []).map((collection) => collection.title),
+    ]
       .join(' ')
       .toLowerCase();
 
     return searchableText.includes(searchQuery);
   });
 
-  const hasActiveFilters = Boolean(searchQuery || (selectedCategory && selectedCategory.id !== 'all') || selectedCollection);
+  const sortedProducts = sortProducts(filteredProducts, selectedSort);
+  const hasActiveFilters = Boolean(
+    searchQuery ||
+      (selectedCategory && selectedCategory.id !== 'all') ||
+      selectedCollection ||
+      selectedAvailability ||
+      discountedOnly ||
+      featuredOnly ||
+      selectedSort !== 'popular',
+  );
+
   const resultsTitle = selectedCollection
     ? `Подборка «${selectedCollection.title}»`
     : selectedCategory && selectedCategory.id !== 'all'
       ? selectedCategory.title
-      : 'Все товары';
+      : searchQueryRaw
+        ? `Поиск: «${searchQueryRaw}»`
+        : 'Все товары';
+
+  const resultSummary = `${sortedProducts.length} ${
+    sortedProducts.length === 1
+      ? 'товар'
+      : sortedProducts.length >= 2 && sortedProducts.length <= 4
+        ? 'товара'
+        : 'товаров'
+  }`;
 
   return (
-    <StoreScreen title="Каталог" subtitle="Поиск, категории и подборки без лишнего шума">
+    <StoreScreen title="Каталог" subtitle="Поиск, фильтры и подбор товаров без лишней сложности">
       <section className={styles.catalogLead}>
-        <p className={styles.catalogLeadEyebrow}>Навигация по товарам</p>
+        <p className={styles.catalogLeadEyebrow}>Навигация по витрине</p>
         <h2 className={styles.catalogLeadTitle}>{resultsTitle}</h2>
         <p className={styles.catalogLeadText}>
           {hasActiveFilters
-            ? 'Показываем только то, что подходит под текущие фильтры.'
-            : 'Начните с поиска, категории или готовой подборки.'}
+            ? `Сейчас на экране ${resultSummary.toLowerCase()} по выбранным условиям.`
+            : 'Сначала выберите направление: поиск, категория, подборка или быстрый фильтр.'}
         </p>
       </section>
 
-      <form action="/catalog" method="get" className={styles.searchRow}>
-        <input
-          className={styles.searchInput}
-          name="q"
-          type="text"
-          placeholder="Поиск товаров"
-          defaultValue={searchQueryRaw}
-          aria-label="Поиск товаров"
-        />
+      <form action="/catalog" method="get" className={styles.catalogToolbar}>
         {selectedCategory && selectedCategory.id !== 'all' ? (
           <input type="hidden" name="category" value={selectedCategory.slug} />
         ) : null}
         {selectedCollection ? <input type="hidden" name="collection" value={selectedCollection.slug} /> : null}
-        <button type="submit" className={styles.filterButton} aria-label="Применить поиск по каталогу">
-          Найти
-        </button>
+        {discountedOnly ? <input type="hidden" name="discounted" value="1" /> : null}
+        {featuredOnly ? <input type="hidden" name="featured" value="1" /> : null}
+        {selectedAvailability ? <input type="hidden" name="availability" value={selectedAvailability} /> : null}
+
+        <div className={styles.searchRow}>
+          <input
+            className={styles.searchInput}
+            name="q"
+            type="text"
+            placeholder="Найти товар или раздел"
+            defaultValue={searchQueryRaw}
+            aria-label="Поиск по каталогу"
+          />
+          <button type="submit" className={styles.filterButton} aria-label="Применить поиск по каталогу">
+            Найти
+          </button>
+        </div>
+
+        <div className={styles.catalogToolbarRow}>
+          <label className={styles.catalogSelectLabel}>
+            <span className={styles.catalogSelectCaption}>Сортировка</span>
+            <select name="sort" defaultValue={selectedSort} className={styles.catalogSelect}>
+              <option value="popular">Сначала популярные</option>
+              <option value="newest">Сначала новые</option>
+              <option value="discount">Сначала выгодные</option>
+              <option value="price_asc">Цена по возрастанию</option>
+              <option value="price_desc">Цена по убыванию</option>
+            </select>
+          </label>
+        </div>
       </form>
 
       <div className={styles.chipRow}>
@@ -121,6 +261,10 @@ export default async function CatalogPage({
               query: searchQueryRaw || undefined,
               category: category.id === 'all' ? undefined : category.slug,
               collection: selectedCollection?.slug,
+              sort: selectedSort,
+              availability: selectedAvailability || undefined,
+              discounted: discountedOnly,
+              featured: featuredOnly,
             })}
             className={classNames(
               styles.chip,
@@ -133,17 +277,65 @@ export default async function CatalogPage({
         ))}
       </div>
 
+      <div className={styles.chipRow}>
+        <Link
+          href={buildCatalogHref({
+            query: searchQueryRaw || undefined,
+            category: selectedCategory && selectedCategory.id !== 'all' ? selectedCategory.slug : undefined,
+            collection: selectedCollection?.slug,
+            sort: selectedSort,
+            availability: selectedAvailability === 'in_stock' ? undefined : 'in_stock',
+            discounted: discountedOnly,
+            featured: featuredOnly,
+          })}
+          className={classNames(styles.chip, selectedAvailability === 'in_stock' && styles.chipActive)}
+        >
+          Можно заказать
+        </Link>
+        <Link
+          href={buildCatalogHref({
+            query: searchQueryRaw || undefined,
+            category: selectedCategory && selectedCategory.id !== 'all' ? selectedCategory.slug : undefined,
+            collection: selectedCollection?.slug,
+            sort: selectedSort,
+            availability: selectedAvailability || undefined,
+            discounted: !discountedOnly,
+            featured: featuredOnly,
+          })}
+          className={classNames(styles.chip, discountedOnly && styles.chipActive)}
+        >
+          Со скидкой
+        </Link>
+        <Link
+          href={buildCatalogHref({
+            query: searchQueryRaw || undefined,
+            category: selectedCategory && selectedCategory.id !== 'all' ? selectedCategory.slug : undefined,
+            collection: selectedCollection?.slug,
+            sort: selectedSort,
+            availability: selectedAvailability || undefined,
+            discounted: discountedOnly,
+            featured: !featuredOnly,
+          })}
+          className={classNames(styles.chip, featuredOnly && styles.chipActive)}
+        >
+          Рекомендуемые
+        </Link>
+      </div>
+
       {catalogData.collections.length > 0 ? (
         <StoreSection title="Подборки">
           <div className={styles.collectionRail}>
-            {catalogData.collections.slice(0, 6).map((collection) => (
+            {catalogData.collections.slice(0, 8).map((collection) => (
               <Link
                 key={collection.id}
                 href={buildCatalogHref({
                   query: searchQueryRaw || undefined,
-                  category:
-                    selectedCategory && selectedCategory.id !== 'all' ? selectedCategory.slug : undefined,
+                  category: selectedCategory && selectedCategory.id !== 'all' ? selectedCategory.slug : undefined,
                   collection: selectedCollection?.slug === collection.slug ? undefined : collection.slug,
+                  sort: selectedSort,
+                  availability: selectedAvailability || undefined,
+                  discounted: discountedOnly,
+                  featured: featuredOnly,
                 })}
                 className={classNames(
                   styles.collectionCard,
@@ -152,7 +344,7 @@ export default async function CatalogPage({
                 aria-label={`Открыть подборку ${collection.title}`}
               >
                 <p className={styles.collectionTitle}>{collection.title}</p>
-                <p className={styles.collectionDescription}>{collection.description || 'Подборка товаров'}</p>
+                <p className={styles.collectionDescription}>{collection.description || 'Готовая витринная подборка'}</p>
                 <div className={styles.collectionItems}>
                   {collection.products.slice(0, 2).map((product) => (
                     <span key={product.id} className={styles.collectionItemPill}>
@@ -185,11 +377,14 @@ export default async function CatalogPage({
         </section>
       ) : null}
 
-      {hasActiveFilters ? (
-        <Link href="/catalog" className={styles.secondaryInlineLink} aria-label="Сбросить все фильтры">
-          Сбросить фильтры
-        </Link>
-      ) : null}
+      <div className={styles.catalogResultMeta}>
+        <p className={styles.catalogResultCount}>{resultSummary}</p>
+        {hasActiveFilters ? (
+          <Link href="/catalog" className={styles.secondaryInlineLink} aria-label="Сбросить все фильтры каталога">
+            Сбросить фильтры
+          </Link>
+        ) : null}
+      </div>
 
       {catalogData.promoBanners[0] ? (
         <section className={styles.bannerCard}>
@@ -209,19 +404,19 @@ export default async function CatalogPage({
       <StoreSection title={resultsTitle}>
         {catalogData.status === 'empty' ? (
           <StoreEmptyState
-            title="Каталог пуст"
+            title="Каталог пока пуст"
             description="Активных товаров пока нет. Опубликуйте их в админке и вернитесь сюда."
           />
-        ) : filteredProducts.length === 0 ? (
+        ) : sortedProducts.length === 0 ? (
           <StoreEmptyState
-            title="Ничего не найдено"
-            description="Попробуйте другую категорию, подборку или сбросьте фильтры."
-            actionLabel="Сбросить фильтры"
+            title={searchQueryRaw ? `По запросу «${searchQueryRaw}» ничего не найдено` : 'Ничего не найдено'}
+            description="Попробуйте убрать часть условий, открыть другую категорию или посмотреть все товары без фильтров."
+            actionLabel="Показать все товары"
             actionHref="/catalog"
           />
         ) : (
           <div className={styles.catalogGrid}>
-            {filteredProducts.map((product) => (
+            {sortedProducts.map((product) => (
               <ProductCard key={product.id} product={product} href={`/products/${product.slug}`} />
             ))}
           </div>

@@ -9,6 +9,7 @@ import { StoreEmptyState } from '@/components/store/StoreEmptyState';
 import { StoreScreen } from '@/components/store/StoreScreen';
 import { StoreSection } from '@/components/store/StoreSection';
 import { formatStorePrice } from '@/components/store/formatPrice';
+import type { StoreProduct } from '@/components/store/types';
 import { classNames } from '@/css/classnames';
 import { getCurrentUserContext } from '@/features/auth';
 import { getProductStorefrontData } from '@/features/storefront/data';
@@ -28,6 +29,58 @@ function formatDiscountScope(scope: string): string {
   }
 }
 
+function getAvailability(product: StoreProduct): {
+  tone: 'default' | 'warn' | 'danger';
+  title: string;
+  description: string;
+  canBuy: boolean;
+} {
+  switch (product.stockState) {
+    case 'out_of_stock':
+      return {
+        tone: 'danger',
+        title: 'Нет в наличии',
+        description: 'Позиция временно закончилась. Сохраните товар в избранное и вернитесь позже.',
+        canBuy: false,
+      };
+    case 'low_stock':
+      return {
+        tone: 'warn',
+        title: 'Осталось мало',
+        description: 'Товар ещё можно заказать, но остаток уже небольшой.',
+        canBuy: true,
+      };
+    case 'in_stock':
+      return {
+        tone: 'default',
+        title: 'В наличии',
+        description: 'Товар доступен для заказа прямо сейчас.',
+        canBuy: true,
+      };
+    default:
+      return {
+        tone: 'default',
+        title: 'Наличие уточняется',
+        description: 'Описание и цена актуальны. Детали по наличию обновляются вместе с каталогом.',
+        canBuy: true,
+      };
+  }
+}
+
+function buildDetailImageStyle(url: string | null | undefined, gradient: string) {
+  if (url) {
+    return {
+      backgroundImage: `linear-gradient(rgba(12, 18, 31, 0.14), rgba(12, 18, 31, 0.14)), url(${url})`,
+      backgroundPosition: 'center',
+      backgroundSize: 'cover',
+    };
+  }
+
+  return {
+    background: gradient,
+  };
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -39,7 +92,7 @@ export async function generateMetadata({
 
   if (!product) {
     return {
-      title: 'Product | MainStore',
+      title: 'Товар | MainStore',
       description: 'Посмотрите детали товара в каталоге MainStore.',
     };
   }
@@ -69,29 +122,57 @@ export default async function ProductPage({
   const favoriteIdSet = new Set(favoriteIds);
   const isFavorited = product ? favoriteIdSet.has(product.id) : false;
 
-  const price = product ? formatStorePrice(product.priceCents, product.currency) : '';
+  if (!product) {
+    return (
+      <StoreScreen title="Товар" subtitle="Детали товара" back={true} showBottomNav={false}>
+        {productData.message ? (
+          <section
+            className={classNames(
+              styles.dataNotice,
+              (productData.status === 'error' || productData.status === 'fallback_error') && styles.dataNoticeError,
+            )}
+          >
+            <p className={styles.dataNoticeTitle}>Обновление товара</p>
+            <p className={styles.dataNoticeText}>{productData.message}</p>
+          </section>
+        ) : null}
+
+        <StoreEmptyState
+          title="Товар не найден"
+          description="Товар не найден или сейчас неактивен. Откройте каталог, чтобы продолжить."
+          actionLabel="Перейти в каталог"
+          actionHref="/catalog"
+        />
+      </StoreScreen>
+    );
+  }
+
+  const price = formatStorePrice(product.priceCents, product.currency);
   const compareAtPrice =
-    product?.compareAtPriceCents && product.compareAtPriceCents > product.priceCents
+    product.compareAtPriceCents && product.compareAtPriceCents > product.priceCents
       ? formatStorePrice(product.compareAtPriceCents, product.currency)
       : null;
-
-  const detailImageStyle = product?.imageUrl
-    ? {
-        backgroundImage: `linear-gradient(rgba(12, 18, 31, 0.16), rgba(12, 18, 31, 0.16)), url(${product.imageUrl})`,
-        backgroundPosition: 'center',
-        backgroundSize: 'cover',
-      }
-    : {
-        background: product?.imageGradient || 'linear-gradient(135deg, #9fb8ff 0%, #5f7de8 100%)',
-      };
+  const availability = getAvailability(product);
+  const media = product.media && product.media.length > 0
+    ? product.media
+    : [
+        {
+          id: `${product.id}-fallback`,
+          url: product.imageUrl ?? '',
+          alt: product.imageAlt ?? product.title,
+          isPrimary: true,
+          sortOrder: 0,
+        },
+      ];
+  const leadMedia = media[0];
+  const descriptionBlocks = (product.description || '')
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean);
+  const collectionNames = (product.collections ?? []).map((collection) => collection.title).join(', ');
 
   return (
-    <StoreScreen
-      title="Товар"
-      subtitle={product ? product.title : 'Детали товара'}
-      back={true}
-      showBottomNav={false}
-    >
+    <StoreScreen title="Товар" subtitle={product.title} back={true} showBottomNav={false}>
       {productData.message ? (
         <section
           className={classNames(
@@ -106,7 +187,7 @@ export default async function ProductPage({
             productData.status === 'fallback_env') && (
             <div className={styles.dataNoticeActions}>
               <Link
-                href={product ? `/products/${product.slug}` : `/products/${productId}`}
+                href={`/products/${product.slug}`}
                 className={styles.dataNoticeRetry}
                 aria-label="Повторить загрузку товара"
               >
@@ -117,78 +198,126 @@ export default async function ProductPage({
         </section>
       ) : null}
 
-      {!product ? (
-        <StoreEmptyState
-          title="Товар не найден"
-          description="Товар не найден или сейчас неактивен. Откройте каталог, чтобы продолжить."
-          actionLabel="Перейти в каталог"
-          actionHref="/catalog"
-        />
-      ) : (
-        <>
-          <div className={styles.productPageBottomSpace}>
-            <section className={styles.detailCard}>
-              <div className={styles.detailImage} style={detailImageStyle}>
-                <span className={styles.productImageLabel}>{product.imageLabel}</span>
-              </div>
-
-              <div className={styles.detailMeta}>
-                <div className={styles.detailHeading}>
-                  <h2 className={styles.detailTitle}>{product.title}</h2>
-                  {product.shortDescription ? <p className={styles.detailLead}>{product.shortDescription}</p> : null}
-                </div>
-
-                <div className={styles.detailPriceRow}>
-                  <p className={styles.detailPrice}>{price}</p>
-                  {compareAtPrice ? <p className={styles.detailPriceCompare}>{compareAtPrice}</p> : null}
-                </div>
-
-                {product.appliedDiscount ? (
-                  <p className={styles.detailDiscountNote}>
-                    {product.appliedDiscount.badgeText} по скидке {formatDiscountScope(product.appliedDiscount.scope)} «
-                    {product.appliedDiscount.title}».
-                  </p>
-                ) : null}
-
-                <p className={styles.detailDescription}>{product.description}</p>
-
-                <div className={styles.detailActions}>
-                  <div className={styles.detailActionGrid}>
-                    <FavoriteToggleButton productId={product.id} initialFavorited={isFavorited} />
-                    <ProductShareButton productSlug={product.slug} productTitle={product.title} />
-                  </div>
-                  <Link href="/catalog" className={styles.secondaryInlineLink} aria-label="Вернуться в каталог">
-                    Вернуться в каталог
-                  </Link>
-                </div>
-              </div>
-            </section>
-
-            <section className={styles.panel}>
-              <h2 className={styles.panelTitle}>Ссылка на товар</h2>
-              <p className={styles.panelText}>
-                Эту позицию можно открыть позже по прямой ссылке и в Telegram Mini App, и в браузере.
-              </p>
-            </section>
-
-            {productData.relatedProducts.length > 0 ? (
-              <StoreSection title="Ещё может подойти">
-                <div className={styles.scrollRow}>
-                  {productData.relatedProducts.map((item) => (
-                    <ProductCard key={item.id} product={item} href={`/products/${item.slug}`} compact />
-                  ))}
-                </div>
-              </StoreSection>
-            ) : null}
+      <div className={styles.productPageBottomSpace}>
+        <section className={styles.detailCard}>
+          <div className={styles.detailImage} style={buildDetailImageStyle(leadMedia?.url, product.imageGradient)}>
+            <span className={styles.productImageLabel}>{product.imageLabel}</span>
           </div>
 
-          <div className={styles.stickyBar}>
-            <div className={styles.stickyBarInner}>
-              <AddToCartButton productId={product.id} className={styles.stickyBarButton} />
+          {media.length > 1 ? (
+            <div className={styles.detailGalleryRow} aria-label="Галерея товара">
+              {media.map((item) => (
+                <div
+                  key={item.id}
+                  className={classNames(styles.detailGalleryCard, item.isPrimary && styles.detailGalleryCardActive)}
+                  style={buildDetailImageStyle(item.url, product.imageGradient)}
+                  aria-hidden="true"
+                />
+              ))}
+            </div>
+          ) : null}
+
+          <div className={styles.detailMeta}>
+            <div className={styles.detailHeading}>
+              <h2 className={styles.detailTitle}>{product.title}</h2>
+              {product.shortDescription ? <p className={styles.detailLead}>{product.shortDescription}</p> : null}
+            </div>
+
+            <div className={styles.detailPriceRow}>
+              <p className={styles.detailPrice}>{price}</p>
+              {compareAtPrice ? <p className={styles.detailPriceCompare}>{compareAtPrice}</p> : null}
+            </div>
+
+            {product.appliedDiscount ? (
+              <p className={styles.detailDiscountNote}>
+                {product.appliedDiscount.badgeText} по скидке {formatDiscountScope(product.appliedDiscount.scope)} «
+                {product.appliedDiscount.title}».
+              </p>
+            ) : null}
+
+            <section
+              className={classNames(
+                styles.detailAvailability,
+                availability.tone === 'warn' && styles.detailAvailabilityWarn,
+                availability.tone === 'danger' && styles.detailAvailabilityDanger,
+              )}
+            >
+              <p className={styles.detailAvailabilityTitle}>{availability.title}</p>
+              <p className={styles.detailAvailabilityText}>{availability.description}</p>
+            </section>
+
+            <div className={styles.infoGrid}>
+              <div className={styles.infoItem}>
+                <p className={styles.infoLabel}>Категория</p>
+                <p className={styles.infoValueCompact}>{product.categoryTitle || 'Без категории'}</p>
+              </div>
+              <div className={styles.infoItem}>
+                <p className={styles.infoLabel}>Подборки</p>
+                <p className={styles.infoValueCompact}>{collectionNames || 'Пока не добавлен'}</p>
+              </div>
+              <div className={styles.infoItem}>
+                <p className={styles.infoLabel}>Наличие</p>
+                <p className={styles.infoValueCompact}>{availability.title}</p>
+              </div>
+              <div className={styles.infoItem}>
+                <p className={styles.infoLabel}>Артикул</p>
+                <p className={styles.infoValueCompact}>{product.slug}</p>
+              </div>
+            </div>
+
+            <div className={styles.detailDescriptionStack}>
+              {descriptionBlocks.length > 0 ? (
+                descriptionBlocks.map((block, index) => (
+                  <p key={`${product.id}-description-${index}`} className={styles.detailDescription}>
+                    {block}
+                  </p>
+                ))
+              ) : (
+                <p className={styles.detailDescription}>Описание товара скоро появится.</p>
+              )}
+            </div>
+
+            <div className={styles.detailActions}>
+              <div className={styles.detailActionGrid}>
+                <FavoriteToggleButton productId={product.id} initialFavorited={isFavorited} />
+                <ProductShareButton productSlug={product.slug} productTitle={product.title} />
+              </div>
+              <Link href="/catalog" className={styles.secondaryInlineLink} aria-label="Вернуться в каталог">
+                Вернуться в каталог
+              </Link>
             </div>
           </div>
-        </>
-      )}
+        </section>
+
+        <section className={styles.panel}>
+          <h2 className={styles.panelTitle}>Перед покупкой</h2>
+          <p className={styles.panelText}>
+            Карточка открывается и по прямой ссылке, и внутри Telegram Mini App. Если нужно вернуться к просмотру,
+            товар останется в истории навигации.
+          </p>
+        </section>
+
+        {productData.relatedProducts.length > 0 ? (
+          <StoreSection title="Ещё может подойти">
+            <div className={styles.scrollRow}>
+              {productData.relatedProducts.map((item) => (
+                <ProductCard key={item.id} product={item} href={`/products/${item.slug}`} compact />
+              ))}
+            </div>
+          </StoreSection>
+        ) : null}
+      </div>
+
+      <div className={styles.stickyBar}>
+        <div className={styles.stickyBarInner}>
+          <AddToCartButton
+            productId={product.id}
+            className={styles.stickyBarButton}
+            disabled={!availability.canBuy}
+            disabledLabel="Нет в наличии"
+          />
+        </div>
+      </div>
     </StoreScreen>
   );
 }

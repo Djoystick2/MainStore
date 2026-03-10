@@ -10,6 +10,8 @@ import styles from './store.module.css';
 interface AddToCartButtonProps {
   productId: string;
   className?: string;
+  disabled?: boolean;
+  disabledLabel?: string;
 }
 
 function mapAddToCartError(error: string): string {
@@ -28,7 +30,12 @@ function mapAddToCartError(error: string): string {
   return 'Не удалось добавить товар в корзину.';
 }
 
-export function AddToCartButton({ productId, className }: AddToCartButtonProps) {
+export function AddToCartButton({
+  productId,
+  className,
+  disabled = false,
+  disabledLabel = 'Недоступно',
+}: AddToCartButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -84,10 +91,10 @@ export function AddToCartButton({ productId, className }: AddToCartButtonProps) 
         type="button"
         className={classNames(className, styles.actionButtonReset)}
         onClick={handleClick}
-        disabled={isPending}
+        disabled={isPending || disabled}
         aria-label="Добавить товар в корзину"
       >
-        {isPending ? 'Добавляем...' : 'В корзину'}
+        {disabled ? disabledLabel : isPending ? 'Добавляем...' : 'В корзину'}
       </button>
       {statusMessage && (
         <p

@@ -3,7 +3,7 @@ import {
   createSupabaseServerClientOptional,
 } from '@/lib/supabase';
 import { findStoreProduct, storeProducts } from '@/components/store/mock-products';
-import type { StoreProduct } from '@/components/store/types';
+import type { StoreCollectionLink, StoreProduct, StoreProductMedia, StoreStockState } from '@/components/store/types';
 import type { Database } from '@/types/db';
 import { parseTaxonomyMetadata } from '@/features/catalog-taxonomy/metadata';
 import { resolvePricingForProducts } from '@/features/pricing';
@@ -32,6 +32,7 @@ type ProductListRow = Pick<
   | 'compare_at_price'
   | 'currency'
   | 'is_featured'
+  | 'stock_quantity'
   | 'created_at'
 >;
 type ProductImageListRow = Pick<
@@ -46,6 +47,13 @@ type CollectionItemListRow = Pick<
   CollectionItemRow,
   'collection_id' | 'product_id' | 'sort_order' | 'created_at'
 >;
+
+interface ProductDiscoverySignal {
+  favoritesCount: number;
+  cartCount: number;
+  orderCount: number;
+  popularityScore: number;
+}
 
 const fallbackGradients = [
   'linear-gradient(135deg, #9fb8ff 0%, #5f7de8 100%)',
@@ -126,9 +134,24 @@ function buildLabel(title: string): string {
   return words.slice(0, 2).join(' ');
 }
 
-function mapImageByProductId(
-  rows: ProductImageListRow[],
-): Map<string, ProductImageListRow> {
+
+function getStockState(stockQuantity: number | null | undefined): StoreStockState {
+  if (!Number.isFinite(stockQuantity)) {
+    return 'unknown';
+  }
+
+  if (Number(stockQuantity) <= 0) {
+    return 'out_of_stock';
+  }
+
+  if (Number(stockQuantity) <= 3) {
+    return 'low_stock';
+  }
+
+  return 'in_stock';
+}
+
+function mapImagesByProductId(rows: ProductImageListRow[]): Map<string, ProductImageListRow[]> {
   const byProductId = new Map<string, ProductImageListRow[]>();
 
   rows.forEach((row) => {
@@ -140,24 +163,174 @@ function mapImageByProductId(
     byProductId.set(row.product_id, [row]);
   });
 
-  const primaryMap = new Map<string, ProductImageListRow>();
   byProductId.forEach((images, productId) => {
-    const sorted = [...images].sort((left, right) => {
-      if (left.is_primary !== right.is_primary) {
-        return left.is_primary ? -1 : 1;
-      }
+    byProductId.set(
+      productId,
+      [...images].sort((left, right) => {
+        if (left.is_primary !== right.is_primary) {
+          return left.is_primary ? -1 : 1;
+        }
+        if (left.sort_order !== right.sort_order) {
+          return left.sort_order - right.sort_order;
+        }
+        return left.created_at.localeCompare(right.created_at);
+      }),
+    );
+  });
+
+  return byProductId;
+}
+
+async function fetchProductDiscoverySignals(
+  client: NonNullable<ReturnType<typeof createSupabaseServerClientOptional>>,
+  productIds: string[],
+): Promise<Map<string, ProductDiscoverySignal>> {
+  const signals = new Map<string, ProductDiscoverySignal>();
+  if (productIds.length === 0) {
+    return signals;
+  }
+
+  const [favoritesResult, cartItemsResult, orderItemsResult] = await Promise.all([
+    client.from('favorites').select('product_id').in('product_id', productIds),
+    client.from('cart_items').select('product_id, quantity').in('product_id', productIds),
+    client.from('order_items').select('product_id, quantity').in('product_id', productIds),
+  ]);
+
+  if (favoritesResult.error) {
+    throw new Error(favoritesResult.error.message);
+  }
+  if (cartItemsResult.error) {
+    throw new Error(cartItemsResult.error.message);
+  }
+  if (orderItemsResult.error) {
+    throw new Error(orderItemsResult.error.message);
+  }
+
+  const apply = (productId: string | null, updater: (signal: ProductDiscoverySignal) => void) => {
+    if (!productId) {
+      return;
+    }
+
+    const signal = signals.get(productId) ?? {
+      favoritesCount: 0,
+      cartCount: 0,
+      orderCount: 0,
+      popularityScore: 0,
+    };
+
+    updater(signal);
+    signal.popularityScore = signal.favoritesCount + signal.cartCount + signal.orderCount;
+    signals.set(productId, signal);
+  };
+
+  (favoritesResult.data ?? []).forEach((row) => {
+    apply((row as { product_id: string | null }).product_id, (signal) => {
+      signal.favoritesCount += 1;
+    });
+  });
+
+  (cartItemsResult.data ?? []).forEach((row) => {
+    const typedRow = row as { product_id: string | null; quantity: number | null };
+    apply(typedRow.product_id, (signal) => {
+      signal.cartCount += Number(typedRow.quantity) || 0;
+    });
+  });
+
+  (orderItemsResult.data ?? []).forEach((row) => {
+    const typedRow = row as { product_id: string | null; quantity: number | null };
+    apply(typedRow.product_id, (signal) => {
+      signal.orderCount += Number(typedRow.quantity) || 0;
+    });
+  });
+
+  return signals;
+}
+
+async function buildProductContext(
+  client: NonNullable<ReturnType<typeof createSupabaseServerClientOptional>>,
+  rows: ProductListRow[],
+  images: ProductImageListRow[],
+) {
+  const productIds = rows.map((row) => row.id);
+  const categoryIds = Array.from(
+    new Set(rows.map((row) => row.category_id).filter((value): value is string => Boolean(value))),
+  );
+  const imageMap = mapImagesByProductId(images);
+
+  const [pricingByProductId, signalsByProductId, categoriesResult, collectionItemsResult] = await Promise.all([
+    resolvePricingForProducts(client, rows),
+    fetchProductDiscoverySignals(client, productIds),
+    categoryIds.length > 0
+      ? client.from('categories').select('id, title').in('id', categoryIds)
+      : Promise.resolve({ data: [], error: null }),
+    client
+      .from('collection_items')
+      .select('collection_id, product_id, sort_order, created_at')
+      .in('product_id', productIds),
+  ]);
+
+  if (categoriesResult.error) {
+    throw new Error(categoriesResult.error.message);
+  }
+  if (collectionItemsResult.error) {
+    throw new Error(collectionItemsResult.error.message);
+  }
+
+  const categoryTitleById = new Map(
+    ((categoriesResult.data ?? []) as Array<Pick<CategoryRow, 'id' | 'title'>>).map((row) => [row.id, row.title]),
+  );
+
+  const collectionItems = (collectionItemsResult.data ?? []) as CollectionItemListRow[];
+  const collectionIds = Array.from(new Set(collectionItems.map((item) => item.collection_id)));
+  let collectionById = new Map<string, StoreCollectionLink>();
+
+  if (collectionIds.length > 0) {
+    const collectionsResult = await client
+      .from('collections')
+      .select('id, slug, title')
+      .in('id', collectionIds)
+      .eq('is_active', true);
+
+    if (collectionsResult.error) {
+      throw new Error(collectionsResult.error.message);
+    }
+
+    collectionById = new Map(
+      ((collectionsResult.data ?? []) as Array<Pick<CollectionRow, 'id' | 'slug' | 'title'>>).map((row) => [
+        row.id,
+        { id: row.id, slug: row.slug, title: row.title },
+      ]),
+    );
+  }
+
+  const collectionsByProductId = new Map<string, StoreCollectionLink[]>();
+  [...collectionItems]
+    .sort((left, right) => {
       if (left.sort_order !== right.sort_order) {
         return left.sort_order - right.sort_order;
       }
       return left.created_at.localeCompare(right.created_at);
+    })
+    .forEach((item) => {
+      const collection = collectionById.get(item.collection_id);
+      if (!collection) {
+        return;
+      }
+
+      const bucket = collectionsByProductId.get(item.product_id) ?? [];
+      if (!bucket.some((entry) => entry.id === collection.id)) {
+        bucket.push(collection);
+        collectionsByProductId.set(item.product_id, bucket);
+      }
     });
 
-    if (sorted[0]) {
-      primaryMap.set(productId, sorted[0]);
-    }
-  });
-
-  return primaryMap;
+  return {
+    imageMap,
+    pricingByProductId,
+    signalsByProductId,
+    categoryTitleById,
+    collectionsByProductId,
+  };
 }
 
 async function mapProductRows(
@@ -165,16 +338,29 @@ async function mapProductRows(
   rows: ProductListRow[],
   images: ProductImageListRow[],
 ): Promise<StoreProduct[]> {
-  const primaryImageByProductId = mapImageByProductId(images);
-  const pricingByProductId = await resolvePricingForProducts(client, rows);
+  if (rows.length === 0) {
+    return [];
+  }
+
+  const context = await buildProductContext(client, rows, images);
 
   return rows.map((row) => {
-    const primaryImage = primaryImageByProductId.get(row.id);
-    const pricing = pricingByProductId.get(row.id);
+    const mediaRows = context.imageMap.get(row.id) ?? [];
+    const primaryImage = mediaRows[0] ?? null;
+    const media: StoreProductMedia[] = mediaRows.map((image) => ({
+      id: image.id,
+      url: image.url,
+      alt: image.alt,
+      isPrimary: image.is_primary,
+      sortOrder: image.sort_order,
+    }));
+    const pricing = context.pricingByProductId.get(row.id);
+    const signal = context.signalsByProductId.get(row.id);
     const basePrice = pricing?.basePrice ?? Number(row.price) ?? 0;
     const effectivePrice = pricing?.effectivePrice ?? basePrice;
     const compareAtPrice =
       pricing?.compareAtPrice ?? (row.compare_at_price ? Number(row.compare_at_price) : null);
+    const stockQuantity = Number.isFinite(row.stock_quantity) ? Number(row.stock_quantity) : null;
 
     return {
       id: row.id,
@@ -198,11 +384,18 @@ async function mapProductRows(
       isFeatured: row.is_featured,
       createdAt: row.created_at,
       categoryId: row.category_id,
+      categoryTitle: row.category_id ? context.categoryTitleById.get(row.category_id) ?? null : null,
+      stockQuantity: stockQuantity === null ? undefined : stockQuantity,
+      stockState: getStockState(stockQuantity),
+      popularityScore: signal?.popularityScore ?? 0,
+      media,
+      collections: context.collectionsByProductId.get(row.id) ?? [],
     };
   });
 }
 
 async function fetchActiveProductsByIds(productIds: string[]): Promise<StoreProduct[]> {
+
   if (productIds.length === 0) {
     return [];
   }
@@ -215,7 +408,7 @@ async function fetchActiveProductsByIds(productIds: string[]): Promise<StoreProd
   const { data: productRows, error: productsError } = await client
     .from('products')
     .select(
-      'id, category_id, slug, title, short_description, description, price, compare_at_price, currency, is_featured, created_at',
+      'id, category_id, slug, title, short_description, description, price, compare_at_price, currency, is_featured, stock_quantity, created_at',
     )
     .eq('status', 'active')
     .in('id', productIds);
@@ -260,7 +453,7 @@ async function fetchActiveProducts(limit?: number) {
   const baseQuery = client
     .from('products')
     .select(
-      'id, category_id, slug, title, short_description, description, price, compare_at_price, currency, is_featured, created_at',
+      'id, category_id, slug, title, short_description, description, price, compare_at_price, currency, is_featured, stock_quantity, created_at',
     )
     .eq('status', 'active')
     .order('created_at', { ascending: false });
@@ -575,24 +768,34 @@ export async function getHomeStorefrontData(): Promise<HomeStorefrontDataResult>
 
   const collections = await fetchActiveCollections(products);
 
-  const featuredCandidates = products
-    .filter((product) => product.isFeatured)
-    .slice(0, 4);
-  const featuredProducts =
-    featuredCandidates.length > 0 ? featuredCandidates : products.slice(0, 4);
+  const featuredCandidates = products.filter((product) => product.isFeatured).slice(0, 4);
+  const featuredProducts = featuredCandidates.length > 0 ? featuredCandidates : products.slice(0, 4);
   const featuredIds = new Set(featuredProducts.map((product) => product.id));
-  const latestProducts = products
-    .filter((product) => !featuredIds.has(product.id))
-    .slice(0, 4);
+  const latestProducts = products.filter((product) => !featuredIds.has(product.id)).slice(0, 4);
   const latestResolved = latestProducts.length > 0 ? latestProducts : products.slice(0, 4);
   const latestIds = new Set(latestResolved.map((product) => product.id));
-  const popularProducts = products
+  const popularCandidates = [...products]
     .filter((product) => !featuredIds.has(product.id) && !latestIds.has(product.id))
-    .slice(0, 4);
+    .sort((left, right) => {
+      const popularityDelta = (right.popularityScore ?? 0) - (left.popularityScore ?? 0);
+      if (popularityDelta !== 0) {
+        return popularityDelta;
+      }
+      return (right.createdAt ?? '').localeCompare(left.createdAt ?? '');
+    });
   const popularResolved =
-    popularProducts.length > 0
-      ? popularProducts
-      : products.filter((product) => !featuredIds.has(product.id)).slice(0, 4);
+    popularCandidates.length > 0
+      ? popularCandidates.slice(0, 4)
+      : [...products]
+          .filter((product) => !featuredIds.has(product.id))
+          .sort((left, right) => {
+            const popularityDelta = (right.popularityScore ?? 0) - (left.popularityScore ?? 0);
+            if (popularityDelta !== 0) {
+              return popularityDelta;
+            }
+            return (right.createdAt ?? '').localeCompare(left.createdAt ?? '');
+          })
+          .slice(0, 4);
   const discountProducts = products.filter((product) => Boolean(product.appliedDiscount));
   const miniShelves = buildStorefrontMiniShelves({
     featuredProducts,
@@ -712,7 +915,7 @@ const getProductStorefrontDataUncached = async (
     const productQuery = client
       .from('products')
       .select(
-        'id, category_id, slug, title, short_description, description, price, compare_at_price, currency, is_featured, created_at',
+        'id, category_id, slug, title, short_description, description, price, compare_at_price, currency, is_featured, stock_quantity, created_at',
       )
       .eq('status', 'active')
       .eq('slug', productParam)
@@ -729,7 +932,7 @@ const getProductStorefrontDataUncached = async (
       const byId = await client
         .from('products')
         .select(
-          'id, category_id, slug, title, short_description, description, price, compare_at_price, currency, is_featured, created_at',
+          'id, category_id, slug, title, short_description, description, price, compare_at_price, currency, is_featured, stock_quantity, created_at',
         )
         .eq('status', 'active')
         .eq('id', productParam)
@@ -763,7 +966,7 @@ const getProductStorefrontDataUncached = async (
     let relatedQuery = client
       .from('products')
       .select(
-        'id, category_id, slug, title, short_description, description, price, compare_at_price, currency, is_featured, created_at',
+        'id, category_id, slug, title, short_description, description, price, compare_at_price, currency, is_featured, stock_quantity, created_at',
       )
       .eq('status', 'active')
       .neq('id', productRow.id)
@@ -783,7 +986,7 @@ const getProductStorefrontDataUncached = async (
       relatedResult = await client
         .from('products')
         .select(
-          'id, category_id, slug, title, short_description, description, price, compare_at_price, currency, is_featured, created_at',
+          'id, category_id, slug, title, short_description, description, price, compare_at_price, currency, is_featured, stock_quantity, created_at',
         )
         .eq('status', 'active')
         .neq('id', productRow.id)

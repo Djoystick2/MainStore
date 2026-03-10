@@ -688,6 +688,36 @@
   overflow: hidden;
 }
 
+.productMetaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.productMetaBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: rgba(39, 51, 71, 0.06);
+  color: #5c6678;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.productStatusWarn {
+  background: rgba(211, 131, 32, 0.12);
+  color: #b16d14;
+}
+
+.productStatusDanger {
+  background: rgba(190, 79, 79, 0.12);
+  color: #b14e4e;
+}
+
 .productPrice {
   margin: 0;
   font-size: 21px;
@@ -745,6 +775,34 @@
   padding: 16px;
 }
 
+.detailGalleryRow {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 0 16px 2px;
+  margin-top: -6px;
+}
+
+.detailGalleryRow::-webkit-scrollbar {
+  display: none;
+}
+
+.detailGalleryCard {
+  min-width: 72px;
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  border: 1px solid rgba(31, 49, 84, 0.08);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  box-shadow: 0 8px 18px rgba(31, 49, 84, 0.05);
+}
+
+.detailGalleryCardActive {
+  border-color: rgba(39, 51, 71, 0.18);
+}
+
 .detailHeading {
   display: flex;
   flex-direction: column;
@@ -797,11 +855,50 @@
   color: #2d8d59;
 }
 
+.detailAvailability {
+  border-radius: 16px;
+  border: 1px solid rgba(45, 141, 89, 0.16);
+  background: rgba(236, 248, 241, 0.92);
+  padding: 12px;
+  margin-bottom: 14px;
+}
+
+.detailAvailabilityWarn {
+  border-color: rgba(211, 131, 32, 0.18);
+  background: rgba(255, 248, 237, 0.94);
+}
+
+.detailAvailabilityDanger {
+  border-color: rgba(190, 79, 79, 0.18);
+  background: rgba(255, 242, 242, 0.94);
+}
+
+.detailAvailabilityTitle {
+  margin: 0 0 4px;
+  font-size: 15px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.detailAvailabilityText {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--store-hint);
+}
+
 .detailDescription {
   margin: 0;
   font-size: 15px;
   line-height: 1.5;
   color: var(--store-hint);
+}
+
+.detailDescriptionStack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
 }
 
 .detailActions {
@@ -1042,6 +1139,41 @@
   gap: 10px;
 }
 
+.catalogToolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.catalogToolbarRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.catalogSelectLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.catalogSelectCaption {
+  font-size: 13px;
+  line-height: 1.2;
+  color: var(--store-hint);
+}
+
+.catalogSelect {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 12px;
+  border: 1px solid var(--store-border);
+  background: var(--store-surface);
+  color: var(--store-text);
+  padding: 0 14px;
+  font-size: 15px;
+}
+
 .searchInput {
   width: 100%;
   height: 46px;
@@ -1126,6 +1258,22 @@
   scroll-snap-align: start;
 }
 
+.catalogResultMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.catalogResultCount {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.3;
+  color: var(--store-hint);
+  font-weight: 700;
+}
+
 .collectionCardActive {
   border-color: rgba(39, 51, 71, 0.14);
   background: rgba(255, 243, 228, 0.92);
@@ -1187,6 +1335,15 @@
   line-height: 1;
   font-weight: 800;
   letter-spacing: -0.01em;
+}
+
+.infoValueCompact {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 700;
+  color: var(--store-text);
+  overflow-wrap: anywhere;
 }
 
 .actionList {
@@ -1879,6 +2036,7 @@
 .bottomNavLink:focus-visible,
 .searchInput:focus-visible,
 .filterButton:focus-visible,
+.catalogSelect:focus-visible,
 .actionItem:focus-visible,
 .stickyBarButton:focus-visible,
 .primaryButton:focus-visible {
