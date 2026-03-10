@@ -48,12 +48,15 @@ export function CartItemControls({ itemId, quantity }: CartItemControlsProps) {
           credentials: 'include',
           body: JSON.stringify({ quantity: normalizedQuantity }),
         });
-        const payload = (await response.json()) as
+        const payload = (await response.json().catch(() => null)) as
           | { ok: true; quantity: number }
-          | { ok: false; error?: string };
+          | { ok: false; error?: string }
+          | null;
 
-        if (!response.ok || !payload.ok) {
-          setStatusMessage(mapCartError(payload.ok ? 'unknown' : payload.error ?? 'unknown'));
+        if (!response.ok || !payload || !payload.ok) {
+          setStatusMessage(
+            mapCartError(payload && !payload.ok ? payload.error ?? 'unknown' : 'unknown'),
+          );
           setIsError(true);
           return;
         }
@@ -87,12 +90,15 @@ export function CartItemControls({ itemId, quantity }: CartItemControlsProps) {
           method: 'DELETE',
           credentials: 'include',
         });
-        const payload = (await response.json()) as
+        const payload = (await response.json().catch(() => null)) as
           | { ok: true }
-          | { ok: false; error?: string };
+          | { ok: false; error?: string }
+          | null;
 
-        if (!response.ok || !payload.ok) {
-          setStatusMessage(mapCartError(payload.ok ? 'unknown' : payload.error ?? 'unknown'));
+        if (!response.ok || !payload || !payload.ok) {
+          setStatusMessage(
+            mapCartError(payload && !payload.ok ? payload.error ?? 'unknown' : 'unknown'),
+          );
           setIsError(true);
           return;
         }

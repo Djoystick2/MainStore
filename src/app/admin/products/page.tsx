@@ -6,7 +6,7 @@ import { AdminScreen } from '@/components/admin/AdminScreen';
 import adminStyles from '@/components/admin/admin.module.css';
 import { StoreEmptyState } from '@/components/store/StoreEmptyState';
 import { classNames } from '@/css/classnames';
-import { getAdminCategories, getAdminProducts } from '@/features/admin';
+import { getAdminProducts } from '@/features/admin';
 import storeStyles from '@/components/store/store.module.css';
 
 function formatPrice(amount: number, currency: string) {
@@ -18,14 +18,9 @@ function formatPrice(amount: number, currency: string) {
 }
 
 export default async function AdminProductsPage() {
-  const [productsResult, categoriesResult] = await Promise.all([
-    getAdminProducts(),
-    getAdminCategories(),
-  ]);
-
-  const combinedMessage = productsResult.message || categoriesResult.message;
-  const hasError =
-    productsResult.status === 'error' || categoriesResult.status === 'error';
+  const productsResult = await getAdminProducts();
+  const combinedMessage = productsResult.message;
+  const hasError = productsResult.status === 'error';
 
   return (
     <AdminScreen title="Admin Products" subtitle="Catalog CRUD and moderation">
@@ -38,6 +33,17 @@ export default async function AdminProductsPage() {
         >
           <p className={storeStyles.dataNoticeTitle}>Products update</p>
           <p className={storeStyles.dataNoticeText}>{combinedMessage}</p>
+          {hasError && (
+            <div className={storeStyles.dataNoticeActions}>
+              <Link
+                href="/admin/products"
+                className={storeStyles.dataNoticeRetry}
+                aria-label="Retry loading admin products"
+              >
+                Retry
+              </Link>
+            </div>
+          )}
         </section>
       )}
 
@@ -111,8 +117,8 @@ export default async function AdminProductsPage() {
         </section>
       )}
 
-      {categoriesResult.status === 'ok' && (
-        <AdminCategoriesManager categories={categoriesResult.categories} />
+      {productsResult.status === 'ok' && (
+        <AdminCategoriesManager categories={productsResult.categories} />
       )}
     </AdminScreen>
   );

@@ -1,13 +1,13 @@
 import { StoreLoadingView } from '@/components/store/StoreLoadingView';
 
-export default function HomeLoading() {
+export default function ProfileLoading() {
   return (
     <StoreLoadingView
-      title="Home"
-      subtitle="Loading storefront"
+      title="Profile"
+      subtitle="Loading profile"
       back={false}
       showBottomNav={true}
-      mode="home"
+      mode="orders"
     />
   );
 }

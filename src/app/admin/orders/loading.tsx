@@ -7,6 +7,7 @@ export default function AdminOrdersLoading() {
       subtitle="Loading orders"
       back={true}
       showBottomNav={false}
+      mode="admin"
     />
   );
 }

@@ -7,6 +7,7 @@ export default function AdminOrderDetailLoading() {
       subtitle="Loading order snapshot"
       back={true}
       showBottomNav={false}
+      mode="admin"
     />
   );
 }

@@ -7,6 +7,7 @@ export default function AdminCreateProductLoading() {
       subtitle="Loading product form"
       back={true}
       showBottomNav={false}
+      mode="admin"
     />
   );
 }

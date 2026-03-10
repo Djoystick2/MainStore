@@ -32,6 +32,17 @@ export default async function CheckoutPage() {
         >
           <p className={styles.dataNoticeTitle}>Checkout update</p>
           <p className={styles.dataNoticeText}>{cartData.message}</p>
+          {(cartData.status === 'error' || cartData.status === 'not_configured') && (
+            <div className={styles.dataNoticeActions}>
+              <Link
+                href="/checkout"
+                className={styles.dataNoticeRetry}
+                aria-label="Retry loading checkout"
+              >
+                Retry
+              </Link>
+            </div>
+          )}
         </section>
       )}
 

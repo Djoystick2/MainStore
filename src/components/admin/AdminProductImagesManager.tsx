@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, type FormEventHandler } from 'react';
+import { useRef, useState, useTransition, type FormEventHandler } from 'react';
 import { useRouter } from 'next/navigation';
 
 import type { AdminProductImageItem } from '@/features/admin';
@@ -16,6 +16,29 @@ interface ImageRowEditorProps {
   image: AdminProductImageItem;
 }
 
+function mapAdminImageError(error: string | undefined): string {
+  if (!error) {
+    return 'Could not update image.';
+  }
+
+  switch (error) {
+    case 'not_configured':
+      return 'Admin backend is temporarily unavailable.';
+    case 'invalid_image_payload':
+    case 'image_url_required':
+      return 'Image URL is required.';
+    case 'invalid_sort_order':
+      return 'Sort order should be a non-negative integer.';
+    case 'invalid_product':
+    case 'image_not_found':
+      return 'Requested image is no longer available.';
+    case 'admin_access_denied':
+      return 'You do not have access to this admin action.';
+    default:
+      return 'Could not update image. Please retry.';
+  }
+}
+
 function ImageRowEditor({ image }: ImageRowEditorProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -24,51 +47,93 @@ function ImageRowEditor({ image }: ImageRowEditorProps) {
   const [sortOrder, setSortOrder] = useState(String(image.sortOrder));
   const [isPrimary, setIsPrimary] = useState(image.isPrimary);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const isSubmittingRef = useRef(false);
 
   const onSave = () => {
+    if (isPending || isSubmittingRef.current) {
+      return;
+    }
+
+    isSubmittingRef.current = true;
+
     startTransition(async () => {
       setErrorMessage(null);
+      setSuccessMessage(null);
       const parsedSortOrder = Number(sortOrder);
       if (!Number.isInteger(parsedSortOrder) || parsedSortOrder < 0) {
         setErrorMessage('Sort order must be a non-negative integer.');
+        isSubmittingRef.current = false;
         return;
       }
 
-      const response = await fetch(`/api/admin/product-images/${image.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          url,
-          alt,
-          sortOrder: parsedSortOrder,
-          isPrimary,
-        }),
-      });
+      try {
+        const response = await fetch(`/api/admin/product-images/${image.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            url,
+            alt,
+            sortOrder: parsedSortOrder,
+            isPrimary,
+          }),
+        });
 
-      if (!response.ok) {
-        setErrorMessage('Failed to update image.');
-        return;
+        const data = (await response.json().catch(() => null)) as
+          | { ok: true }
+          | { ok: false; error?: string }
+          | null;
+
+        if (!response.ok || !data || !data.ok) {
+          const errorCode = data && !data.ok ? data.error : undefined;
+          setErrorMessage(mapAdminImageError(errorCode));
+          return;
+        }
+
+        setSuccessMessage('Image updated.');
+        router.refresh();
+      } catch {
+        setErrorMessage('Network error while updating image.');
+      } finally {
+        isSubmittingRef.current = false;
       }
-
-      router.refresh();
     });
   };
 
   const onDelete = () => {
+    if (isPending || isSubmittingRef.current) {
+      return;
+    }
+
+    isSubmittingRef.current = true;
+
     startTransition(async () => {
       setErrorMessage(null);
-      const response = await fetch(`/api/admin/product-images/${image.id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
+      setSuccessMessage(null);
 
-      if (!response.ok) {
-        setErrorMessage('Failed to delete image.');
-        return;
+      try {
+        const response = await fetch(`/api/admin/product-images/${image.id}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+        const data = (await response.json().catch(() => null)) as
+          | { ok: true }
+          | { ok: false; error?: string }
+          | null;
+
+        if (!response.ok || !data || !data.ok) {
+          const errorCode = data && !data.ok ? data.error : undefined;
+          setErrorMessage(mapAdminImageError(errorCode));
+          return;
+        }
+
+        router.refresh();
+      } catch {
+        setErrorMessage('Network error while deleting image.');
+      } finally {
+        isSubmittingRef.current = false;
       }
-
-      router.refresh();
     });
   };
 
@@ -145,6 +210,7 @@ function ImageRowEditor({ image }: ImageRowEditorProps) {
         </div>
 
         {errorMessage && <p className={styles.adminError}>{errorMessage}</p>}
+        {successMessage && <p className={styles.adminSuccess}>{successMessage}</p>}
       </div>
     </article>
   );
@@ -161,41 +227,63 @@ export function AdminProductImagesManager({
   const [sortOrder, setSortOrder] = useState('0');
   const [isPrimary, setIsPrimary] = useState(images.length === 0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const isSubmittingRef = useRef(false);
 
   const onAddImage: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
+    if (isPending || isSubmittingRef.current) {
+      return;
+    }
+
+    isSubmittingRef.current = true;
 
     startTransition(async () => {
       setErrorMessage(null);
+      setSuccessMessage(null);
 
       const parsedSortOrder = Number(sortOrder);
       if (!Number.isInteger(parsedSortOrder) || parsedSortOrder < 0) {
         setErrorMessage('Sort order must be a non-negative integer.');
+        isSubmittingRef.current = false;
         return;
       }
 
-      const response = await fetch(`/api/admin/products/${productId}/images`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          url,
-          alt,
-          sortOrder: parsedSortOrder,
-          isPrimary,
-        }),
-      });
+      try {
+        const response = await fetch(`/api/admin/products/${productId}/images`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            url,
+            alt,
+            sortOrder: parsedSortOrder,
+            isPrimary,
+          }),
+        });
 
-      if (!response.ok) {
-        setErrorMessage('Failed to add image.');
-        return;
+        const data = (await response.json().catch(() => null)) as
+          | { ok: true; id?: string }
+          | { ok: false; error?: string }
+          | null;
+
+        if (!response.ok || !data || !data.ok) {
+          const errorCode = data && !data.ok ? data.error : undefined;
+          setErrorMessage(mapAdminImageError(errorCode));
+          return;
+        }
+
+        setUrl('');
+        setAlt('');
+        setSortOrder('0');
+        setIsPrimary(false);
+        setSuccessMessage('Image added.');
+        router.refresh();
+      } catch {
+        setErrorMessage('Network error while adding image.');
+      } finally {
+        isSubmittingRef.current = false;
       }
-
-      setUrl('');
-      setAlt('');
-      setSortOrder('0');
-      setIsPrimary(false);
-      router.refresh();
     });
   };
 
@@ -203,7 +291,7 @@ export function AdminProductImagesManager({
     <section className={styles.adminCard}>
       <h2 className={styles.adminCardTitle}>Product images</h2>
 
-      <form className={styles.adminForm} onSubmit={onAddImage}>
+      <form className={styles.adminForm} onSubmit={onAddImage} aria-busy={isPending}>
         <label className={styles.adminField}>
           <span className={styles.adminLabel}>Image URL</span>
           <input
@@ -257,6 +345,7 @@ export function AdminProductImagesManager({
         </button>
 
         {errorMessage && <p className={styles.adminError}>{errorMessage}</p>}
+        {successMessage && <p className={styles.adminSuccess}>{successMessage}</p>}
       </form>
 
       <div className={styles.adminImageList}>

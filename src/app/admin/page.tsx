@@ -21,6 +21,17 @@ export default async function AdminPage() {
         >
           <p className={storeStyles.dataNoticeTitle}>Admin update</p>
           <p className={storeStyles.dataNoticeText}>{dashboard.message}</p>
+          {(dashboard.status === 'error' || dashboard.status === 'not_configured') && (
+            <div className={storeStyles.dataNoticeActions}>
+              <Link
+                href="/admin"
+                className={storeStyles.dataNoticeRetry}
+                aria-label="Retry loading admin dashboard"
+              >
+                Retry
+              </Link>
+            </div>
+          )}
         </section>
       )}
 
@@ -70,7 +81,7 @@ export default async function AdminPage() {
       ) : (
         <StoreEmptyState
           title="Admin data is unavailable"
-          description="Configure server-side Supabase settings and retry."
+          description="Admin data is temporarily unavailable. Retry in a moment."
         />
       )}
     </AdminScreen>

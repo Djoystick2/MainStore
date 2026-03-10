@@ -7,6 +7,7 @@ export default function ProductLoading() {
       subtitle="Loading product details"
       back={true}
       showBottomNav={false}
+      mode="product"
     />
   );
 }

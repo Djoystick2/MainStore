@@ -61,12 +61,15 @@ export function FavoriteToggleButton({
           body: JSON.stringify({ productId }),
         });
 
-        const payload = (await response.json()) as
+        const payload = (await response.json().catch(() => null)) as
           | { ok: true; favorited: boolean }
-          | { ok: false; error?: string };
+          | { ok: false; error?: string }
+          | null;
 
-        if (!response.ok || !payload.ok) {
-          const message = mapFavoriteError(payload.ok ? 'unknown' : payload.error ?? 'unknown');
+        if (!response.ok || !payload || !payload.ok) {
+          const message = mapFavoriteError(
+            payload && !payload.ok ? payload.error ?? 'unknown' : 'unknown',
+          );
           setStatusMessage(message);
           setIsError(true);
           return;

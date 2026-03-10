@@ -9,7 +9,7 @@
   position: sticky;
   top: 0;
   z-index: 20;
-  padding-top: calc(10px + var(--tg-safe-area-inset-top, 0px));
+  padding-top: calc(10px + var(--store-safe-area-top, 0px));
   background: var(--store-bg);
   border-bottom: 1px solid var(--store-border);
   backdrop-filter: blur(14px);
@@ -52,10 +52,18 @@
 .container {
   width: min(100%, 560px);
   margin: 0 auto;
-  padding: 18px 16px calc(104px + var(--tg-safe-area-inset-bottom, 0px));
+  padding: 18px 16px 28px;
   display: flex;
   flex-direction: column;
   gap: 18px;
+}
+
+.containerWithBottomNav {
+  padding-bottom: calc(104px + var(--store-safe-area-bottom, 0px));
+}
+
+.containerWithoutBottomNav {
+  padding-bottom: calc(22px + var(--store-safe-area-bottom, 0px));
 }
 
 .hero {
@@ -396,7 +404,7 @@
   right: 0;
   bottom: 0;
   z-index: 35;
-  padding: 10px 16px calc(10px + var(--tg-safe-area-inset-bottom, 0px));
+  padding: 10px 16px calc(10px + var(--store-safe-area-bottom, 0px));
   background: var(--store-surface);
   border-top: 1px solid var(--store-border);
   backdrop-filter: blur(14px);
@@ -889,6 +897,78 @@
   min-height: 220px;
 }
 
+.loadingInlineGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.loadingGridCell {
+  min-height: 84px;
+}
+
+.loadingChipRow {
+  display: flex;
+  gap: 8px;
+}
+
+.loadingChip {
+  min-height: 34px;
+  border-radius: 999px;
+  width: 96px;
+}
+
+.loadingChipWide {
+  width: 132px;
+}
+
+.loadingCardList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.loadingCardItem {
+  min-height: 128px;
+}
+
+.loadingProductGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.loadingProductCard {
+  min-height: 244px;
+}
+
+.loadingStickyBar {
+  min-height: 58px;
+}
+
+.dataNoticeActions {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dataNoticeRetry {
+  min-height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--store-border);
+  background: var(--store-surface);
+  color: var(--store-accent);
+  text-decoration: none;
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+}
+
 .loadingBlock::after {
   content: '';
   position: absolute;
@@ -916,7 +996,7 @@
   bottom: 0;
   z-index: 30;
   pointer-events: none;
-  padding-bottom: var(--tg-safe-area-inset-bottom, 0px);
+  padding-bottom: var(--store-safe-area-bottom, 0px);
 }
 
 .bottomNav {
@@ -974,7 +1054,7 @@
 }
 
 .productPageBottomSpace {
-  padding-bottom: calc(80px + var(--tg-safe-area-inset-bottom, 0px));
+  padding-bottom: calc(80px + var(--store-safe-area-bottom, 0px));
 }
 
 .cartList {
@@ -1295,7 +1375,8 @@
 .cartRemoveButton:focus-visible,
 .marketingAction:focus-visible,
 .categoryShortcut:focus-visible,
-.collectionCard:focus-visible {
+.collectionCard:focus-visible,
+.dataNoticeRetry:focus-visible {
   outline: 2px solid var(--store-accent);
   outline-offset: 2px;
 }
@@ -1348,6 +1429,11 @@
 
 @media (max-width: 520px) {
   .marketingGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .loadingProductGrid,
+  .loadingInlineGrid {
     grid-template-columns: 1fr;
   }
 }

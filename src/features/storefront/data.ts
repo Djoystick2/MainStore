@@ -1,6 +1,6 @@
+import { cache } from 'react';
 import {
   createSupabaseServerClientOptional,
-  getSupabasePublicMissingEnvMessage,
 } from '@/lib/supabase';
 import { findStoreProduct, storeProducts } from '@/components/store/mock-products';
 import type { StoreProduct } from '@/components/store/types';
@@ -459,7 +459,7 @@ export interface ProductStorefrontDataResult {
 
 export async function getHomeStorefrontData(): Promise<HomeStorefrontDataResult> {
   const [activeProductsResult, categories] = await Promise.all([
-    fetchActiveProducts(),
+    fetchActiveProducts(24),
     fetchActiveCategories(),
   ]);
 
@@ -500,7 +500,6 @@ export async function getHomeStorefrontData(): Promise<HomeStorefrontDataResult>
   }
 
   const products = activeProductsResult.products;
-  const collections = await fetchActiveCollections(products);
   const promoBanners = buildStorefrontPromoBanners(products, categories);
 
   if (products.length === 0) {
@@ -515,6 +514,8 @@ export async function getHomeStorefrontData(): Promise<HomeStorefrontDataResult>
       message: 'No active products yet. Publish products in admin to fill the storefront.',
     };
   }
+
+  const collections = await fetchActiveCollections(products);
 
   const featuredCandidates = products
     .filter((product) => product.isFeatured)
@@ -582,7 +583,6 @@ export async function getCatalogStorefrontData(): Promise<CatalogStorefrontDataR
   }
 
   const products = activeProductsResult.products;
-  const collections = await fetchActiveCollections(products);
   const promoBanners = buildStorefrontPromoBanners(products, categories);
 
   if (activeProductsResult.products.length === 0) {
@@ -595,6 +595,8 @@ export async function getCatalogStorefrontData(): Promise<CatalogStorefrontDataR
       message: 'No active products available yet.',
     };
   }
+
+  const collections = await fetchActiveCollections(products);
 
   return {
     status: 'live',
@@ -611,9 +613,9 @@ function isUuid(value: string): boolean {
   );
 }
 
-export async function getProductStorefrontData(
+const getProductStorefrontDataUncached = async (
   productParam: string,
-): Promise<ProductStorefrontDataResult> {
+): Promise<ProductStorefrontDataResult> => {
   const client = createSupabaseServerClientOptional();
 
   if (!client) {
@@ -623,7 +625,7 @@ export async function getProductStorefrontData(
         status: 'not_found',
         product: null,
         relatedProducts: [],
-        message: `${getSupabasePublicMissingEnvMessage()} Product is unavailable.`,
+        message: 'Product is unavailable right now.',
       };
     }
 
@@ -786,4 +788,6 @@ export async function getProductStorefrontData(
           : 'Product details are temporarily unavailable. Showing a safe local preview.',
     };
   }
-}
+};
+
+export const getProductStorefrontData = cache(getProductStorefrontDataUncached);

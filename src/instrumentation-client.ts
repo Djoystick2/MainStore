@@ -20,6 +20,8 @@ mockEnv().then(() => {
       mockForMacOS: platform === 'macos',
     });
   } catch (e) {
-    console.log(e);
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[MainStore] Telegram launch params are unavailable in this runtime', e);
+    }
   }
 });

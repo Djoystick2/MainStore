@@ -42,6 +42,13 @@ export default async function CartPage() {
         >
           <p className={styles.dataNoticeTitle}>Cart update</p>
           <p className={styles.dataNoticeText}>{cartData.message}</p>
+          {(cartData.status === 'error' || cartData.status === 'not_configured') && (
+            <div className={styles.dataNoticeActions}>
+              <Link href="/cart" className={styles.dataNoticeRetry} aria-label="Retry loading cart">
+                Retry
+              </Link>
+            </div>
+          )}
         </section>
       )}
 

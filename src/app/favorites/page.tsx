@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import { ProductCard } from '@/components/store/ProductCard';
 import { FavoriteToggleButton } from '@/components/store/FavoriteToggleButton';
 import { StoreEmptyState } from '@/components/store/StoreEmptyState';
@@ -25,6 +27,17 @@ export default async function FavoritesPage() {
         >
           <p className={styles.dataNoticeTitle}>Favorites update</p>
           <p className={styles.dataNoticeText}>{favoritesData.message}</p>
+          {(favoritesData.status === 'error' || favoritesData.status === 'not_configured') && (
+            <div className={styles.dataNoticeActions}>
+              <Link
+                href="/favorites"
+                className={styles.dataNoticeRetry}
+                aria-label="Retry loading favorites"
+              >
+                Retry
+              </Link>
+            </div>
+          )}
         </section>
       )}
 

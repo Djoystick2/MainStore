@@ -9,6 +9,23 @@ import styles from './admin.module.css';
 
 const statusOptions: ProductStatus[] = ['draft', 'active', 'archived'];
 
+function mapAdminProductStatusError(error: string | undefined): string {
+  if (!error) {
+    return 'Could not update status.';
+  }
+
+  switch (error) {
+    case 'not_configured':
+      return 'Admin backend is temporarily unavailable.';
+    case 'invalid_status':
+      return 'Selected status is invalid.';
+    case 'admin_access_denied':
+      return 'You do not have access to this admin action.';
+    default:
+      return 'Could not update status. Please retry.';
+  }
+}
+
 interface AdminProductStatusControlProps {
   productId: string;
   initialStatus: ProductStatus;
@@ -45,8 +62,14 @@ export function AdminProductStatusControl({
           body: JSON.stringify({ status }),
         });
 
-        if (!response.ok) {
-          setErrorMessage('Failed to update status.');
+        const data = (await response.json().catch(() => null)) as
+          | { ok: true }
+          | { ok: false; error?: string }
+          | null;
+
+        if (!response.ok || !data || !data.ok) {
+          const errorCode = data && !data.ok ? data.error : undefined;
+          setErrorMessage(mapAdminProductStatusError(errorCode));
           return;
         }
 

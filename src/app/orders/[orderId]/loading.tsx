@@ -7,6 +7,7 @@ export default function OrderDetailLoading() {
       subtitle="Loading order details"
       back={true}
       showBottomNav={true}
+      mode="orders"
     />
   );
 }

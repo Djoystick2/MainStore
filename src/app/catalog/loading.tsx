@@ -7,6 +7,7 @@ export default function CatalogLoading() {
       subtitle="Loading products"
       back={false}
       showBottomNav={true}
+      mode="catalog"
     />
   );
 }

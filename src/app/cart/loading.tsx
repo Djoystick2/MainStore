@@ -1,13 +1,13 @@
 import { StoreLoadingView } from '@/components/store/StoreLoadingView';
 
-export default function HomeLoading() {
+export default function CartLoading() {
   return (
     <StoreLoadingView
-      title="Home"
-      subtitle="Loading storefront"
+      title="Cart"
+      subtitle="Loading cart"
       back={false}
       showBottomNav={true}
-      mode="home"
+      mode="cart"
     />
   );
 }

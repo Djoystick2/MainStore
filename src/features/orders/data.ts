@@ -162,6 +162,13 @@ function mapOrderCreationError(message: string): PlaceOrderResult['status'] {
   return 'error';
 }
 
+function toPublicDataErrorMessage(baseMessage: string, details: string): string {
+  if (process.env.NODE_ENV === 'development') {
+    return `${baseMessage} Details: ${details}`;
+  }
+  return baseMessage;
+}
+
 export async function placeOrderFromCartForProfile(
   profileId: string | null,
   payload: CheckoutPayload,
@@ -182,7 +189,10 @@ export async function placeOrderFromCartForProfile(
   if (!client) {
     return {
       status: 'not_configured',
-      message: getSupabaseAdminMissingEnvMessage(),
+      message: toPublicDataErrorMessage(
+        'Checkout is temporarily unavailable.',
+        getSupabaseAdminMissingEnvMessage(),
+      ),
     };
   }
 
@@ -202,7 +212,10 @@ export async function placeOrderFromCartForProfile(
   if (rpcResult.error) {
     return {
       status: mapOrderCreationError(rpcResult.error.message),
-      message: rpcResult.error.message,
+      message: toPublicDataErrorMessage(
+        'Could not place order right now.',
+        rpcResult.error.message,
+      ),
     };
   }
 
@@ -250,7 +263,10 @@ export async function getOrdersForProfile(
       orders: [],
       totalOrders: 0,
       inProgressOrders: 0,
-      message: getSupabaseAdminMissingEnvMessage(),
+      message: toPublicDataErrorMessage(
+        'Orders are temporarily unavailable.',
+        getSupabaseAdminMissingEnvMessage(),
+      ),
     };
   }
 
@@ -266,7 +282,10 @@ export async function getOrdersForProfile(
       orders: [],
       totalOrders: 0,
       inProgressOrders: 0,
-      message: ordersResult.error.message,
+      message: toPublicDataErrorMessage(
+        'Could not load orders right now.',
+        ordersResult.error.message,
+      ),
     };
   }
 
@@ -295,7 +314,10 @@ export async function getOrdersForProfile(
       orders: [],
       totalOrders: 0,
       inProgressOrders: 0,
-      message: itemsResult.error.message,
+      message: toPublicDataErrorMessage(
+        'Could not load order items right now.',
+        itemsResult.error.message,
+      ),
     };
   }
 
@@ -346,7 +368,10 @@ export async function getOrderDetailForProfile(
     return {
       status: 'not_configured',
       order: null,
-      message: getSupabaseAdminMissingEnvMessage(),
+      message: toPublicDataErrorMessage(
+        'Order details are temporarily unavailable.',
+        getSupabaseAdminMissingEnvMessage(),
+      ),
     };
   }
 
@@ -363,7 +388,10 @@ export async function getOrderDetailForProfile(
     return {
       status: 'error',
       order: null,
-      message: orderResult.error.message,
+      message: toPublicDataErrorMessage(
+        'Could not load order details right now.',
+        orderResult.error.message,
+      ),
     };
   }
 
@@ -400,7 +428,10 @@ export async function getOrderDetailForProfile(
     return {
       status: 'error',
       order: null,
-      message: itemsResult.error.message,
+      message: toPublicDataErrorMessage(
+        'Could not load order items right now.',
+        itemsResult.error.message,
+      ),
     };
   }
 

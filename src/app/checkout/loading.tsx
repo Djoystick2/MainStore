@@ -7,6 +7,7 @@ export default function CheckoutLoading() {
       subtitle="Loading checkout details"
       back={true}
       showBottomNav={true}
+      mode="cart"
     />
   );
 }

@@ -22,6 +22,18 @@ export default async function AdminCreateProductPage() {
         >
           <p className={storeStyles.dataNoticeTitle}>Categories update</p>
           <p className={storeStyles.dataNoticeText}>{categoriesResult.message}</p>
+          {(categoriesResult.status === 'error' ||
+            categoriesResult.status === 'not_configured') && (
+            <div className={storeStyles.dataNoticeActions}>
+              <Link
+                href="/admin/products/new"
+                className={storeStyles.dataNoticeRetry}
+                aria-label="Retry loading categories"
+              >
+                Retry
+              </Link>
+            </div>
+          )}
         </section>
       )}
 
@@ -34,7 +46,7 @@ export default async function AdminCreateProductPage() {
       ) : (
         <StoreEmptyState
           title="Cannot load categories"
-          description="Check admin backend configuration and retry."
+          description="Categories are temporarily unavailable. Retry in a moment."
         />
       )}
     </AdminScreen>

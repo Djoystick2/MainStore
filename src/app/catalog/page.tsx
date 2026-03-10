@@ -190,6 +190,18 @@ export default async function CatalogPage({
         >
           <p className={styles.dataNoticeTitle}>Catalog update</p>
           <p className={styles.dataNoticeText}>{catalogData.message}</p>
+          {(catalogData.status === 'fallback_error' ||
+            catalogData.status === 'fallback_env') && (
+            <div className={styles.dataNoticeActions}>
+              <Link
+                href="/catalog"
+                className={styles.dataNoticeRetry}
+                aria-label="Retry loading catalog"
+              >
+                Retry
+              </Link>
+            </div>
+          )}
         </section>
       )}
 

@@ -28,6 +28,17 @@ export default async function AdminEditProductPage({
         >
           <p className={storeStyles.dataNoticeTitle}>Product details update</p>
           <p className={storeStyles.dataNoticeText}>{detailResult.message}</p>
+          {(detailResult.status === 'error' || detailResult.status === 'not_configured') && (
+            <div className={storeStyles.dataNoticeActions}>
+              <Link
+                href={`/admin/products/${productId}/edit`}
+                className={storeStyles.dataNoticeRetry}
+                aria-label="Retry loading product details"
+              >
+                Retry
+              </Link>
+            </div>
+          )}
         </section>
       )}
 

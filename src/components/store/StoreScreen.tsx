@@ -27,7 +27,9 @@ export function StoreScreen({
     <Page back={back}>
       <div className={styles.screen}>
         <StoreHeader title={title} subtitle={subtitle} />
-        <StoreScreenContainer>{children}</StoreScreenContainer>
+        <StoreScreenContainer hasBottomNav={showBottomNav}>
+          {children}
+        </StoreScreenContainer>
         {showBottomNav && <StoreBottomNav />}
       </div>
     </Page>

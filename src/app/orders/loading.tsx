@@ -7,6 +7,7 @@ export default function OrdersLoading() {
       subtitle="Loading order history"
       back={false}
       showBottomNav={true}
+      mode="orders"
     />
   );
 }

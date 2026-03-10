@@ -46,10 +46,15 @@ export default async function ProductPage({
   params: Promise<{ productId: string }>;
 }) {
   const { productId } = await params;
-  const productData = await getProductStorefrontData(productId);
+  const [productData, userContext] = await Promise.all([
+    getProductStorefrontData(productId),
+    getCurrentUserContext(),
+  ]);
   const product = productData.product;
-  const { profile } = await getCurrentUserContext();
-  const favoriteIds = await getFavoriteProductIdsForProfile(profile?.id ?? null);
+
+  const favoriteIds = product
+    ? await getFavoriteProductIdsForProfile(userContext.profile?.id ?? null)
+    : [];
   const favoriteIdSet = new Set(favoriteIds);
   const isFavorited = product ? favoriteIdSet.has(product.id) : false;
 
@@ -87,6 +92,19 @@ export default async function ProductPage({
         >
           <p className={styles.dataNoticeTitle}>Product update</p>
           <p className={styles.dataNoticeText}>{productData.message}</p>
+          {(productData.status === 'error' ||
+            productData.status === 'fallback_error' ||
+            productData.status === 'fallback_env') && (
+            <div className={styles.dataNoticeActions}>
+              <Link
+                href={product ? `/products/${product.slug}` : `/products/${productId}`}
+                className={styles.dataNoticeRetry}
+                aria-label="Retry loading product"
+              >
+                Retry
+              </Link>
+            </div>
+          )}
         </section>
       )}
 

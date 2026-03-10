@@ -16,8 +16,10 @@ function formatOrderStatus(status: string): string {
 
 export default async function ProfilePage() {
   const { profile } = await getCurrentUserContext();
-  const summary = await getUserStoreSummaryForProfile(profile?.id ?? null);
-  const ordersData = await getOrdersForProfile(profile?.id ?? null);
+  const [summary, ordersData] = await Promise.all([
+    getUserStoreSummaryForProfile(profile?.id ?? null),
+    getOrdersForProfile(profile?.id ?? null),
+  ]);
   const latestOrder = ordersData.orders[0] ?? null;
   const displayName = profile?.displayName || profile?.username || 'Telegram user';
   const username = profile?.username ? `@${profile.username}` : 'No username';
@@ -35,6 +37,18 @@ export default async function ProfilePage() {
             >
               <p className={styles.dataNoticeTitle}>Profile update</p>
               <p className={styles.dataNoticeText}>{ordersData.message}</p>
+              {(ordersData.status === 'error' ||
+                ordersData.status === 'not_configured') && (
+                <div className={styles.dataNoticeActions}>
+                  <Link
+                    href="/profile"
+                    className={styles.dataNoticeRetry}
+                    aria-label="Retry loading profile"
+                  >
+                    Retry
+                  </Link>
+                </div>
+              )}
             </section>
           )}
 

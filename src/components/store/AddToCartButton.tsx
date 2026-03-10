@@ -54,12 +54,13 @@ export function AddToCartButton({ productId, className }: AddToCartButtonProps) 
           body: JSON.stringify({ productId, quantity: 1 }),
         });
 
-        const payload = (await response.json()) as
+        const payload = (await response.json().catch(() => null)) as
           | { ok: true; quantity: number }
-          | { ok: false; error?: string };
+          | { ok: false; error?: string }
+          | null;
 
-        if (!response.ok || !payload.ok) {
-          const message = mapAddToCartError(payload.ok ? 'unknown' : payload.error ?? 'unknown');
+        if (!response.ok || !payload || !payload.ok) {
+          const message = mapAddToCartError(payload && !payload.ok ? payload.error ?? 'unknown' : 'unknown');
           setStatusMessage(message);
           setIsError(true);
           return;

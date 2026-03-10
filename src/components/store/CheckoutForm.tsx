@@ -38,7 +38,7 @@ function mapCheckoutError(error: string): string {
     return 'Checkout supports only one currency per order.';
   }
   if (error === 'not_configured') {
-    return 'Checkout backend is not configured yet.';
+    return 'Checkout is temporarily unavailable.';
   }
   return 'Could not create order. Please try again.';
 }
@@ -87,7 +87,7 @@ export function CheckoutForm({
           }),
         });
 
-        const payload = (await response.json()) as
+        const payload = (await response.json().catch(() => null)) as
           | {
               ok: true;
               orderId: string;
@@ -97,10 +97,11 @@ export function CheckoutForm({
           | {
               ok: false;
               error?: string;
-            };
+            }
+          | null;
 
-        if (!response.ok || !payload.ok) {
-          const code = payload.ok ? 'unknown' : payload.error ?? 'unknown';
+        if (!response.ok || !payload || !payload.ok) {
+          const code = payload && !payload.ok ? payload.error ?? 'unknown' : 'unknown';
           setErrorMessage(mapCheckoutError(code));
           return;
         }

@@ -7,6 +7,7 @@ export default function AdminImportLoading() {
       subtitle="Loading import scaffold"
       back={true}
       showBottomNav={false}
+      mode="admin"
     />
   );
 }

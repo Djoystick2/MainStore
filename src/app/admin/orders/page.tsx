@@ -29,6 +29,17 @@ export default async function AdminOrdersPage() {
         >
           <p className={storeStyles.dataNoticeTitle}>Orders update</p>
           <p className={storeStyles.dataNoticeText}>{ordersResult.message}</p>
+          {(ordersResult.status === 'error' || ordersResult.status === 'not_configured') && (
+            <div className={storeStyles.dataNoticeActions}>
+              <Link
+                href="/admin/orders"
+                className={storeStyles.dataNoticeRetry}
+                aria-label="Retry loading admin orders"
+              >
+                Retry
+              </Link>
+            </div>
+          )}
         </section>
       )}
 

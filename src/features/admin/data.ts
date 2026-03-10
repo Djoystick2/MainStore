@@ -29,8 +29,16 @@ interface AdminResultBase {
   message?: string;
 }
 
+function toPublicDataErrorMessage(baseMessage: string, details: string): string {
+  if (process.env.NODE_ENV === 'development') {
+    return `${baseMessage} Details: ${details}`;
+  }
+  return baseMessage;
+}
+
 export interface AdminProductsResult extends AdminResultBase {
   products: AdminProductListItem[];
+  categories: AdminCategoryOption[];
 }
 
 export interface AdminProductDetailResult extends AdminResultBase {
@@ -170,7 +178,10 @@ export async function getAdminCategories(): Promise<AdminCategoriesResult> {
     return {
       status: 'not_configured',
       categories: [],
-      message: getSupabaseAdminMissingEnvMessage(),
+      message: toPublicDataErrorMessage(
+        'Admin categories are temporarily unavailable.',
+        getSupabaseAdminMissingEnvMessage(),
+      ),
     };
   }
 
@@ -183,7 +194,10 @@ export async function getAdminCategories(): Promise<AdminCategoriesResult> {
     return {
       status: 'error',
       categories: [],
-      message: result.error.message,
+      message: toPublicDataErrorMessage(
+        'Could not load categories right now.',
+        result.error.message,
+      ),
     };
   }
 
@@ -199,7 +213,10 @@ export async function getAdminDashboardData(): Promise<AdminDashboardResult> {
     return {
       status: 'not_configured',
       dashboard: null,
-      message: getSupabaseAdminMissingEnvMessage(),
+      message: toPublicDataErrorMessage(
+        'Admin dashboard is temporarily unavailable.',
+        getSupabaseAdminMissingEnvMessage(),
+      ),
     };
   }
 
@@ -212,7 +229,10 @@ export async function getAdminDashboardData(): Promise<AdminDashboardResult> {
     return {
       status: 'error',
       dashboard: null,
-      message: productsResult.error.message,
+      message: toPublicDataErrorMessage(
+        'Could not load dashboard products right now.',
+        productsResult.error.message,
+      ),
     };
   }
 
@@ -220,7 +240,10 @@ export async function getAdminDashboardData(): Promise<AdminDashboardResult> {
     return {
       status: 'error',
       dashboard: null,
-      message: ordersResult.error.message,
+      message: toPublicDataErrorMessage(
+        'Could not load dashboard orders right now.',
+        ordersResult.error.message,
+      ),
     };
   }
 
@@ -248,7 +271,11 @@ export async function getAdminProducts(): Promise<AdminProductsResult> {
     return {
       status: 'not_configured',
       products: [],
-      message: getSupabaseAdminMissingEnvMessage(),
+      categories: [],
+      message: toPublicDataErrorMessage(
+        'Admin products are temporarily unavailable.',
+        getSupabaseAdminMissingEnvMessage(),
+      ),
     };
   }
 
@@ -261,7 +288,11 @@ export async function getAdminProducts(): Promise<AdminProductsResult> {
     return {
       status: 'error',
       products: [],
-      message: productsResult.error.message,
+      categories: [],
+      message: toPublicDataErrorMessage(
+        'Could not load products right now.',
+        productsResult.error.message,
+      ),
     };
   }
 
@@ -269,7 +300,11 @@ export async function getAdminProducts(): Promise<AdminProductsResult> {
     return {
       status: 'error',
       products: [],
-      message: categoriesResult.error.message,
+      categories: [],
+      message: toPublicDataErrorMessage(
+        'Could not load product categories right now.',
+        categoriesResult.error.message,
+      ),
     };
   }
 
@@ -287,15 +322,22 @@ export async function getAdminProducts(): Promise<AdminProductsResult> {
       return {
         status: 'error',
         products: [],
-        message: imagesResult.error.message,
+        categories: [],
+        message: toPublicDataErrorMessage(
+          'Could not load product images right now.',
+          imagesResult.error.message,
+        ),
       };
     }
 
     imageRows = (imagesResult.data ?? []) as ProductImageRow[];
   }
 
+  const mappedCategories = mapCategories((categoriesResult.data ?? []) as CategoryRow[]);
+
   return {
     status: 'ok',
+    categories: mappedCategories,
     products: mapProductList(
       productRows,
       (categoriesResult.data ?? []) as CategoryRow[],
@@ -313,7 +355,10 @@ export async function getAdminProductDetail(
       status: 'not_configured',
       product: null,
       categories: [],
-      message: getSupabaseAdminMissingEnvMessage(),
+      message: toPublicDataErrorMessage(
+        'Admin product details are temporarily unavailable.',
+        getSupabaseAdminMissingEnvMessage(),
+      ),
     };
   }
 
@@ -332,7 +377,10 @@ export async function getAdminProductDetail(
       status: 'error',
       product: null,
       categories: [],
-      message: productResult.error.message,
+      message: toPublicDataErrorMessage(
+        'Could not load product details right now.',
+        productResult.error.message,
+      ),
     };
   }
 
@@ -341,7 +389,10 @@ export async function getAdminProductDetail(
       status: 'error',
       product: null,
       categories: [],
-      message: categoriesResult.error.message,
+      message: toPublicDataErrorMessage(
+        'Could not load categories right now.',
+        categoriesResult.error.message,
+      ),
     };
   }
 
@@ -350,7 +401,10 @@ export async function getAdminProductDetail(
       status: 'error',
       product: null,
       categories: [],
-      message: imagesResult.error.message,
+      message: toPublicDataErrorMessage(
+        'Could not load product images right now.',
+        imagesResult.error.message,
+      ),
     };
   }
 
@@ -402,7 +456,10 @@ export async function getAdminOrders(): Promise<AdminOrdersResult> {
     return {
       status: 'not_configured',
       orders: [],
-      message: getSupabaseAdminMissingEnvMessage(),
+      message: toPublicDataErrorMessage(
+        'Admin orders are temporarily unavailable.',
+        getSupabaseAdminMissingEnvMessage(),
+      ),
     };
   }
 
@@ -415,7 +472,10 @@ export async function getAdminOrders(): Promise<AdminOrdersResult> {
     return {
       status: 'error',
       orders: [],
-      message: ordersResult.error.message,
+      message: toPublicDataErrorMessage(
+        'Could not load orders right now.',
+        ordersResult.error.message,
+      ),
     };
   }
 
@@ -448,7 +508,10 @@ export async function getAdminOrders(): Promise<AdminOrdersResult> {
     return {
       status: 'error',
       orders: [],
-      message: itemsResult.error.message,
+      message: toPublicDataErrorMessage(
+        'Could not load order items right now.',
+        itemsResult.error.message,
+      ),
     };
   }
 
@@ -456,7 +519,10 @@ export async function getAdminOrders(): Promise<AdminOrdersResult> {
     return {
       status: 'error',
       orders: [],
-      message: profilesResult.error.message,
+      message: toPublicDataErrorMessage(
+        'Could not load order profiles right now.',
+        profilesResult.error.message,
+      ),
     };
   }
 
@@ -501,7 +567,10 @@ export async function getAdminOrderDetail(
     return {
       status: 'not_configured',
       order: null,
-      message: getSupabaseAdminMissingEnvMessage(),
+      message: toPublicDataErrorMessage(
+        'Admin order details are temporarily unavailable.',
+        getSupabaseAdminMissingEnvMessage(),
+      ),
     };
   }
 
@@ -518,7 +587,10 @@ export async function getAdminOrderDetail(
     return {
       status: 'error',
       order: null,
-      message: orderResult.error.message,
+      message: toPublicDataErrorMessage(
+        'Could not load order details right now.',
+        orderResult.error.message,
+      ),
     };
   }
 
@@ -526,7 +598,10 @@ export async function getAdminOrderDetail(
     return {
       status: 'error',
       order: null,
-      message: orderItemsResult.error.message,
+      message: toPublicDataErrorMessage(
+        'Could not load order items right now.',
+        orderItemsResult.error.message,
+      ),
     };
   }
 

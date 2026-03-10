@@ -7,6 +7,7 @@ export default function AdminEditProductLoading() {
       subtitle="Loading product details"
       back={true}
       showBottomNav={false}
+      mode="admin"
     />
   );
 }

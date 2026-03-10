@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useTransition, type FormEventHandler } from 'react';
+import { useMemo, useRef, useState, useTransition, type FormEventHandler } from 'react';
 import { useRouter } from 'next/navigation';
 
 import type {
@@ -25,6 +25,37 @@ function toNullableNumber(value: string): number | null {
   }
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function mapAdminProductError(error: string | undefined): string {
+  if (!error) {
+    return 'Could not save product.';
+  }
+
+  switch (error) {
+    case 'not_configured':
+      return 'Admin backend is temporarily unavailable.';
+    case 'invalid_slug':
+      return 'Slug should use lowercase letters, digits, and hyphens only.';
+    case 'title_required':
+      return 'Product title is required.';
+    case 'invalid_status':
+      return 'Selected status is invalid.';
+    case 'currency_required':
+      return 'Currency is required.';
+    case 'invalid_price':
+      return 'Price should be a valid non-negative number.';
+    case 'compare_at_price_less_than_price':
+      return 'Compare-at price should be greater than or equal to price.';
+    case 'invalid_stock_quantity':
+      return 'Stock quantity should be a valid non-negative integer.';
+    case 'invalid_category':
+      return 'Selected category is no longer available.';
+    case 'admin_access_denied':
+      return 'You do not have access to this admin action.';
+    default:
+      return 'Could not save product. Please retry.';
+  }
 }
 
 export function AdminProductForm({ mode, product, categories }: AdminProductFormProps) {
@@ -52,6 +83,7 @@ export function AdminProductForm({ mode, product, categories }: AdminProductForm
   );
   const [categoryId, setCategoryId] = useState(product?.categoryId ?? '');
   const [isFeatured, setIsFeatured] = useState(product?.isFeatured ?? false);
+  const isSubmittingRef = useRef(false);
 
   const heading = useMemo(
     () => (mode === 'create' ? 'Create product' : 'Edit product'),
@@ -60,6 +92,11 @@ export function AdminProductForm({ mode, product, categories }: AdminProductForm
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
+    if (isPending || isSubmittingRef.current) {
+      return;
+    }
+
+    isSubmittingRef.current = true;
 
     startTransition(async () => {
       setErrorMessage(null);
@@ -70,6 +107,7 @@ export function AdminProductForm({ mode, product, categories }: AdminProductForm
 
       if (!Number.isFinite(parsedPrice) || !Number.isFinite(parsedStock)) {
         setErrorMessage('Price and stock quantity must be valid numbers.');
+        isSubmittingRef.current = false;
         return;
       }
 
@@ -91,30 +129,37 @@ export function AdminProductForm({ mode, product, categories }: AdminProductForm
         mode === 'create' ? '/api/admin/products' : `/api/admin/products/${product?.id}`;
       const method = mode === 'create' ? 'POST' : 'PATCH';
 
-      const response = await fetch(endpoint, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(payload),
-      });
+      try {
+        const response = await fetch(endpoint, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(payload),
+        });
 
-      const data = (await response.json()) as
-        | { ok: true; id?: string }
-        | { ok: false; error?: string };
+        const data = (await response.json().catch(() => null)) as
+          | { ok: true; id?: string }
+          | { ok: false; error?: string }
+          | null;
 
-      if (!response.ok || !data.ok) {
-        setErrorMessage(data.ok ? 'Admin product mutation failed.' : data.error ?? 'Mutation failed.');
-        return;
-      }
+        if (!response.ok || !data || !data.ok) {
+          const errorCode = data && !data.ok ? data.error : undefined;
+          setErrorMessage(mapAdminProductError(errorCode));
+          return;
+        }
 
-      if (mode === 'create' && data.id) {
-        router.push(`/admin/products/${data.id}/edit`);
+        if (mode === 'create' && data.id) {
+          router.push(`/admin/products/${data.id}/edit`);
+          return;
+        }
+
+        setSuccessMessage('Product saved.');
         router.refresh();
-        return;
+      } catch {
+        setErrorMessage('Network error while saving product.');
+      } finally {
+        isSubmittingRef.current = false;
       }
-
-      setSuccessMessage('Product updated.');
-      router.refresh();
     });
   };
 
@@ -122,7 +167,7 @@ export function AdminProductForm({ mode, product, categories }: AdminProductForm
     <section className={styles.adminCard}>
       <h2 className={styles.adminCardTitle}>{heading}</h2>
 
-      <form className={styles.adminForm} onSubmit={handleSubmit}>
+      <form className={styles.adminForm} onSubmit={handleSubmit} aria-busy={isPending}>
         <label className={styles.adminField}>
           <span className={styles.adminLabel}>Title</span>
           <input

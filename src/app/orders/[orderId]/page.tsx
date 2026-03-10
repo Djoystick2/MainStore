@@ -91,6 +91,17 @@ export default async function OrderDetailPage({
         >
           <p className={styles.dataNoticeTitle}>Order update</p>
           <p className={styles.dataNoticeText}>{orderData.message}</p>
+          {(orderData.status === 'error' || orderData.status === 'not_configured') && (
+            <div className={styles.dataNoticeActions}>
+              <Link
+                href={`/orders/${orderId}`}
+                className={styles.dataNoticeRetry}
+                aria-label="Retry loading order details"
+              >
+                Retry
+              </Link>
+            </div>
+          )}
         </section>
       )}
 

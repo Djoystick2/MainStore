@@ -55,6 +55,13 @@ function isDuplicateConstraintError(message: string | undefined): boolean {
   );
 }
 
+function toPublicDataErrorMessage(baseMessage: string, details: string): string {
+  if (process.env.NODE_ENV === 'development') {
+    return `${baseMessage} Details: ${details}`;
+  }
+  return baseMessage;
+}
+
 function selectPrimaryImage(images: ProductImageRow[]): ProductImageRow | null {
   if (images.length === 0) {
     return null;
@@ -200,7 +207,10 @@ export async function getFavoriteProductsForProfile(
     return {
       status: 'not_configured',
       products: [],
-      message: getSupabaseAdminMissingEnvMessage(),
+      message: toPublicDataErrorMessage(
+        'Favorites are temporarily unavailable.',
+        getSupabaseAdminMissingEnvMessage(),
+      ),
     };
   }
 
@@ -214,7 +224,10 @@ export async function getFavoriteProductsForProfile(
     return {
       status: 'error',
       products: [],
-      message: favoritesResult.error.message,
+      message: toPublicDataErrorMessage(
+        'Could not load favorites right now.',
+        favoritesResult.error.message,
+      ),
     };
   }
 
@@ -325,7 +338,10 @@ export async function getCartDataForProfile(
       items: [],
       itemCount: 0,
       subtotalCents: 0,
-      message: getSupabaseAdminMissingEnvMessage(),
+      message: toPublicDataErrorMessage(
+        'Cart is temporarily unavailable.',
+        getSupabaseAdminMissingEnvMessage(),
+      ),
     };
   }
 
@@ -341,7 +357,10 @@ export async function getCartDataForProfile(
       items: [],
       itemCount: 0,
       subtotalCents: 0,
-      message: cartItemsResult.error.message,
+      message: toPublicDataErrorMessage(
+        'Could not load cart right now.',
+        cartItemsResult.error.message,
+      ),
     };
   }
 

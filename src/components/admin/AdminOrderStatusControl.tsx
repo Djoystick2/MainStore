@@ -16,6 +16,23 @@ const statusOptions: OrderStatus[] = [
   'cancelled',
 ];
 
+function mapAdminOrderStatusError(error: string | undefined): string {
+  if (!error) {
+    return 'Could not update order status.';
+  }
+
+  switch (error) {
+    case 'not_configured':
+      return 'Admin backend is temporarily unavailable.';
+    case 'invalid_order_status':
+      return 'Selected order status is invalid.';
+    case 'admin_access_denied':
+      return 'You do not have access to this admin action.';
+    default:
+      return 'Could not update order status. Please retry.';
+  }
+}
+
 interface AdminOrderStatusControlProps {
   orderId: string;
   initialStatus: OrderStatus;
@@ -52,8 +69,14 @@ export function AdminOrderStatusControl({
           body: JSON.stringify({ status }),
         });
 
-        if (!response.ok) {
-          setErrorMessage('Failed to update order status.');
+        const data = (await response.json().catch(() => null)) as
+          | { ok: true }
+          | { ok: false; error?: string }
+          | null;
+
+        if (!response.ok || !data || !data.ok) {
+          const errorCode = data && !data.ok ? data.error : undefined;
+          setErrorMessage(mapAdminOrderStatusError(errorCode));
           return;
         }
 

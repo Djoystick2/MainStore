@@ -7,6 +7,7 @@ export default function AdminLoading() {
       subtitle="Loading admin workspace"
       back={true}
       showBottomNav={false}
+      mode="admin"
     />
   );
 }

@@ -56,6 +56,13 @@ export default async function HomePage() {
         >
           <p className={styles.dataNoticeTitle}>Store update</p>
           <p className={styles.dataNoticeText}>{homeData.message}</p>
+          {(homeData.status === 'fallback_error' || homeData.status === 'fallback_env') && (
+            <div className={styles.dataNoticeActions}>
+              <Link href="/" className={styles.dataNoticeRetry} aria-label="Retry loading home">
+                Retry
+              </Link>
+            </div>
+          )}
         </section>
       )}
 
