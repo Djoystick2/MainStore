@@ -11,7 +11,7 @@ export default async function AdminCategoriesPage() {
   const categoriesResult = await getAdminCategories();
 
   return (
-    <AdminScreen title="Категории" subtitle="Структура категорий для витрины и каталога" back={true}>
+    <AdminScreen title="Категории" subtitle="Структура каталога для витрины и навигации" back={true}>
       {categoriesResult.message && (
         <section
           className={classNames(
@@ -41,6 +41,8 @@ export default async function AdminCategoriesPage() {
         <StoreEmptyState
           title="Не удалось загрузить категории"
           description="Категории временно недоступны. Попробуйте чуть позже."
+          actionLabel="Повторить"
+          actionHref="/admin/categories"
         />
       )}
     </AdminScreen>

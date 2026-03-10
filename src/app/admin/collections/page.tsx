@@ -11,7 +11,7 @@ export default async function AdminCollectionsPage() {
   const collectionsResult = await getAdminCollections();
 
   return (
-    <AdminScreen title="Подборки" subtitle="Группировки для витрины и связи с товарами" back={true}>
+    <AdminScreen title="Подборки" subtitle="Контентные и merchandising-группы витрины" back={true}>
       {collectionsResult.message && (
         <section
           className={classNames(
@@ -41,6 +41,8 @@ export default async function AdminCollectionsPage() {
         <StoreEmptyState
           title="Не удалось загрузить подборки"
           description="Подборки временно недоступны. Попробуйте чуть позже."
+          actionLabel="Повторить"
+          actionHref="/admin/collections"
         />
       )}
     </AdminScreen>

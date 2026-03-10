@@ -24,7 +24,7 @@ export default async function AdminEditProductPage({
   const detailResult = await getAdminProductDetail(productId);
 
   return (
-    <AdminScreen title="Карточка товара" subtitle="Контент, публикация, изображения и удаление" back={true}>
+    <AdminScreen title="Карточка товара" subtitle="Контент, публикация и операционные действия" back={true}>
       {detailResult.message && (
         <section
           className={classNames(
@@ -48,7 +48,7 @@ export default async function AdminEditProductPage({
         </section>
       )}
 
-      <div className={adminStyles.adminActions}>
+      <div className={adminStyles.adminActionBar}>
         <Link href="/admin/products" className={adminStyles.adminActionLink}>
           К товарам
         </Link>
@@ -71,7 +71,7 @@ export default async function AdminEditProductPage({
           <section className={adminStyles.adminCard}>
             <h2 className={adminStyles.adminCardTitle}>Быстрые действия</h2>
             <p className={adminStyles.adminCardSub}>
-              Меняйте публикацию и продвижение без полной формы.
+              Меняйте публикацию и продвижение без перехода в полную форму.
             </p>
             <div className={adminStyles.adminStackActions}>
               <AdminProductStatusControl

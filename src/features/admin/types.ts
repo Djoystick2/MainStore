@@ -146,6 +146,11 @@ export interface AdminDashboardData {
   activeProductsCount: number;
   draftProductsCount: number;
   archivedProductsCount: number;
+  categoriesCount: number;
+  collectionsCount: number;
+  discountsCount: number;
+  liveDiscountsCount: number;
+  scheduledDiscountsCount: number;
   ordersCount: number;
   pendingOrdersCount: number;
   awaitingPaymentOrdersCount: number;

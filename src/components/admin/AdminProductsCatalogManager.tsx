@@ -78,8 +78,11 @@ export function AdminProductsCatalogManager({ products, categories }: { products
   });
 
   const activeProductsCount = products.filter((product) => product.status === 'active').length;
+  const draftProductsCount = products.filter((product) => product.status === 'draft').length;
   const featuredProductsCount = products.filter((product) => product.isFeatured).length;
   const outOfStockCount = products.filter((product) => product.stockQuantity <= 0).length;
+  const withoutCategoryCount = products.filter((product) => !product.categoryId).length;
+  const discountedCount = products.filter((product) => Boolean(product.appliedDiscount)).length;
 
   return (
     <section className={styles.adminSectionStack}>
@@ -98,23 +101,45 @@ export function AdminProductsCatalogManager({ products, categories }: { products
           </div>
         </div>
 
-        <div className={styles.adminMetaGrid}>
-          <div className={styles.adminMetaCell}>
-            <p className={styles.adminMetaLabel}>Активные</p>
-            <p className={styles.adminMetaValue}>{activeProductsCount}</p>
+        <div className={styles.adminSummaryGrid}>
+          <div className={styles.adminSummaryCard}>
+            <p className={styles.adminSummaryLabel}>Активные товары</p>
+            <p className={styles.adminSummaryValue}>{activeProductsCount}</p>
+            <p className={styles.adminSummaryText}>
+              {draftProductsCount} черновиков ждут публикации или доработки.
+            </p>
           </div>
-          <div className={styles.adminMetaCell}>
-            <p className={styles.adminMetaLabel}>Черновики и архив</p>
-            <p className={styles.adminMetaValue}>{products.length - activeProductsCount}</p>
+          <div className={styles.adminSummaryCard}>
+            <p className={styles.adminSummaryLabel}>Рекомендуемые и со скидкой</p>
+            <p className={styles.adminSummaryValue}>
+              {featuredProductsCount + discountedCount}
+            </p>
+            <p className={styles.adminSummaryText}>
+              {featuredProductsCount} рекомендуемых и {discountedCount} с активной скидкой.
+            </p>
           </div>
-          <div className={styles.adminMetaCell}>
-            <p className={styles.adminMetaLabel}>После фильтрации</p>
-            <p className={styles.adminMetaValue}>{filteredProducts.length}</p>
+          <div className={styles.adminSummaryCard}>
+            <p className={styles.adminSummaryLabel}>Требуют внимания</p>
+            <p className={styles.adminSummaryValue}>{outOfStockCount + withoutCategoryCount}</p>
+            <p className={styles.adminSummaryText}>
+              {outOfStockCount} без остатка и {withoutCategoryCount} без категории.
+            </p>
           </div>
-          <div className={styles.adminMetaCell}>
-            <p className={styles.adminMetaLabel}>Категории</p>
-            <p className={styles.adminMetaValue}>{categories.length}</p>
+          <div className={styles.adminSummaryCard}>
+            <p className={styles.adminSummaryLabel}>После фильтрации</p>
+            <p className={styles.adminSummaryValue}>{filteredProducts.length}</p>
+            <p className={styles.adminSummaryText}>
+              {categories.length} категорий доступны для навигации и разбивки каталога.
+            </p>
           </div>
+        </div>
+
+        <div className={styles.adminCallout}>
+          <p className={styles.adminCalloutTitle}>Операционный фокус</p>
+          <p className={styles.adminCalloutText}>
+            Быстрые фильтры подходят для ежедневной работы. Массовые обновления цен, остатков и
+            контента безопаснее проводить через Excel import с preview-first проверкой.
+          </p>
         </div>
 
         <div className={styles.adminFiltersGrid}>
@@ -222,7 +247,11 @@ export function AdminProductsCatalogManager({ products, categories }: { products
                       </div>
                       <div className={styles.adminMetaCell}>
                         <p className={styles.adminMetaLabel}>Скидка</p>
-                        <p className={styles.adminMetaValue}>{product.appliedDiscount ? `${product.appliedDiscount.targetTitle} В· ${product.appliedDiscount.scope}` : 'Нет активной скидки'}</p>
+                        <p className={styles.adminMetaValue}>
+                          {product.appliedDiscount
+                            ? `${product.appliedDiscount.targetTitle} · ${product.appliedDiscount.scope}`
+                            : 'Нет активной скидки'}
+                        </p>
                       </div>
                     </div>
 

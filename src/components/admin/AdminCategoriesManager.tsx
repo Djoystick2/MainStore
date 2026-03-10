@@ -36,7 +36,7 @@ function mapAdminCategoryError(error: string | undefined): string {
     case 'category_title_required':
       return 'Укажите название категории.';
     case 'invalid_category_slug':
-      return 'Slug категории должен содержать строчные буквы, цифры и дефисы.';
+      return 'Slug категории должен содержать только строчные буквы, цифры и дефисы.';
     case 'invalid_category_sort_order':
       return 'Порядок вывода должен быть неотрицательным целым числом.';
     case 'slug_conflict':
@@ -113,6 +113,7 @@ function CategoryRow({ category }: CategoryRowProps) {
         }
 
         setSuccessMessage('Категория сохранена.');
+        setIsConfirmingDelete(false);
         router.refresh();
       } catch {
         setErrorMessage('Сетевая ошибка при сохранении категории.');
@@ -170,7 +171,7 @@ function CategoryRow({ category }: CategoryRowProps) {
         <div>
           <h3 className={styles.adminCardTitle}>{category.title}</h3>
           <p className={styles.adminCardSub}>
-            {category.productsCount} связанных товаров
+            {category.productsCount} связанных товаров · {category.slug}
           </p>
         </div>
         <div className={styles.adminBadgeRow}>
@@ -182,27 +183,18 @@ function CategoryRow({ category }: CategoryRowProps) {
         <div className={styles.adminInlineRow}>
           <label className={styles.adminField}>
             <span className={styles.adminLabel}>Название</span>
-            <input
-              className={styles.adminInput}
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-            />
+            <input className={styles.adminInput} value={title} onChange={(event) => setTitle(event.target.value)} />
           </label>
 
           <label className={styles.adminField}>
             <span className={styles.adminLabel}>Slug</span>
             <div className={styles.adminInlineActionRow}>
-              <input
-                className={styles.adminInput}
-                value={slug}
-                onChange={(event) => setSlug(event.target.value)}
-              />
+              <input className={styles.adminInput} value={slug} onChange={(event) => setSlug(event.target.value)} />
               <button
                 type="button"
                 className={styles.adminActionButton}
                 onClick={() => setSlug(slugify(title))}
                 disabled={!title.trim() || isPending}
-                aria-label="Сгенерировать slug категории"
               >
                 Из названия
               </button>
@@ -213,11 +205,7 @@ function CategoryRow({ category }: CategoryRowProps) {
         <div className={styles.adminInlineRow}>
           <label className={styles.adminField}>
             <span className={styles.adminLabel}>Короткий текст</span>
-            <input
-              className={styles.adminInput}
-              value={shortText}
-              onChange={(event) => setShortText(event.target.value)}
-            />
+            <input className={styles.adminInput} value={shortText} onChange={(event) => setShortText(event.target.value)} />
           </label>
 
           <label className={styles.adminField}>
@@ -253,23 +241,20 @@ function CategoryRow({ category }: CategoryRowProps) {
           <span className={styles.adminLabel}>Показывать на витрине</span>
         </label>
 
+        {isConfirmingDelete && (
+          <div className={styles.adminCalloutWarn}>
+            <p className={styles.adminCalloutTitle}>Подтверждение удаления</p>
+            <p className={styles.adminCalloutText}>
+              Категория удалится, а связанные товары останутся в каталоге без категории.
+            </p>
+          </div>
+        )}
+
         <div className={styles.adminActions}>
-          <button
-            type="button"
-            className={styles.adminActionButton}
-            onClick={onSave}
-            disabled={isPending}
-            aria-label={`Сохранить категорию ${category.title}`}
-          >
+          <button type="button" className={styles.adminActionButton} onClick={onSave} disabled={isPending}>
             {isPending ? 'Сохраняем...' : 'Сохранить'}
           </button>
-          <button
-            type="button"
-            className={styles.adminDangerButton}
-            onClick={onDelete}
-            disabled={isPending}
-            aria-label={`Удалить категорию ${category.title}`}
-          >
+          <button type="button" className={styles.adminDangerButton} onClick={onDelete} disabled={isPending}>
             {isConfirmingDelete ? 'Подтвердить удаление' : 'Удалить'}
           </button>
         </div>
@@ -311,6 +296,10 @@ export function AdminCategoriesManager({ categories }: AdminCategoriesManagerPro
     const haystack = `${category.title} ${category.slug} ${category.shortText ?? ''}`.toLowerCase();
     return haystack.includes(search.trim().toLowerCase());
   });
+
+  const visibleCount = categories.filter((category) => category.isActive).length;
+  const hiddenCount = categories.length - visibleCount;
+  const linkedProductsCount = categories.reduce((total, category) => total + category.productsCount, 0);
 
   const onCreate: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
@@ -382,11 +371,35 @@ export function AdminCategoriesManager({ categories }: AdminCategoriesManagerPro
           <div>
             <h2 className={styles.adminCardTitle}>Категории</h2>
             <p className={styles.adminCardSub}>
-              Навигация, видимость, тексты и порядок вывода для витрины.
+              Управляйте навигацией витрины, короткими текстами и порядком вывода без лишних
+              переходов.
             </p>
           </div>
           <div className={styles.adminBadgeRow}>
             <span className={styles.adminStatusBadge}>{categories.length} всего</span>
+          </div>
+        </div>
+
+        <div className={styles.adminSummaryGrid}>
+          <div className={styles.adminSummaryCard}>
+            <p className={styles.adminSummaryLabel}>Видимые категории</p>
+            <p className={styles.adminSummaryValue}>{visibleCount}</p>
+            <p className={styles.adminSummaryText}>Используются в витрине и верхнем уровне каталога.</p>
+          </div>
+          <div className={styles.adminSummaryCard}>
+            <p className={styles.adminSummaryLabel}>Скрытые категории</p>
+            <p className={styles.adminSummaryValue}>{hiddenCount}</p>
+            <p className={styles.adminSummaryText}>Остаются в системе, но не показываются покупателям.</p>
+          </div>
+          <div className={styles.adminSummaryCard}>
+            <p className={styles.adminSummaryLabel}>Связанные товары</p>
+            <p className={styles.adminSummaryValue}>{linkedProductsCount}</p>
+            <p className={styles.adminSummaryText}>Показывает, насколько категория уже участвует в каталоге.</p>
+          </div>
+          <div className={styles.adminSummaryCard}>
+            <p className={styles.adminSummaryLabel}>После фильтрации</p>
+            <p className={styles.adminSummaryValue}>{filteredCategories.length}</p>
+            <p className={styles.adminSummaryText}>Текущий рабочий список по поиску и видимости.</p>
           </div>
         </div>
 
@@ -416,6 +429,14 @@ export function AdminCategoriesManager({ categories }: AdminCategoriesManagerPro
             </select>
           </label>
         </div>
+
+        <div className={styles.adminCallout}>
+          <p className={styles.adminCalloutTitle}>Что важно помнить</p>
+          <p className={styles.adminCalloutText}>
+            Удаление категории не удаляет товары. Связанные карточки останутся в каталоге, но
+            потеряют category binding, поэтому перед удалением лучше проверить карточки товаров.
+          </p>
+        </div>
       </section>
 
       <section className={styles.adminCard}>
@@ -425,29 +446,18 @@ export function AdminCategoriesManager({ categories }: AdminCategoriesManagerPro
           <div className={styles.adminInlineRow}>
             <label className={styles.adminField}>
               <span className={styles.adminLabel}>Название</span>
-              <input
-                className={styles.adminInput}
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                required
-              />
+              <input className={styles.adminInput} value={title} onChange={(event) => setTitle(event.target.value)} required />
             </label>
 
             <label className={styles.adminField}>
               <span className={styles.adminLabel}>Slug</span>
               <div className={styles.adminInlineActionRow}>
-                <input
-                  className={styles.adminInput}
-                  value={slug}
-                  onChange={(event) => setSlug(event.target.value)}
-                  required
-                />
+                <input className={styles.adminInput} value={slug} onChange={(event) => setSlug(event.target.value)} required />
                 <button
                   type="button"
                   className={styles.adminActionButton}
                   onClick={() => setSlug(slugify(title))}
                   disabled={!title.trim() || isPending}
-                  aria-label="Сгенерировать slug категории"
                 >
                   Из названия
                 </button>
@@ -458,11 +468,7 @@ export function AdminCategoriesManager({ categories }: AdminCategoriesManagerPro
           <div className={styles.adminInlineRow}>
             <label className={styles.adminField}>
               <span className={styles.adminLabel}>Короткий текст</span>
-              <input
-                className={styles.adminInput}
-                value={shortText}
-                onChange={(event) => setShortText(event.target.value)}
-              />
+              <input className={styles.adminInput} value={shortText} onChange={(event) => setShortText(event.target.value)} />
             </label>
             <label className={styles.adminField}>
               <span className={styles.adminLabel}>Порядок вывода</span>
@@ -479,12 +485,7 @@ export function AdminCategoriesManager({ categories }: AdminCategoriesManagerPro
 
           <label className={styles.adminField}>
             <span className={styles.adminLabel}>Описание</span>
-            <textarea
-              className={styles.adminTextarea}
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              rows={3}
-            />
+            <textarea className={styles.adminTextarea} value={description} onChange={(event) => setDescription(event.target.value)} rows={3} />
           </label>
 
           <label className={styles.adminCheckboxRow}>
@@ -497,12 +498,7 @@ export function AdminCategoriesManager({ categories }: AdminCategoriesManagerPro
             <span className={styles.adminLabel}>Показывать на витрине</span>
           </label>
 
-          <button
-            type="submit"
-            className={styles.adminPrimaryButton}
-            disabled={isPending}
-            aria-label="Создать категорию"
-          >
+          <button type="submit" className={styles.adminPrimaryButton} disabled={isPending}>
             {isPending ? 'Создаем...' : 'Создать категорию'}
           </button>
 

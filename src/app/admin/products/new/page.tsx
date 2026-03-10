@@ -12,7 +12,7 @@ export default async function AdminCreateProductPage() {
   const categoriesResult = await getAdminCategories();
 
   return (
-    <AdminScreen title="Создание товара" subtitle="Добавьте новый товар в каталог" back={true}>
+    <AdminScreen title="Создание товара" subtitle="Новая карточка каталога" back={true}>
       {categoriesResult.message && (
         <section
           className={classNames(
@@ -22,8 +22,7 @@ export default async function AdminCreateProductPage() {
         >
           <p className={storeStyles.dataNoticeTitle}>Обновление категорий</p>
           <p className={storeStyles.dataNoticeText}>{categoriesResult.message}</p>
-          {(categoriesResult.status === 'error' ||
-            categoriesResult.status === 'not_configured') && (
+          {(categoriesResult.status === 'error' || categoriesResult.status === 'not_configured') && (
             <div className={storeStyles.dataNoticeActions}>
               <Link
                 href="/admin/products/new"
@@ -37,9 +36,11 @@ export default async function AdminCreateProductPage() {
         </section>
       )}
 
-      <Link href="/admin/products" className={adminStyles.adminActionLink}>
-        К товарам
-      </Link>
+      <div className={adminStyles.adminActionBar}>
+        <Link href="/admin/products" className={adminStyles.adminActionLink}>
+          К товарам
+        </Link>
+      </div>
 
       {categoriesResult.status === 'ok' ? (
         <AdminProductForm mode="create" categories={categoriesResult.categories} />
@@ -47,6 +48,8 @@ export default async function AdminCreateProductPage() {
         <StoreEmptyState
           title="Не удалось загрузить категории"
           description="Категории временно недоступны. Попробуйте чуть позже."
+          actionLabel="К товарам"
+          actionHref="/admin/products"
         />
       )}
     </AdminScreen>

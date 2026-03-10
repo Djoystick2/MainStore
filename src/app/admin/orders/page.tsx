@@ -1,45 +1,18 @@
 import Link from 'next/link';
 
+import { AdminOrdersManager } from '@/components/admin/AdminOrdersManager';
 import { AdminScreen } from '@/components/admin/AdminScreen';
 import adminStyles from '@/components/admin/admin.module.css';
 import { StoreEmptyState } from '@/components/store/StoreEmptyState';
 import { classNames } from '@/css/classnames';
 import { getAdminOrders } from '@/features/admin';
-import { formatPaymentStatus } from '@/features/payments';
 import storeStyles from '@/components/store/store.module.css';
-
-function formatPrice(amount: number, currency: string) {
-  return new Intl.NumberFormat('ru-RU', {
-    style: 'currency',
-    currency: currency || 'USD',
-    minimumFractionDigits: 0,
-  }).format(amount);
-}
-
-function formatOrderStatus(status: string): string {
-  switch (status) {
-    case 'pending':
-      return 'Ожидает';
-    case 'confirmed':
-      return 'Подтверждён';
-    case 'processing':
-      return 'В обработке';
-    case 'shipped':
-      return 'Отправлен';
-    case 'delivered':
-      return 'Доставлен';
-    case 'cancelled':
-      return 'Отменён';
-    default:
-      return status;
-  }
-}
 
 export default async function AdminOrdersPage() {
   const ordersResult = await getAdminOrders();
 
   return (
-    <AdminScreen title="Заказы" subtitle="Управление статусами и деталями заказов">
+    <AdminScreen title="Заказы" subtitle="Операционный контроль исполнения и оплаты">
       {ordersResult.message && (
         <section
           className={classNames(
@@ -63,71 +36,23 @@ export default async function AdminOrdersPage() {
         </section>
       )}
 
+      <section className={adminStyles.adminPageLead}>
+        <h2 className={adminStyles.adminPageLeadTitle}>Не теряйте заказ между оплатой и исполнением</h2>
+        <p className={adminStyles.adminPageLeadText}>
+          В этом разделе видно, где покупатель еще не завершил оплату, а где заказ уже можно
+          подтверждать, собирать и передавать в доставку.
+        </p>
+      </section>
+
       {ordersResult.orders.length === 0 ? (
         <StoreEmptyState
           title="Заказов пока нет"
           description="Заказы появятся здесь после оформления клиентами."
+          actionLabel="Перейти к витрине"
+          actionHref="/"
         />
       ) : (
-        <section className={storeStyles.section}>
-          <h2 className={storeStyles.sectionTitle}>Все заказы</h2>
-          <div className={adminStyles.adminCardList}>
-            {ordersResult.orders.map((order) => (
-              <article key={order.id} className={adminStyles.adminCard}>
-                <div className={adminStyles.adminCardHead}>
-                  <h3 className={adminStyles.adminCardTitle}>
-                    Заказ #{order.id.slice(0, 8).toUpperCase()}
-                  </h3>
-                  <span className={storeStyles.orderStatusBadge}>{formatOrderStatus(order.status)}</span>
-                </div>
-                <p className={adminStyles.adminCardSub}>
-                  {order.customerDisplayName || order.customerUsername || order.userId}
-                </p>
-                <p className={adminStyles.adminCardSub}>
-                  Оплата: {formatPaymentStatus(order.paymentStatus)}
-                </p>
-                <div className={adminStyles.adminMetaGrid}>
-                  <div className={adminStyles.adminMetaCell}>
-                    <p className={adminStyles.adminMetaLabel}>Итого</p>
-                    <p className={adminStyles.adminMetaValue}>
-                      {formatPrice(order.totalAmount, order.currency)}
-                    </p>
-                  </div>
-                  <div className={adminStyles.adminMetaCell}>
-                    <p className={adminStyles.adminMetaLabel}>Товаров</p>
-                    <p className={adminStyles.adminMetaValue}>{order.itemsCount}</p>
-                  </div>
-                  <div className={adminStyles.adminMetaCell}>
-                    <p className={adminStyles.adminMetaLabel}>Дата</p>
-                    <p className={adminStyles.adminMetaValue}>
-                      {new Date(order.createdAt).toLocaleDateString('ru-RU')}
-                    </p>
-                  </div>
-                  <div className={adminStyles.adminMetaCell}>
-                    <p className={adminStyles.adminMetaLabel}>Пользователь</p>
-                    <p className={adminStyles.adminMetaValue}>
-                      {order.customerUsername || 'н/д'}
-                    </p>
-                  </div>
-                  <div className={adminStyles.adminMetaCell}>
-                    <p className={adminStyles.adminMetaLabel}>Платёж</p>
-                    <p className={adminStyles.adminMetaValue}>
-                      {formatPaymentStatus(order.paymentStatus)}
-                    </p>
-                  </div>
-                </div>
-                <div className={adminStyles.adminActions}>
-                  <Link
-                    href={`/admin/orders/${order.id}`}
-                    className={adminStyles.adminActionLink}
-                  >
-                    Открыть
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
+        <AdminOrdersManager orders={ordersResult.orders} />
       )}
     </AdminScreen>
   );

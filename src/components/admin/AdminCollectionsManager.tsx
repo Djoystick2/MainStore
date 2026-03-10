@@ -36,7 +36,7 @@ function mapAdminCollectionError(error: string | undefined): string {
     case 'collection_title_required':
       return 'Укажите название подборки.';
     case 'invalid_collection_slug':
-      return 'Slug подборки должен содержать строчные буквы, цифры и дефисы.';
+      return 'Slug подборки должен содержать только строчные буквы, цифры и дефисы.';
     case 'invalid_collection_sort_order':
       return 'Порядок вывода должен быть неотрицательным целым числом.';
     case 'slug_conflict':
@@ -115,6 +115,7 @@ function CollectionRow({ collection }: CollectionRowProps) {
         }
 
         setSuccessMessage('Подборка сохранена.');
+        setIsConfirmingDelete(false);
         router.refresh();
       } catch {
         setErrorMessage('Сетевая ошибка при сохранении подборки.');
@@ -171,7 +172,9 @@ function CollectionRow({ collection }: CollectionRowProps) {
       <div className={styles.adminCardHead}>
         <div>
           <h3 className={styles.adminCardTitle}>{collection.title}</h3>
-          <p className={styles.adminCardSub}>{collection.productsCount} связанных товаров</p>
+          <p className={styles.adminCardSub}>
+            {collection.productsCount} связанных товаров · {collection.slug}
+          </p>
         </div>
         <div className={styles.adminBadgeRow}>
           {isFeatured && <span className={styles.adminFeatureBadge}>Рекомендуемая</span>}
@@ -183,27 +186,18 @@ function CollectionRow({ collection }: CollectionRowProps) {
         <div className={styles.adminInlineRow}>
           <label className={styles.adminField}>
             <span className={styles.adminLabel}>Название</span>
-            <input
-              className={styles.adminInput}
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-            />
+            <input className={styles.adminInput} value={title} onChange={(event) => setTitle(event.target.value)} />
           </label>
 
           <label className={styles.adminField}>
             <span className={styles.adminLabel}>Slug</span>
             <div className={styles.adminInlineActionRow}>
-              <input
-                className={styles.adminInput}
-                value={slug}
-                onChange={(event) => setSlug(event.target.value)}
-              />
+              <input className={styles.adminInput} value={slug} onChange={(event) => setSlug(event.target.value)} />
               <button
                 type="button"
                 className={styles.adminActionButton}
                 onClick={() => setSlug(slugify(title))}
                 disabled={!title.trim() || isPending}
-                aria-label="Сгенерировать slug подборки"
               >
                 Из названия
               </button>
@@ -214,11 +208,7 @@ function CollectionRow({ collection }: CollectionRowProps) {
         <div className={styles.adminInlineRow}>
           <label className={styles.adminField}>
             <span className={styles.adminLabel}>Короткий текст</span>
-            <input
-              className={styles.adminInput}
-              value={shortText}
-              onChange={(event) => setShortText(event.target.value)}
-            />
+            <input className={styles.adminInput} value={shortText} onChange={(event) => setShortText(event.target.value)} />
           </label>
           <label className={styles.adminField}>
             <span className={styles.adminLabel}>Порядок вывода</span>
@@ -261,27 +251,24 @@ function CollectionRow({ collection }: CollectionRowProps) {
               checked={isFeatured}
               onChange={(event) => setIsFeatured(event.target.checked)}
             />
-            <span className={styles.adminLabel}>Показывать как рекомендуемую</span>
+            <span className={styles.adminLabel}>Выделять как рекомендуемую</span>
           </label>
         </div>
 
+        {isConfirmingDelete && (
+          <div className={styles.adminCalloutWarn}>
+            <p className={styles.adminCalloutTitle}>Подтверждение удаления</p>
+            <p className={styles.adminCalloutText}>
+              Подборка удалится, а связи с товарами будут безопасно сняты без удаления самих карточек.
+            </p>
+          </div>
+        )}
+
         <div className={styles.adminActions}>
-          <button
-            type="button"
-            className={styles.adminActionButton}
-            onClick={onSave}
-            disabled={isPending}
-            aria-label={`Сохранить подборку ${collection.title}`}
-          >
+          <button type="button" className={styles.adminActionButton} onClick={onSave} disabled={isPending}>
             {isPending ? 'Сохраняем...' : 'Сохранить'}
           </button>
-          <button
-            type="button"
-            className={styles.adminDangerButton}
-            onClick={onDelete}
-            disabled={isPending}
-            aria-label={`Удалить подборку ${collection.title}`}
-          >
+          <button type="button" className={styles.adminDangerButton} onClick={onDelete} disabled={isPending}>
             {isConfirmingDelete ? 'Подтвердить удаление' : 'Удалить'}
           </button>
         </div>
@@ -330,6 +317,13 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
     const haystack = `${collection.title} ${collection.slug} ${collection.shortText ?? ''}`.toLowerCase();
     return haystack.includes(search.trim().toLowerCase());
   });
+
+  const visibleCount = collections.filter((collection) => collection.isActive).length;
+  const featuredCount = collections.filter((collection) => collection.isFeatured).length;
+  const linkedProductsCount = collections.reduce(
+    (total, collection) => total + collection.productsCount,
+    0,
+  );
 
   const onCreate: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
@@ -403,11 +397,35 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
           <div>
             <h2 className={styles.adminCardTitle}>Подборки</h2>
             <p className={styles.adminCardSub}>
-              Управляйте разделами витрины, видимостью, продвижением и порядком.
+              Используйте подборки как merchandising-слой для home, витрины и тематических входов.
             </p>
           </div>
           <div className={styles.adminBadgeRow}>
             <span className={styles.adminStatusBadge}>{collections.length} всего</span>
+            <span className={styles.adminFeatureBadge}>{featuredCount} рекомендуемых</span>
+          </div>
+        </div>
+
+        <div className={styles.adminSummaryGrid}>
+          <div className={styles.adminSummaryCard}>
+            <p className={styles.adminSummaryLabel}>Видимые подборки</p>
+            <p className={styles.adminSummaryValue}>{visibleCount}</p>
+            <p className={styles.adminSummaryText}>Участвуют в storefront и витринных сценариях.</p>
+          </div>
+          <div className={styles.adminSummaryCard}>
+            <p className={styles.adminSummaryLabel}>Рекомендуемые</p>
+            <p className={styles.adminSummaryValue}>{featuredCount}</p>
+            <p className={styles.adminSummaryText}>Приоритетны для home и маркетинговых блоков.</p>
+          </div>
+          <div className={styles.adminSummaryCard}>
+            <p className={styles.adminSummaryLabel}>Связанные товары</p>
+            <p className={styles.adminSummaryValue}>{linkedProductsCount}</p>
+            <p className={styles.adminSummaryText}>Показывает, насколько подборки уже наполнены контентом.</p>
+          </div>
+          <div className={styles.adminSummaryCard}>
+            <p className={styles.adminSummaryLabel}>После фильтрации</p>
+            <p className={styles.adminSummaryValue}>{filteredCollections.length}</p>
+            <p className={styles.adminSummaryText}>Текущий рабочий список по фильтрам и поиску.</p>
           </div>
         </div>
 
@@ -452,6 +470,14 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
             </select>
           </label>
         </div>
+
+        <div className={styles.adminCallout}>
+          <p className={styles.adminCalloutTitle}>Storefront integration</p>
+          <p className={styles.adminCalloutText}>
+            Подборки уже связаны с home mini-shelves и merchandising-секциями. Скрывайте или
+            перемещайте их здесь, если нужно быстро изменить витринные акценты без CMS.
+          </p>
+        </div>
       </section>
 
       <section className={styles.adminCard}>
@@ -461,29 +487,18 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
           <div className={styles.adminInlineRow}>
             <label className={styles.adminField}>
               <span className={styles.adminLabel}>Название</span>
-              <input
-                className={styles.adminInput}
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                required
-              />
+              <input className={styles.adminInput} value={title} onChange={(event) => setTitle(event.target.value)} required />
             </label>
 
             <label className={styles.adminField}>
               <span className={styles.adminLabel}>Slug</span>
               <div className={styles.adminInlineActionRow}>
-                <input
-                  className={styles.adminInput}
-                  value={slug}
-                  onChange={(event) => setSlug(event.target.value)}
-                  required
-                />
+                <input className={styles.adminInput} value={slug} onChange={(event) => setSlug(event.target.value)} required />
                 <button
                   type="button"
                   className={styles.adminActionButton}
                   onClick={() => setSlug(slugify(title))}
                   disabled={!title.trim() || isPending}
-                  aria-label="Сгенерировать slug подборки"
                 >
                   Из названия
                 </button>
@@ -494,11 +509,7 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
           <div className={styles.adminInlineRow}>
             <label className={styles.adminField}>
               <span className={styles.adminLabel}>Короткий текст</span>
-              <input
-                className={styles.adminInput}
-                value={shortText}
-                onChange={(event) => setShortText(event.target.value)}
-              />
+              <input className={styles.adminInput} value={shortText} onChange={(event) => setShortText(event.target.value)} />
             </label>
             <label className={styles.adminField}>
               <span className={styles.adminLabel}>Порядок вывода</span>
@@ -515,12 +526,7 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
 
           <label className={styles.adminField}>
             <span className={styles.adminLabel}>Описание</span>
-            <textarea
-              className={styles.adminTextarea}
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              rows={3}
-            />
+            <textarea className={styles.adminTextarea} value={description} onChange={(event) => setDescription(event.target.value)} rows={3} />
           </label>
 
           <div className={styles.adminInlineRow}>
@@ -541,16 +547,11 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
                 checked={isFeatured}
                 onChange={(event) => setIsFeatured(event.target.checked)}
               />
-              <span className={styles.adminLabel}>Показывать как рекомендуемую</span>
+              <span className={styles.adminLabel}>Выделять как рекомендуемую</span>
             </label>
           </div>
 
-          <button
-            type="submit"
-            className={styles.adminPrimaryButton}
-            disabled={isPending}
-            aria-label="Создать подборку"
-          >
+          <button type="submit" className={styles.adminPrimaryButton} disabled={isPending}>
             {isPending ? 'Создаем...' : 'Создать подборку'}
           </button>
 
@@ -564,7 +565,7 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
           title={collections.length === 0 ? 'Подборок пока нет' : 'Совпадений не найдено'}
           description={
             collections.length === 0
-              ? 'Создайте первую подборку для витрины и контентных блоков.'
+              ? 'Создайте первую подборку для home, контентных блоков и merchandising-сценариев.'
               : 'Измените фильтры или поисковый запрос.'
           }
         />

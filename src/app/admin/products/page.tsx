@@ -14,7 +14,7 @@ export default async function AdminProductsPage() {
   const hasError = productsResult.status === 'error';
 
   return (
-    <AdminScreen title="Товары" subtitle="Управление каталогом как цельным контентным слоем">
+    <AdminScreen title="Товары" subtitle="Каталог как рабочее пространство магазина">
       {combinedMessage && (
         <section
           className={classNames(
@@ -22,7 +22,7 @@ export default async function AdminProductsPage() {
             hasError && storeStyles.dataNoticeError,
           )}
         >
-          <p className={storeStyles.dataNoticeTitle}>Обновление товаров</p>
+          <p className={storeStyles.dataNoticeTitle}>Обновление каталога</p>
           <p className={storeStyles.dataNoticeText}>{combinedMessage}</p>
           {hasError && (
             <div className={storeStyles.dataNoticeActions}>
@@ -38,18 +38,31 @@ export default async function AdminProductsPage() {
         </section>
       )}
 
-      <Link
-        href="/admin/products/new"
-        className={adminStyles.adminPrimaryLink}
-        aria-label="Создать товар"
-      >
-        Создать товар
-      </Link>
+      <section className={adminStyles.adminPageLead}>
+        <h2 className={adminStyles.adminPageLeadTitle}>Управление карточками без лишних переходов</h2>
+        <p className={adminStyles.adminPageLeadText}>
+          Ищите товары, проверяйте публикацию, остатки и скидки, а массовые обновления оставляйте
+          для Excel import.
+        </p>
+        <div className={adminStyles.adminActionBar}>
+          <Link href="/admin/products/new" className={adminStyles.adminPrimaryLink}>
+            Создать товар
+          </Link>
+          <Link href="/admin/import" className={adminStyles.adminActionLink}>
+            Открыть import
+          </Link>
+          <Link href="/admin/discounts" className={adminStyles.adminActionLink}>
+            Проверить скидки
+          </Link>
+        </div>
+      </section>
 
       {productsResult.products.length === 0 ? (
         <StoreEmptyState
           title="Товаров пока нет"
-          description="Создайте первый товар в админке."
+          description="Создайте первый товар вручную или загрузите каталог через Excel import."
+          actionLabel="Создать товар"
+          actionHref="/admin/products/new"
         />
       ) : (
         <AdminProductsCatalogManager

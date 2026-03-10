@@ -26,6 +26,7 @@ type ProductImageRow = Database['public']['Tables']['product_images']['Row'];
 type CategoryRow = Database['public']['Tables']['categories']['Row'];
 type CollectionRow = Database['public']['Tables']['collections']['Row'];
 type CollectionItemRow = Database['public']['Tables']['collection_items']['Row'];
+type DiscountRow = Database['public']['Tables']['discounts']['Row'];
 type OrderRow = Database['public']['Tables']['orders']['Row'];
 type OrderItemRow = Database['public']['Tables']['order_items']['Row'];
 type PaymentAttemptRow = Database['public']['Tables']['payment_attempts']['Row'];
@@ -72,6 +73,24 @@ export interface AdminCategoriesResult extends AdminResultBase {
 
 export interface AdminCollectionsResult extends AdminResultBase {
   collections: AdminCollectionOption[];
+}
+
+function getDiscountCurrentState(
+  row: Pick<DiscountRow, 'is_active' | 'starts_at' | 'ends_at'>,
+): 'live' | 'scheduled' | 'expired' | 'inactive' {
+  if (!row.is_active) {
+    return 'inactive';
+  }
+
+  const now = Date.now();
+  if (row.starts_at && new Date(row.starts_at).getTime() > now) {
+    return 'scheduled';
+  }
+  if (row.ends_at && new Date(row.ends_at).getTime() < now) {
+    return 'expired';
+  }
+
+  return 'live';
 }
 
 function parseShippingAddress(shippingAddress: Json) {
@@ -409,10 +428,14 @@ export async function getAdminDashboardData(): Promise<AdminDashboardResult> {
     };
   }
 
-  const [productsResult, ordersResult] = await Promise.all([
-    client.from('products').select('status'),
-    client.from('orders').select('status, payment_status'),
-  ]);
+  const [productsResult, ordersResult, categoriesResult, collectionsResult, discountsResult] =
+    await Promise.all([
+      client.from('products').select('status'),
+      client.from('orders').select('status, payment_status'),
+      client.from('categories').select('id'),
+      client.from('collections').select('id'),
+      client.from('discounts').select('is_active, starts_at, ends_at'),
+    ]);
 
   if (productsResult.error) {
     return {
@@ -436,8 +459,44 @@ export async function getAdminDashboardData(): Promise<AdminDashboardResult> {
     };
   }
 
+  if (categoriesResult.error) {
+    return {
+      status: 'error',
+      dashboard: null,
+      message: toPublicDataErrorMessage(
+        'Сейчас не удалось загрузить категории для панели.',
+        categoriesResult.error.message,
+      ),
+    };
+  }
+
+  if (collectionsResult.error) {
+    return {
+      status: 'error',
+      dashboard: null,
+      message: toPublicDataErrorMessage(
+        'Сейчас не удалось загрузить подборки для панели.',
+        collectionsResult.error.message,
+      ),
+    };
+  }
+
+  if (discountsResult.error) {
+    return {
+      status: 'error',
+      dashboard: null,
+      message: toPublicDataErrorMessage(
+        'Сейчас не удалось загрузить скидки для панели.',
+        discountsResult.error.message,
+      ),
+    };
+  }
+
   const products = (productsResult.data ?? []) as Array<Pick<ProductRow, 'status'>>;
   const orders = (ordersResult.data ?? []) as Array<Pick<OrderRow, 'status' | 'payment_status'>>;
+  const discounts = (discountsResult.data ?? []) as Array<
+    Pick<DiscountRow, 'is_active' | 'starts_at' | 'ends_at'>
+  >;
 
   return {
     status: 'ok',
@@ -446,6 +505,15 @@ export async function getAdminDashboardData(): Promise<AdminDashboardResult> {
       activeProductsCount: products.filter((item) => item.status === 'active').length,
       draftProductsCount: products.filter((item) => item.status === 'draft').length,
       archivedProductsCount: products.filter((item) => item.status === 'archived').length,
+      categoriesCount: (categoriesResult.data ?? []).length,
+      collectionsCount: (collectionsResult.data ?? []).length,
+      discountsCount: discounts.length,
+      liveDiscountsCount: discounts.filter(
+        (item) => getDiscountCurrentState(item) === 'live',
+      ).length,
+      scheduledDiscountsCount: discounts.filter(
+        (item) => getDiscountCurrentState(item) === 'scheduled',
+      ).length,
       ordersCount: orders.length,
       pendingOrdersCount: orders.filter((item) =>
         ['pending', 'confirmed', 'processing'].includes(item.status),

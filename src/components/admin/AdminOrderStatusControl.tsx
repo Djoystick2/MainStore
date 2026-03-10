@@ -48,7 +48,7 @@ function mapAdminOrderStatusError(error: string | undefined): string {
     case 'admin_access_denied':
       return 'У вас нет доступа к этому действию.';
     case 'payment_not_completed':
-      return 'Нельзя перевести заказ в обработку до подтверждённой оплаты.';
+      return 'Нельзя перевести заказ в исполнение до подтвержденной оплаты.';
     default:
       return 'Не удалось обновить статус заказа. Попробуйте еще раз.';
   }
@@ -60,6 +60,13 @@ function isStatusAllowed(status: OrderStatus, paymentStatus: PaymentStatus): boo
   }
 
   return status === 'pending' || status === 'cancelled';
+}
+
+function getAllowedStatuses(paymentStatus: PaymentStatus): string {
+  return statusOptions
+    .filter((status) => isStatusAllowed(status, paymentStatus))
+    .map((status) => formatOrderStatus(status))
+    .join(', ');
 }
 
 interface AdminOrderStatusControlProps {
@@ -138,16 +145,21 @@ export function AdminOrderStatusControl({
           aria-label="Статус заказа"
         >
           {statusOptions.map((option) => (
-            <option
-              key={option}
-              value={option}
-              disabled={!isStatusAllowed(option, paymentStatus)}
-            >
+            <option key={option} value={option} disabled={!isStatusAllowed(option, paymentStatus)}>
               {formatOrderStatus(option)}
             </option>
           ))}
         </select>
       </label>
+
+      {paymentStatus !== 'paid' && (
+        <div className={styles.adminCalloutWarn}>
+          <p className={styles.adminCalloutTitle}>Защита от неверного продвижения</p>
+          <p className={styles.adminCalloutText}>
+            Пока оплата не подтверждена, доступны только статусы: {getAllowedStatuses(paymentStatus)}.
+          </p>
+        </div>
+      )}
 
       <button
         type="button"
@@ -158,12 +170,6 @@ export function AdminOrderStatusControl({
       >
         {isPending ? 'Обновляем...' : 'Обновить статус'}
       </button>
-
-      {paymentStatus !== 'paid' && (
-        <p className={styles.adminCardSub}>
-          Заказ ещё не оплачен. Доступны только безопасные статусы до подтверждения платежа.
-        </p>
-      )}
 
       {errorMessage && <p className={styles.adminError}>{errorMessage}</p>}
       {successMessage && <p className={styles.adminSuccess}>{successMessage}</p>}

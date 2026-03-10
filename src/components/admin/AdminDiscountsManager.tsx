@@ -70,6 +70,22 @@ function formatDiscountValue(type: DiscountType, value: number): string {
   return `-${value}`;
 }
 
+function formatScheduleLabel(startsAt: string | null, endsAt: string | null): string {
+  const startLabel = startsAt ? new Date(startsAt).toLocaleString('ru-RU') : null;
+  const endLabel = endsAt ? new Date(endsAt).toLocaleString('ru-RU') : null;
+
+  if (startLabel && endLabel) {
+    return `${startLabel} — ${endLabel}`;
+  }
+  if (startLabel) {
+    return `С ${startLabel}`;
+  }
+  if (endLabel) {
+    return `До ${endLabel}`;
+  }
+  return 'Без ограничений по датам';
+}
+
 function mapDiscountError(error: string | undefined): string {
   switch (error) {
     case 'not_configured':
@@ -215,6 +231,9 @@ function DiscountRow({ discount, targetOptionsByScope }: DiscountRowProps) {
         <div>
           <h3 className={styles.adminCardTitle}>{discount.title}</h3>
           <p className={styles.adminCardSub}>{discount.targetTitle} В· {formatScopeLabel(discount.scope)}</p>
+          <p className={styles.adminMutedText}>
+            {formatScheduleLabel(discount.startsAt, discount.endsAt)}
+          </p>
         </div>
         <div className={styles.adminBadgeRow}>
           <span className={styles.adminStatusBadge}>{formatStateLabel(discount.currentState)}</span>
@@ -340,6 +359,9 @@ export function AdminDiscountsManager({ discounts, products, categories, collect
   });
 
   const currentTargetOptions = targetOptionsByScope[scope];
+  const scheduledCount = discounts.filter((discount) => discount.currentState === 'scheduled').length;
+  const expiredCount = discounts.filter((discount) => discount.currentState === 'expired').length;
+  const inactiveCount = discounts.filter((discount) => discount.currentState === 'inactive').length;
 
   const onCreate: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
@@ -410,6 +432,29 @@ export function AdminDiscountsManager({ discounts, products, categories, collect
           </div>
         </div>
 
+        <div className={styles.adminSummaryGrid}>
+          <div className={styles.adminSummaryCard}>
+            <p className={styles.adminSummaryLabel}>Активные</p>
+            <p className={styles.adminSummaryValue}>{liveCount}</p>
+            <p className={styles.adminSummaryText}>Уже влияют на витрину, карточки товаров и checkout summary.</p>
+          </div>
+          <div className={styles.adminSummaryCard}>
+            <p className={styles.adminSummaryLabel}>Запланированные</p>
+            <p className={styles.adminSummaryValue}>{scheduledCount}</p>
+            <p className={styles.adminSummaryText}>Ожидают начала действия по заданному расписанию.</p>
+          </div>
+          <div className={styles.adminSummaryCard}>
+            <p className={styles.adminSummaryLabel}>Завершенные</p>
+            <p className={styles.adminSummaryValue}>{expiredCount}</p>
+            <p className={styles.adminSummaryText}>Больше не участвуют в расчете effective price.</p>
+          </div>
+          <div className={styles.adminSummaryCard}>
+            <p className={styles.adminSummaryLabel}>Отключенные</p>
+            <p className={styles.adminSummaryValue}>{inactiveCount}</p>
+            <p className={styles.adminSummaryText}>Сохранены в админке, но не применяются к storefront.</p>
+          </div>
+        </div>
+
         <div className={styles.adminFiltersGrid}>
           <label className={styles.adminField}>
             <span className={styles.adminLabel}>Поиск</span>
@@ -436,6 +481,14 @@ export function AdminDiscountsManager({ discounts, products, categories, collect
               <option value="inactive">Отключенные</option>
             </select>
           </label>
+        </div>
+
+        <div className={styles.adminCallout}>
+          <p className={styles.adminCalloutTitle}>Как скидка влияет на витрину</p>
+          <p className={styles.adminCalloutText}>
+            Storefront, cart, checkout и order snapshot используют один pricing layer. Если скидка
+            активна, она меняет effective price без ручных правок в товарах.
+          </p>
         </div>
       </section>
 
