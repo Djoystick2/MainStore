@@ -58,9 +58,11 @@ export default async function ProductPage({
   const favoriteIdSet = new Set(favoriteIds);
   const isFavorited = product ? favoriteIdSet.has(product.id) : false;
 
-  const price = product
-    ? formatStorePrice(product.priceCents, product.currency)
-    : '';
+  const price = product ? formatStorePrice(product.priceCents, product.currency) : '';
+  const compareAtPrice =
+    product?.compareAtPriceCents && product.compareAtPriceCents > product.priceCents
+      ? formatStorePrice(product.compareAtPriceCents, product.currency)
+      : null;
 
   const detailImageStyle = product?.imageUrl
     ? {
@@ -124,7 +126,17 @@ export default async function ProductPage({
               </div>
               <div className={styles.detailMeta}>
                 <h2 className={styles.detailTitle}>{product.title}</h2>
-                <p className={styles.detailPrice}>{price}</p>
+                <div className={styles.detailPriceRow}>
+                  <p className={styles.detailPrice}>{price}</p>
+                  {compareAtPrice && (
+                    <p className={styles.detailPriceCompare}>{compareAtPrice}</p>
+                  )}
+                </div>
+                {product.appliedDiscount && (
+                  <p className={styles.detailDiscountNote}>
+                    {product.appliedDiscount.badgeText} from {product.appliedDiscount.scope} discount &quot;{product.appliedDiscount.title}&quot;.
+                  </p>
+                )}
                 <p className={styles.detailDescription}>{product.description}</p>
                 <div className={styles.detailActions}>
                   <div className={styles.detailActionGrid}>

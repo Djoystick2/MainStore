@@ -30,6 +30,12 @@ export default async function CartPage() {
   const subtotalLabel = cartData.items[0]
     ? formatStorePrice(cartData.subtotalCents, cartData.items[0].product.currency)
     : '$0';
+  const baseSubtotalLabel = cartData.items[0]
+    ? formatStorePrice(cartData.baseSubtotalCents, cartData.items[0].product.currency)
+    : '$0';
+  const discountLabel = cartData.items[0]
+    ? formatStorePrice(cartData.discountTotalCents, cartData.items[0].product.currency)
+    : '$0';
 
   return (
     <StoreScreen title="Cart" subtitle="Review items before checkout">
@@ -58,10 +64,22 @@ export default async function CartPage() {
             <p className={styles.infoLabel}>Items</p>
             <p className={styles.infoValue}>{cartData.itemCount}</p>
           </div>
+          {cartData.discountTotalCents > 0 && (
+            <div className={styles.infoItem}>
+              <p className={styles.infoLabel}>Before discounts</p>
+              <p className={styles.infoValue}>{baseSubtotalLabel}</p>
+            </div>
+          )}
           <div className={styles.infoItem}>
-            <p className={styles.infoLabel}>Subtotal</p>
+            <p className={styles.infoLabel}>Total</p>
             <p className={styles.infoValue}>{subtotalLabel}</p>
           </div>
+          {cartData.discountTotalCents > 0 && (
+            <div className={styles.infoItem}>
+              <p className={styles.infoLabel}>You save</p>
+              <p className={styles.infoValue}>{discountLabel}</p>
+            </div>
+          )}
         </div>
       </StoreSection>
 
@@ -111,9 +129,22 @@ export default async function CartPage() {
                   </div>
                   <div className={styles.cartItemMeta}>
                     <p className={styles.cartItemTitle}>{item.product.title}</p>
-                    <p className={styles.cartItemPrice}>
-                      {formatStorePrice(item.product.priceCents, item.product.currency)}
-                    </p>
+                    <div className={styles.cartItemPriceRow}>
+                      <p className={styles.cartItemPrice}>
+                        {formatStorePrice(item.product.priceCents, item.product.currency)}
+                      </p>
+                      {item.product.compareAtPriceCents &&
+                        item.product.compareAtPriceCents > item.product.priceCents && (
+                          <p className={styles.cartItemPriceCompare}>
+                            {formatStorePrice(item.product.compareAtPriceCents, item.product.currency)}
+                          </p>
+                        )}
+                    </div>
+                    {item.product.appliedDiscount && (
+                      <p className={styles.cartItemDiscount}>
+                        {item.product.appliedDiscount.badgeText}
+                      </p>
+                    )}
                     <p className={styles.cartItemLineTotal}>
                       Line total: {formatStorePrice(item.lineTotalCents, item.product.currency)}
                     </p>

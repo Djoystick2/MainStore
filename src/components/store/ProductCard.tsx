@@ -33,9 +33,19 @@ export function ProductCard({ product, href, compact = false }: ProductCardProps
         <p className={styles.productDescription}>
           {product.shortDescription || product.description}
         </p>
-        <p className={styles.productPrice}>
-          {formatStorePrice(product.priceCents, product.currency)}
-        </p>
+        <div className={styles.productPriceRow}>
+          <p className={styles.productPrice}>
+            {formatStorePrice(product.priceCents, product.currency)}
+          </p>
+          {product.compareAtPriceCents && product.compareAtPriceCents > product.priceCents && (
+            <p className={styles.productPriceCompare}>
+              {formatStorePrice(product.compareAtPriceCents, product.currency)}
+            </p>
+          )}
+        </div>
+        {product.appliedDiscount && (
+          <p className={styles.productDiscountBadge}>{product.appliedDiscount.badgeText}</p>
+        )}
       </div>
     </article>
   );

@@ -12,6 +12,8 @@ interface CheckoutFormProps {
   initialFullName?: string | null;
   initialPhone?: string | null;
   subtotalCents: number;
+  discountCents: number;
+  totalCents: number;
   currency: string;
 }
 
@@ -47,6 +49,8 @@ export function CheckoutForm({
   initialFullName,
   initialPhone,
   subtotalCents,
+  discountCents,
+  totalCents,
   currency,
 }: CheckoutFormProps) {
   const [isPending, startTransition] = useTransition();
@@ -215,9 +219,19 @@ export function CheckoutForm({
         </label>
       </div>
 
-      <p className={styles.checkoutHint}>
-        Place order total: {formatStorePrice(subtotalCents, currency)}
-      </p>
+      <div className={styles.checkoutTotals}>
+        <p className={styles.checkoutHint}>
+          Before discounts: {formatStorePrice(subtotalCents, currency)}
+        </p>
+        {discountCents > 0 && (
+          <p className={styles.checkoutHint}>
+            Discounts: {formatStorePrice(discountCents, currency)}
+          </p>
+        )}
+        <p className={styles.checkoutHint}>
+          Place order total: {formatStorePrice(totalCents, currency)}
+        </p>
+      </div>
 
       {errorMessage && (
         <p

@@ -87,6 +87,12 @@ export default async function AdminOrderDetailPage({
                 </p>
               </div>
               <div className={adminStyles.adminMetaCell}>
+                <p className={adminStyles.adminMetaLabel}>Discounts</p>
+                <p className={adminStyles.adminMetaValue}>
+                  {formatPrice(order.discountAmount, order.currency)}
+                </p>
+              </div>
+              <div className={adminStyles.adminMetaCell}>
                 <p className={adminStyles.adminMetaLabel}>Customer</p>
                 <p className={adminStyles.adminMetaValue}>
                   {order.customerDisplayName || order.customerUsername || order.userId}

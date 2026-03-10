@@ -6,6 +6,7 @@ import { findStoreProduct, storeProducts } from '@/components/store/mock-product
 import type { StoreProduct } from '@/components/store/types';
 import type { Database } from '@/types/db';
 import { parseTaxonomyMetadata } from '@/features/catalog-taxonomy/metadata';
+import { resolvePricingForProducts } from '@/features/pricing';
 
 import {
   buildStorefrontPromoBanners,
@@ -26,6 +27,7 @@ type ProductListRow = Pick<
   | 'short_description'
   | 'description'
   | 'price'
+  | 'compare_at_price'
   | 'currency'
   | 'is_featured'
   | 'created_at'
@@ -156,14 +158,21 @@ function mapImageByProductId(
   return primaryMap;
 }
 
-function mapProductRows(
+async function mapProductRows(
+  client: NonNullable<ReturnType<typeof createSupabaseServerClientOptional>>,
   rows: ProductListRow[],
   images: ProductImageListRow[],
-): StoreProduct[] {
+): Promise<StoreProduct[]> {
   const primaryImageByProductId = mapImageByProductId(images);
+  const pricingByProductId = await resolvePricingForProducts(client, rows);
 
   return rows.map((row) => {
     const primaryImage = primaryImageByProductId.get(row.id);
+    const pricing = pricingByProductId.get(row.id);
+    const basePrice = pricing?.basePrice ?? Number(row.price) ?? 0;
+    const effectivePrice = pricing?.effectivePrice ?? basePrice;
+    const compareAtPrice =
+      pricing?.compareAtPrice ?? (row.compare_at_price ? Number(row.compare_at_price) : null);
 
     return {
       id: row.id,
@@ -174,7 +183,11 @@ function mapProductRows(
         row.short_description ||
         row.description ||
         'Product description will be available soon.',
-      priceCents: toPriceCents(row.price),
+      basePriceCents: toPriceCents(basePrice),
+      priceCents: toPriceCents(effectivePrice),
+      compareAtPriceCents: compareAtPrice !== null ? toPriceCents(compareAtPrice) : null,
+      discountAmountCents: toPriceCents(pricing?.discountAmount ?? 0),
+      appliedDiscount: pricing?.appliedDiscount ?? null,
       currency: row.currency,
       imageLabel: buildLabel(row.title),
       imageGradient: buildGradient(row.slug || row.id),
@@ -200,7 +213,7 @@ async function fetchActiveProductsByIds(productIds: string[]): Promise<StoreProd
   const { data: productRows, error: productsError } = await client
     .from('products')
     .select(
-      'id, category_id, slug, title, short_description, description, price, currency, is_featured, created_at',
+      'id, category_id, slug, title, short_description, description, price, compare_at_price, currency, is_featured, created_at',
     )
     .eq('status', 'active')
     .in('id', productIds);
@@ -223,7 +236,8 @@ async function fetchActiveProductsByIds(productIds: string[]): Promise<StoreProd
     return [];
   }
 
-  const mapped = mapProductRows(
+  const mapped = await mapProductRows(
+    client,
     typedProductRows,
     (imageRows ?? []) as ProductImageListRow[],
   );
@@ -244,7 +258,7 @@ async function fetchActiveProducts(limit?: number) {
   const baseQuery = client
     .from('products')
     .select(
-      'id, category_id, slug, title, short_description, description, price, currency, is_featured, created_at',
+      'id, category_id, slug, title, short_description, description, price, compare_at_price, currency, is_featured, created_at',
     )
     .eq('status', 'active')
     .order('created_at', { ascending: false });
@@ -276,7 +290,7 @@ async function fetchActiveProducts(limit?: number) {
 
   return {
     kind: 'ok' as const,
-    products: mapProductRows(rows, (imageRows ?? []) as ProductImageListRow[]),
+    products: await mapProductRows(client, rows, (imageRows ?? []) as ProductImageListRow[]),
   };
 }
 
@@ -670,7 +684,7 @@ const getProductStorefrontDataUncached = async (
     const productQuery = client
       .from('products')
       .select(
-        'id, category_id, slug, title, short_description, description, price, currency, is_featured, created_at',
+        'id, category_id, slug, title, short_description, description, price, compare_at_price, currency, is_featured, created_at',
       )
       .eq('status', 'active')
       .eq('slug', productParam)
@@ -687,7 +701,7 @@ const getProductStorefrontDataUncached = async (
       const byId = await client
         .from('products')
         .select(
-          'id, category_id, slug, title, short_description, description, price, currency, is_featured, created_at',
+          'id, category_id, slug, title, short_description, description, price, compare_at_price, currency, is_featured, created_at',
         )
         .eq('status', 'active')
         .eq('id', productParam)
@@ -721,7 +735,7 @@ const getProductStorefrontDataUncached = async (
     let relatedQuery = client
       .from('products')
       .select(
-        'id, category_id, slug, title, short_description, description, price, currency, is_featured, created_at',
+        'id, category_id, slug, title, short_description, description, price, compare_at_price, currency, is_featured, created_at',
       )
       .eq('status', 'active')
       .neq('id', productRow.id)
@@ -741,7 +755,7 @@ const getProductStorefrontDataUncached = async (
       relatedResult = await client
         .from('products')
         .select(
-          'id, category_id, slug, title, short_description, description, price, currency, is_featured, created_at',
+          'id, category_id, slug, title, short_description, description, price, compare_at_price, currency, is_featured, created_at',
         )
         .eq('status', 'active')
         .neq('id', productRow.id)
@@ -773,12 +787,13 @@ const getProductStorefrontDataUncached = async (
       relatedImages = (relatedImagesResult.data ?? []) as ProductImageListRow[];
     }
 
-    const product = mapProductRows(
+    const product = (await mapProductRows(
+      client,
       [productRow as ProductListRow],
       (productImagesResult.data ?? []) as ProductImageListRow[],
-    )[0];
+    ))[0];
 
-    const relatedProducts = mapProductRows(relatedRows, relatedImages);
+    const relatedProducts = await mapProductRows(client, relatedRows, relatedImages);
 
     return {
       status: 'live',

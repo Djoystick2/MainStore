@@ -20,6 +20,9 @@ export default async function CheckoutPage() {
     (cartData.status === 'not_configured' || cartData.status === 'error') &&
     cartData.items.length === 0;
   const currency = cartData.items[0]?.product.currency ?? 'USD';
+  const baseSubtotalLabel = formatStorePrice(cartData.baseSubtotalCents, currency);
+  const totalLabel = formatStorePrice(cartData.subtotalCents, currency);
+  const discountLabel = formatStorePrice(cartData.discountTotalCents, currency);
 
   return (
     <StoreScreen title="Checkout" subtitle="Shipping details and order review" back={true}>
@@ -81,12 +84,22 @@ export default async function CheckoutPage() {
                 <p className={styles.infoLabel}>Items</p>
                 <p className={styles.infoValue}>{cartData.itemCount}</p>
               </div>
+              {cartData.discountTotalCents > 0 && (
+                <div className={styles.infoItem}>
+                  <p className={styles.infoLabel}>Before discounts</p>
+                  <p className={styles.infoValue}>{baseSubtotalLabel}</p>
+                </div>
+              )}
               <div className={styles.infoItem}>
-                <p className={styles.infoLabel}>Subtotal</p>
-                <p className={styles.infoValue}>
-                  {formatStorePrice(cartData.subtotalCents, currency)}
-                </p>
+                <p className={styles.infoLabel}>Total</p>
+                <p className={styles.infoValue}>{totalLabel}</p>
               </div>
+              {cartData.discountTotalCents > 0 && (
+                <div className={styles.infoItem}>
+                  <p className={styles.infoLabel}>Discounts</p>
+                  <p className={styles.infoValue}>{discountLabel}</p>
+                </div>
+              )}
             </div>
           </StoreSection>
 
@@ -99,7 +112,9 @@ export default async function CheckoutPage() {
           <StoreSection title="Shipping information">
             <CheckoutForm
               initialFullName={profile?.displayName}
-              subtotalCents={cartData.subtotalCents}
+              subtotalCents={cartData.baseSubtotalCents}
+              discountCents={cartData.discountTotalCents}
+              totalCents={cartData.subtotalCents}
               currency={currency}
             />
           </StoreSection>

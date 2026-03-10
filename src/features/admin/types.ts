@@ -1,4 +1,5 @@
 import type { Database } from '@/types/db';
+import type { AppliedDiscountSummary } from '@/features/pricing';
 
 export type ProductStatus = Database['public']['Enums']['product_status'];
 export type OrderStatus = Database['public']['Enums']['order_status'];
@@ -39,7 +40,11 @@ export interface AdminProductListItem {
   title: string;
   status: ProductStatus;
   isFeatured: boolean;
+  basePrice: number;
   price: number;
+  displayCompareAtPrice: number | null;
+  discountAmount: number;
+  appliedDiscount: AppliedDiscountSummary | null;
   compareAtPrice: number | null;
   currency: string;
   stockQuantity: number;
@@ -100,6 +105,7 @@ export interface AdminOrderDetail {
   userId: string;
   status: OrderStatus;
   subtotalAmount: number;
+  discountAmount: number;
   totalAmount: number;
   currency: string;
   customerDisplayName: string | null;

@@ -6,6 +6,7 @@ import {
 } from '@/lib/supabase';
 import type { Database, Json } from '@/types/db';
 import { parseTaxonomyMetadata } from '@/features/catalog-taxonomy/metadata';
+import { resolvePricingForProducts } from '@/features/pricing';
 
 import type {
   AdminCategoryOption,
@@ -180,21 +181,33 @@ function mapProductImages(rows: ProductImageRow[]): Map<string, ProductImageRow[
   return imagesByProductId;
 }
 
-function mapProductList(
+async function mapProductList(
+  client: NonNullable<ReturnType<typeof createSupabaseAdminClientOptional>>,
   productRows: ProductRow[],
   categoryRows: CategoryRow[],
   imageRows: ProductImageRow[],
-): AdminProductListItem[] {
+): Promise<AdminProductListItem[]> {
   const categoriesById = new Map(categoryRows.map((row) => [row.id, row]));
   const imagesByProductId = mapProductImages(imageRows);
+  const pricingByProductId = await resolvePricingForProducts(client, productRows);
 
   return productRows.map((row) => ({
+    ...(() => {
+      const pricing = pricingByProductId.get(row.id);
+      return {
+        basePrice: pricing?.basePrice ?? Number(row.price),
+        price: pricing?.effectivePrice ?? Number(row.price),
+        displayCompareAtPrice:
+          pricing?.compareAtPrice ?? (row.compare_at_price ? Number(row.compare_at_price) : null),
+        discountAmount: pricing?.discountAmount ?? 0,
+        appliedDiscount: pricing?.appliedDiscount ?? null,
+      };
+    })(),
     id: row.id,
     slug: row.slug,
     title: row.title,
     status: row.status,
     isFeatured: row.is_featured,
-    price: Number(row.price),
     compareAtPrice: row.compare_at_price ? Number(row.compare_at_price) : null,
     currency: row.currency,
     stockQuantity: row.stock_quantity,
@@ -513,7 +526,8 @@ export async function getAdminProducts(): Promise<AdminProductsResult> {
   return {
     status: 'ok',
     categories: mappedCategories,
-    products: mapProductList(
+    products: await mapProductList(
+      client,
       productRows,
       (categoriesResult.data ?? []) as CategoryRow[],
       imageRows,
@@ -723,6 +737,7 @@ export async function getAdminProductDetail(
     (collectionsResult.data ?? []) as CollectionRow[],
     collectionItemRows,
   );
+  const pricing = (await resolvePricingForProducts(client, [productRow])).get(productRow.id);
 
   return {
     status: 'ok',
@@ -734,7 +749,13 @@ export async function getAdminProductDetail(
       title: productRow.title,
       status: productRow.status,
       isFeatured: productRow.is_featured,
-      price: Number(productRow.price),
+      basePrice: pricing?.basePrice ?? Number(productRow.price),
+      price: pricing?.effectivePrice ?? Number(productRow.price),
+      displayCompareAtPrice:
+        pricing?.compareAtPrice ??
+        (productRow.compare_at_price ? Number(productRow.compare_at_price) : null),
+      discountAmount: pricing?.discountAmount ?? 0,
+      appliedDiscount: pricing?.appliedDiscount ?? null,
       compareAtPrice: productRow.compare_at_price
         ? Number(productRow.compare_at_price)
         : null,
@@ -942,6 +963,7 @@ export async function getAdminOrderDetail(
       userId: orderRow.user_id,
       status: orderRow.status,
       subtotalAmount: Number(orderRow.subtotal_amount),
+      discountAmount: Number(orderRow.discount_amount),
       totalAmount: Number(orderRow.total_amount),
       currency: orderRow.currency,
       customerDisplayName: orderRow.customer_display_name,

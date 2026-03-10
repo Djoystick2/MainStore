@@ -579,14 +579,18 @@ export async function deleteAdminProduct(
     return { ok: false, error: detachOrderItemsResult.error.message };
   }
 
-  const [deleteCollectionsResult, deleteFavoritesResult, deleteCartItemsResult, deleteImagesResult] =
+  const [deleteDiscountResult, deleteCollectionsResult, deleteFavoritesResult, deleteCartItemsResult, deleteImagesResult] =
     await Promise.all([
+      client.from('discounts').delete().eq('scope', 'product').eq('target_id', productId),
       client.from('collection_items').delete().eq('product_id', productId),
       client.from('favorites').delete().eq('product_id', productId),
       client.from('cart_items').delete().eq('product_id', productId),
       client.from('product_images').delete().eq('product_id', productId),
     ]);
 
+  if (deleteDiscountResult.error) {
+    return { ok: false, error: deleteDiscountResult.error.message };
+  }
   if (deleteCollectionsResult.error) {
     return { ok: false, error: deleteCollectionsResult.error.message };
   }
@@ -941,6 +945,16 @@ export async function deleteAdminCategory(
     return { ok: false, error: detachProductsResult.error.message };
   }
 
+  const deleteDiscountResult = await client
+    .from('discounts')
+    .delete()
+    .eq('scope', 'category')
+    .eq('target_id', categoryId);
+
+  if (deleteDiscountResult.error) {
+    return { ok: false, error: deleteDiscountResult.error.message };
+  }
+
   const deleteResult = await client
     .from('categories')
     .delete()
@@ -1093,6 +1107,16 @@ export async function deleteAdminCollection(
 
   if (deleteLinksResult.error) {
     return { ok: false, error: deleteLinksResult.error.message };
+  }
+
+  const deleteDiscountResult = await client
+    .from('discounts')
+    .delete()
+    .eq('scope', 'collection')
+    .eq('target_id', collectionId);
+
+  if (deleteDiscountResult.error) {
+    return { ok: false, error: deleteDiscountResult.error.message };
   }
 
   const deleteResult = await client

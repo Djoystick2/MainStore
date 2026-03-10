@@ -4,6 +4,7 @@ import {
   createSupabaseAdminClientOptional,
   getSupabaseAdminMissingEnvMessage,
 } from '@/lib/supabase';
+import { resolvePricingForProducts } from '@/features/pricing';
 import type { Database } from '@/types/db';
 import type { StoreProduct } from '@/components/store/types';
 
@@ -80,10 +81,11 @@ function selectPrimaryImage(images: ProductImageRow[]): ProductImageRow | null {
   return sorted[0] ?? null;
 }
 
-function mapProducts(
+async function mapProducts(
+  client: NonNullable<ReturnType<typeof getAdminClient>>,
   productRows: ProductRow[],
   imageRows: ProductImageRow[],
-): Map<string, StoreProduct> {
+): Promise<Map<string, StoreProduct>> {
   const imagesByProductId = new Map<string, ProductImageRow[]>();
 
   imageRows.forEach((image) => {
@@ -96,8 +98,14 @@ function mapProducts(
   });
 
   const map = new Map<string, StoreProduct>();
+  const pricingByProductId = await resolvePricingForProducts(client, productRows);
   productRows.forEach((row) => {
     const primaryImage = selectPrimaryImage(imagesByProductId.get(row.id) ?? []);
+    const pricing = pricingByProductId.get(row.id);
+    const basePrice = pricing?.basePrice ?? Number(row.price) ?? 0;
+    const effectivePrice = pricing?.effectivePrice ?? basePrice;
+    const compareAtPrice =
+      pricing?.compareAtPrice ?? (row.compare_at_price ? Number(row.compare_at_price) : null);
 
     map.set(row.id, {
       id: row.id,
@@ -108,7 +116,11 @@ function mapProducts(
         row.short_description ||
         row.description ||
         'Product description will be available soon.',
-      priceCents: toPriceCents(row.price),
+      basePriceCents: toPriceCents(basePrice),
+      priceCents: toPriceCents(effectivePrice),
+      compareAtPriceCents: compareAtPrice !== null ? toPriceCents(compareAtPrice) : null,
+      discountAmountCents: toPriceCents(pricing?.discountAmount ?? 0),
+      appliedDiscount: pricing?.appliedDiscount ?? null,
       currency: row.currency,
       imageLabel: buildLabel(row.title),
       imageGradient: buildGradient(row.slug || row.id),
@@ -132,7 +144,9 @@ export interface FavoriteProductsResult {
 export interface CartProductItem {
   id: string;
   quantity: number;
+  baseLineTotalCents: number;
   lineTotalCents: number;
+  discountTotalCents: number;
   product: StoreProduct;
 }
 
@@ -140,7 +154,9 @@ export interface CartDataResult {
   status: 'ok' | 'unauthorized' | 'not_configured' | 'error';
   items: CartProductItem[];
   itemCount: number;
+  baseSubtotalCents: number;
   subtotalCents: number;
+  discountTotalCents: number;
   message?: string;
 }
 
@@ -185,7 +201,8 @@ async function fetchProductsByIds(productIds: string[]): Promise<StoreProduct[]>
     return [];
   }
 
-  const productMap = mapProducts(
+  const productMap = await mapProducts(
+    client,
     productsResult.data as ProductRow[],
     (imagesResult.data ?? []) as ProductImageRow[],
   );
@@ -328,7 +345,14 @@ export async function getCartDataForProfile(
   profileId: string | null,
 ): Promise<CartDataResult> {
   if (!profileId) {
-    return { status: 'unauthorized', items: [], itemCount: 0, subtotalCents: 0 };
+    return {
+      status: 'unauthorized',
+      items: [],
+      itemCount: 0,
+      baseSubtotalCents: 0,
+      subtotalCents: 0,
+      discountTotalCents: 0,
+    };
   }
 
   const client = getAdminClient();
@@ -337,7 +361,9 @@ export async function getCartDataForProfile(
       status: 'not_configured',
       items: [],
       itemCount: 0,
+      baseSubtotalCents: 0,
       subtotalCents: 0,
+      discountTotalCents: 0,
       message: toPublicDataErrorMessage(
         'Cart is temporarily unavailable.',
         getSupabaseAdminMissingEnvMessage(),
@@ -356,7 +382,9 @@ export async function getCartDataForProfile(
       status: 'error',
       items: [],
       itemCount: 0,
+      baseSubtotalCents: 0,
       subtotalCents: 0,
+      discountTotalCents: 0,
       message: toPublicDataErrorMessage(
         'Could not load cart right now.',
         cartItemsResult.error.message,
@@ -366,7 +394,14 @@ export async function getCartDataForProfile(
 
   const cartRows = (cartItemsResult.data ?? []) as CartItemRow[];
   if (cartRows.length === 0) {
-    return { status: 'ok', items: [], itemCount: 0, subtotalCents: 0 };
+    return {
+      status: 'ok',
+      items: [],
+      itemCount: 0,
+      baseSubtotalCents: 0,
+      subtotalCents: 0,
+      discountTotalCents: 0,
+    };
   }
 
   const productIds = cartRows.map((item) => item.product_id);
@@ -380,19 +415,25 @@ export async function getCartDataForProfile(
       return;
     }
 
+    const baseLineTotalCents = product.basePriceCents * item.quantity;
     const lineTotalCents = product.priceCents * item.quantity;
+    const discountTotalCents = Math.max(0, baseLineTotalCents - lineTotalCents);
     items.push({
       id: item.id,
       quantity: item.quantity,
+      baseLineTotalCents,
       lineTotalCents,
+      discountTotalCents,
       product,
     });
   });
 
+  const baseSubtotalCents = items.reduce((sum, item) => sum + item.baseLineTotalCents, 0);
   const subtotalCents = items.reduce((sum, item) => sum + item.lineTotalCents, 0);
+  const discountTotalCents = items.reduce((sum, item) => sum + item.discountTotalCents, 0);
   const itemCount = items.length;
 
-  return { status: 'ok', items, itemCount, subtotalCents };
+  return { status: 'ok', items, itemCount, baseSubtotalCents, subtotalCents, discountTotalCents };
 }
 
 export async function addProductToCartForProfile(

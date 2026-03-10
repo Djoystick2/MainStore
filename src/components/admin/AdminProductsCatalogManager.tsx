@@ -246,6 +246,11 @@ export function AdminProductsCatalogManager({
                         <span className={classNames(storeStyles.orderStatusBadge, styles.adminCompactBadge)}>
                           {product.status}
                         </span>
+                        {product.appliedDiscount && (
+                          <span className={styles.adminFeatureBadge}>
+                            {product.appliedDiscount.badgeText}
+                          </span>
+                        )}
                         {product.isFeatured && (
                           <span className={styles.adminFeatureBadge}>Featured</span>
                         )}
@@ -259,6 +264,12 @@ export function AdminProductsCatalogManager({
                         <p className={styles.adminMetaValue}>
                           {formatPrice(product.price, product.currency)}
                         </p>
+                        {product.displayCompareAtPrice &&
+                          product.displayCompareAtPrice > product.price && (
+                            <p className={styles.adminCardSub}>
+                              Was {formatPrice(product.displayCompareAtPrice, product.currency)}
+                            </p>
+                          )}
                       </div>
                       <div className={styles.adminMetaCell}>
                         <p className={styles.adminMetaLabel}>Stock</p>
@@ -271,11 +282,11 @@ export function AdminProductsCatalogManager({
                         </p>
                       </div>
                       <div className={styles.adminMetaCell}>
-                        <p className={styles.adminMetaLabel}>Compare-at</p>
+                        <p className={styles.adminMetaLabel}>Discount</p>
                         <p className={styles.adminMetaValue}>
-                          {product.compareAtPrice
-                            ? formatPrice(product.compareAtPrice, product.currency)
-                            : 'Not set'}
+                          {product.appliedDiscount
+                            ? `${product.appliedDiscount.targetTitle} · ${product.appliedDiscount.scope}`
+                            : 'No active discount'}
                         </p>
                       </div>
                     </div>

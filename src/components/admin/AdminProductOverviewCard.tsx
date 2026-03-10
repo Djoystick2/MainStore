@@ -50,6 +50,11 @@ export function AdminProductOverviewCard({ product }: AdminProductOverviewCardPr
             <div className={styles.adminMetaCell}>
               <p className={styles.adminMetaLabel}>Price</p>
               <p className={styles.adminMetaValue}>{formatPrice(product.price, product.currency)}</p>
+              {product.displayCompareAtPrice && product.displayCompareAtPrice > product.price && (
+                <p className={styles.adminCardSub}>
+                  Was {formatPrice(product.displayCompareAtPrice, product.currency)}
+                </p>
+              )}
             </div>
             <div className={styles.adminMetaCell}>
               <p className={styles.adminMetaLabel}>Stock</p>
@@ -60,8 +65,12 @@ export function AdminProductOverviewCard({ product }: AdminProductOverviewCardPr
               <p className={styles.adminMetaValue}>{product.categoryTitle ?? 'No category'}</p>
             </div>
             <div className={styles.adminMetaCell}>
-              <p className={styles.adminMetaLabel}>Images</p>
-              <p className={styles.adminMetaValue}>{product.imagesCount}</p>
+              <p className={styles.adminMetaLabel}>Discount</p>
+              <p className={styles.adminMetaValue}>
+                {product.appliedDiscount
+                  ? `${product.appliedDiscount.badgeText} · ${product.appliedDiscount.scope}`
+                  : 'No active discount'}
+              </p>
             </div>
           </div>
 
@@ -73,6 +82,10 @@ export function AdminProductOverviewCard({ product }: AdminProductOverviewCardPr
                   ? product.collectionTitles.join(', ')
                   : 'No collections'}
               </p>
+            </div>
+            <div className={styles.adminMetaCell}>
+              <p className={styles.adminMetaLabel}>Images</p>
+              <p className={styles.adminMetaValue}>{product.imagesCount}</p>
             </div>
             <div className={styles.adminMetaCell}>
               <p className={styles.adminMetaLabel}>Favorites</p>

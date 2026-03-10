@@ -69,6 +69,9 @@ export default async function AdminPage() {
               <Link href="/admin/products" className={adminStyles.adminPrimaryLink}>
                 Open products
               </Link>
+              <Link href="/admin/discounts" className={adminStyles.adminActionLink}>
+                Open discounts
+              </Link>
               <Link href="/admin/orders" className={adminStyles.adminActionLink}>
                 Open orders
               </Link>

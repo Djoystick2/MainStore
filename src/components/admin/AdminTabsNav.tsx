@@ -10,6 +10,7 @@ import styles from './admin.module.css';
 const tabs = [
   { href: '/admin', label: 'Dashboard' },
   { href: '/admin/products', label: 'Products' },
+  { href: '/admin/discounts', label: 'Discounts' },
   { href: '/admin/categories', label: 'Categories' },
   { href: '/admin/collections', label: 'Collections' },
   { href: '/admin/orders', label: 'Orders' },

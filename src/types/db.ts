@@ -8,6 +8,8 @@ export type Json =
 
 export type AppRole = 'user' | 'admin';
 export type ProductStatus = 'draft' | 'active' | 'archived';
+export type DiscountScope = 'product' | 'category' | 'collection';
+export type DiscountType = 'fixed' | 'percentage';
 export type OrderStatus =
   | 'pending'
   | 'confirmed'
@@ -269,6 +271,47 @@ export interface Database {
           updated_at?: string;
         };
       };
+      discounts: {
+        Row: {
+          id: string;
+          scope: DiscountScope;
+          target_id: string;
+          type: DiscountType;
+          title: string;
+          value: number;
+          is_active: boolean;
+          starts_at: string | null;
+          ends_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          scope: DiscountScope;
+          target_id: string;
+          type: DiscountType;
+          title: string;
+          value: number;
+          is_active?: boolean;
+          starts_at?: string | null;
+          ends_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          scope?: DiscountScope;
+          target_id?: string;
+          type?: DiscountType;
+          title?: string;
+          value?: number;
+          is_active?: boolean;
+          starts_at?: string | null;
+          ends_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       orders: {
         Row: {
           id: string;
@@ -387,6 +430,8 @@ export interface Database {
     CompositeTypes: Record<string, never>;
     Enums: {
       app_role: AppRole;
+      discount_scope: DiscountScope;
+      discount_type: DiscountType;
       product_status: ProductStatus;
       order_status: OrderStatus;
     };

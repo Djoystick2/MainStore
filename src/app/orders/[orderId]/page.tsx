@@ -150,6 +150,14 @@ export default async function OrderDetailPage({
                   {formatStorePrice(order.subtotalCents, order.currency)}
                 </p>
               </div>
+              {order.discountCents > 0 && (
+                <div className={styles.infoItem}>
+                  <p className={styles.infoLabel}>Discounts</p>
+                  <p className={styles.infoValue}>
+                    {formatStorePrice(order.discountCents, order.currency)}
+                  </p>
+                </div>
+              )}
               <div className={styles.infoItem}>
                 <p className={styles.infoLabel}>Total</p>
                 <p className={styles.infoValue}>
