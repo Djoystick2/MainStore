@@ -5,6 +5,7 @@ import { StoreScreen } from '@/components/store/StoreScreen';
 import { StoreSection } from '@/components/store/StoreSection';
 import { formatStorePrice } from '@/components/store/formatPrice';
 import { classNames } from '@/css/classnames';
+import { hasAdminRole } from '@/features/admin/access';
 import { getCurrentUserContext } from '@/features/auth';
 import { formatPaymentStatus } from '@/features/payments';
 import { getOrdersForProfile } from '@/features/orders/data';
@@ -80,6 +81,10 @@ function getNextAction(input: {
   };
 }
 
+function formatProfileRole(role: string): string {
+  return hasAdminRole(role) ? 'Администратор' : 'Покупатель';
+}
+
 export default async function ProfilePage() {
   const { profile } = await getCurrentUserContext();
   const [summary, ordersData] = await Promise.all([
@@ -110,6 +115,8 @@ export default async function ProfilePage() {
 
   const displayName = profile.displayName || profile.username || 'Пользователь Telegram';
   const username = profile.username ? `@${profile.username}` : 'username не указан';
+  const isAdmin = hasAdminRole(profile.role);
+  const roleLabel = formatProfileRole(profile.role);
 
   return (
     <StoreScreen
@@ -148,11 +155,32 @@ export default async function ProfilePage() {
           Личный раздел для покупок, истории заказов и сохраненных товаров.
         </p>
         <div className={styles.profileHeroMeta}>
-          <span className={styles.profileMetaBadge}>Роль: {profile.role}</span>
+          <span className={styles.profileMetaBadge}>Роль: {roleLabel}</span>
           <span className={styles.profileMetaBadge}>Заказов: {ordersData.totalOrders}</span>
           <span className={styles.profileMetaBadge}>В корзине: {summary.cartQuantityTotal}</span>
         </div>
       </section>
+
+      {isAdmin ? (
+        <section className={classNames(styles.panel, styles.adminEntryCard)}>
+          <div className={styles.adminEntryHead}>
+            <div className={styles.adminEntryCopy}>
+              <p className={styles.adminEntryEyebrow}>Управление магазином</p>
+              <h2 className={styles.panelTitle}>Админ-панель</h2>
+              <p className={styles.adminEntryText}>
+                Откройте каталог, заказы, скидки и Excel-импорт из одного места.
+              </p>
+            </div>
+            <Link
+              href="/admin"
+              className={styles.adminEntryButton}
+              aria-label="Открыть админ-панель"
+            >
+              Открыть админку
+            </Link>
+          </div>
+        </section>
+      ) : null}
 
       <StoreSection title="Что сейчас важно">
         <div className={styles.actionList}>

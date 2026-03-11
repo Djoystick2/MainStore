@@ -11,7 +11,7 @@ export interface AdminAccessResult {
   reason?: AdminAccessReason;
 }
 
-function hasAdminRole(role: string | null | undefined): boolean {
+export function hasAdminRole(role: string | null | undefined): boolean {
   return role === 'admin';
 }
 

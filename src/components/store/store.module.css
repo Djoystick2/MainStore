@@ -1138,6 +1138,60 @@
   color: #5d6170;
 }
 
+.adminEntryCard {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.72), transparent 34%),
+    linear-gradient(145deg, rgba(232, 243, 255, 0.96), rgba(244, 248, 255, 0.94));
+  border-color: rgba(45, 99, 241, 0.18);
+}
+
+.adminEntryHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.adminEntryCopy {
+  min-width: 0;
+}
+
+.adminEntryEyebrow {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #335ab8;
+}
+
+.adminEntryText {
+  margin: 0;
+  max-width: 32ch;
+  font-size: 15px;
+  line-height: 1.4;
+  color: #53627a;
+}
+
+.adminEntryButton {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 14px;
+  background: #273347;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 15px;
+  line-height: 1.1;
+  font-weight: 700;
+  text-align: center;
+  white-space: normal;
+  box-shadow: 0 10px 20px rgba(39, 51, 71, 0.12);
+}
+
 .checkoutForm {
   display: flex;
   flex-direction: column;
@@ -2203,6 +2257,7 @@
 .filterButton:focus-visible,
 .catalogSelect:focus-visible,
 .actionItem:focus-visible,
+.adminEntryButton:focus-visible,
 .stickyBarButton:focus-visible,
 .primaryButton:focus-visible {
   outline: 2px solid var(--store-accent);
@@ -2279,9 +2334,14 @@
 
 @media (max-width: 520px) {
   .miniShelfHead,
-  .sectionHead {
+  .sectionHead,
+  .adminEntryHead {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .adminEntryButton {
+    width: 100%;
   }
 
   .orderCardHeader {
