@@ -4,10 +4,50 @@
 
 :root {
   color-scheme: dark;
-  --store-safe-area-top: max(var(--tg-safe-area-inset-top, 0px), env(safe-area-inset-top, 0px));
-  --store-safe-area-bottom: max(var(--tg-safe-area-inset-bottom, 0px), env(safe-area-inset-bottom, 0px));
-  --store-safe-area-left: max(var(--tg-safe-area-inset-left, 0px), env(safe-area-inset-left, 0px));
-  --store-safe-area-right: max(var(--tg-safe-area-inset-right, 0px), env(safe-area-inset-right, 0px));
+  --store-runtime-safe-area-top: 0px;
+  --store-runtime-safe-area-bottom: 0px;
+  --store-runtime-safe-area-left: 0px;
+  --store-runtime-safe-area-right: 0px;
+  --store-runtime-content-safe-area-top: 0px;
+  --store-runtime-content-safe-area-bottom: 0px;
+  --store-runtime-content-safe-area-left: 0px;
+  --store-runtime-content-safe-area-right: 0px;
+  --store-safe-area-top: max(
+    var(--store-runtime-content-safe-area-top, 0px),
+    var(--tg-viewport-content-safe-area-inset-top, 0px),
+    var(--store-runtime-safe-area-top, 0px),
+    var(--tg-viewport-safe-area-inset-top, 0px),
+    var(--tg-content-safe-area-inset-top, 0px),
+    var(--tg-safe-area-inset-top, 0px),
+    env(safe-area-inset-top, 0px)
+  );
+  --store-safe-area-bottom: max(
+    var(--store-runtime-content-safe-area-bottom, 0px),
+    var(--tg-viewport-content-safe-area-inset-bottom, 0px),
+    var(--store-runtime-safe-area-bottom, 0px),
+    var(--tg-viewport-safe-area-inset-bottom, 0px),
+    var(--tg-content-safe-area-inset-bottom, 0px),
+    var(--tg-safe-area-inset-bottom, 0px),
+    env(safe-area-inset-bottom, 0px)
+  );
+  --store-safe-area-left: max(
+    var(--store-runtime-content-safe-area-left, 0px),
+    var(--tg-viewport-content-safe-area-inset-left, 0px),
+    var(--store-runtime-safe-area-left, 0px),
+    var(--tg-viewport-safe-area-inset-left, 0px),
+    var(--tg-content-safe-area-inset-left, 0px),
+    var(--tg-safe-area-inset-left, 0px),
+    env(safe-area-inset-left, 0px)
+  );
+  --store-safe-area-right: max(
+    var(--store-runtime-content-safe-area-right, 0px),
+    var(--tg-viewport-content-safe-area-inset-right, 0px),
+    var(--store-runtime-safe-area-right, 0px),
+    var(--tg-viewport-safe-area-inset-right, 0px),
+    var(--tg-content-safe-area-inset-right, 0px),
+    var(--tg-safe-area-inset-right, 0px),
+    env(safe-area-inset-right, 0px)
+  );
   --store-shell-width: 560px;
   --store-shell-padding-x: 16px;
   --store-bg: #050608;

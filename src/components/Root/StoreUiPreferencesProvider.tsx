@@ -6,6 +6,7 @@ import {
   type PropsWithChildren,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from 'react';
 
@@ -104,6 +105,8 @@ export function StoreUiPreferencesProvider({ children }: PropsWithChildren) {
   const telegramPrefersDark = Boolean(useSignal(miniApp.isDark));
   const runtimeIsExpanded = Boolean(useSignal(viewport.isExpanded));
   const runtimeIsFullscreen = Boolean(useSignal(viewport.isFullscreen));
+  const fullscreenPreferenceInitializedRef = useRef(false);
+  const previousFullscreenEnabledRef = useRef<boolean>(readStoredFullscreenPreference());
   const [theme, setThemeState] = useState<StoreTheme>(() => {
     const fallbackTheme = telegramPrefersDark ? 'dark' : 'light';
 
@@ -150,11 +153,23 @@ export function StoreUiPreferencesProvider({ children }: PropsWithChildren) {
       // Ignore storage failures and keep the active runtime preference.
     }
 
-    if (fullscreenEnabled) {
-      if (runtimeIsFullscreen) {
+    const previousFullscreenEnabled = previousFullscreenEnabledRef.current;
+    previousFullscreenEnabledRef.current = fullscreenEnabled;
+
+    if (!fullscreenPreferenceInitializedRef.current) {
+      fullscreenPreferenceInitializedRef.current = true;
+      if (fullscreenEnabled) {
+        viewport.expand.ifAvailable();
         return;
       }
 
+      if (runtimeIsFullscreen) {
+        viewport.exitFullscreen.ifAvailable();
+      }
+      return;
+    }
+
+    if (fullscreenEnabled && !previousFullscreenEnabled) {
       if (fullscreenSupported) {
         viewport.requestFullscreen.ifAvailable();
         return;
@@ -164,7 +179,7 @@ export function StoreUiPreferencesProvider({ children }: PropsWithChildren) {
       return;
     }
 
-    if (runtimeIsFullscreen) {
+    if (!fullscreenEnabled && previousFullscreenEnabled && runtimeIsFullscreen) {
       viewport.exitFullscreen.ifAvailable();
     }
   }, [fullscreenEnabled, fullscreenSupported, runtimeIsFullscreen]);

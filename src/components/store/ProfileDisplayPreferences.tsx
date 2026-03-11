@@ -18,14 +18,14 @@ export function ProfileDisplayPreferences() {
   } = useStoreUiPreferences();
 
   const screenStatus = isFullscreen
-    ? 'Полный экран активен'
+    ? 'Полноэкранный режим активен'
     : isExpanded
-      ? 'Mini App раскрыт на весь доступный экран'
-      : 'Используется стандартная высота';
+      ? 'Mini App раскрыт на всю доступную высоту'
+      : 'Используется стандартная высота окна';
 
   const screenHint = isFullscreenSupported
-    ? 'Если клиент Telegram поддерживает fullscreen, этот режим можно закрепить и использовать без лишних полей.'
-    : 'Если fullscreen API недоступен, приложение будет открываться в максимально раскрытом режиме.';
+    ? 'Раскрытый режим безопасно открывает приложение на всю доступную высоту. Если клиент Telegram поддерживает fullscreen, его можно включить вручную без риска для layout.'
+    : 'Раскрытый режим открывает приложение на всю доступную высоту и остаётся самым совместимым вариантом для Telegram Mini App.';
 
   return (
     <div className={styles.profilePreferences}>
@@ -33,10 +33,15 @@ export function ProfileDisplayPreferences() {
         <div className={styles.profilePreferenceInfo}>
           <p className={styles.profilePreferenceLabel}>Тема интерфейса</p>
           <p className={styles.profilePreferenceHint}>
-            Переключайте витрину и админку между мягкой тёмной и светлой темой без потери читаемости.
+            Переключайте витрину и админку между тёмной и светлой темой с
+            сохранением читаемости на карточках, списках и формах.
           </p>
         </div>
-        <div className={styles.profilePreferenceButtons} role="tablist" aria-label="Выбор темы интерфейса">
+        <div
+          className={styles.profilePreferenceButtons}
+          role="tablist"
+          aria-label="Выбор темы интерфейса"
+        >
           <button
             type="button"
             className={classNames(
@@ -68,7 +73,11 @@ export function ProfileDisplayPreferences() {
           <p className={styles.profilePreferenceHint}>{screenHint}</p>
           <p className={styles.profilePreferenceStatus}>{screenStatus}</p>
         </div>
-        <div className={styles.profilePreferenceButtons} role="tablist" aria-label="Выбор режима экрана">
+        <div
+          className={styles.profilePreferenceButtons}
+          role="tablist"
+          aria-label="Выбор режима экрана"
+        >
           <button
             type="button"
             className={classNames(
@@ -89,7 +98,7 @@ export function ProfileDisplayPreferences() {
             onClick={() => setFullscreenEnabled(true)}
             aria-pressed={fullscreenEnabled}
           >
-            {isFullscreenSupported ? 'На весь экран' : 'Раскрытый режим'}
+            Раскрытый режим
           </button>
         </div>
       </article>
