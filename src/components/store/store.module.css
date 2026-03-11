@@ -2400,44 +2400,6 @@
   animation: store-fade-in-up var(--store-motion-screen) var(--store-motion-ease) both;
 }
 
-.containerMotion > * {
-  opacity: 0;
-  animation: store-fade-in-up var(--store-motion-slow) var(--store-motion-soft-bounce) both;
-  will-change: transform, opacity;
-}
-
-.containerMotion > *:nth-child(1) {
-  animation-delay: 40ms;
-}
-
-.containerMotion > *:nth-child(2) {
-  animation-delay: 80ms;
-}
-
-.containerMotion > *:nth-child(3) {
-  animation-delay: 120ms;
-}
-
-.containerMotion > *:nth-child(4) {
-  animation-delay: 160ms;
-}
-
-.containerMotion > *:nth-child(5) {
-  animation-delay: 200ms;
-}
-
-.containerMotion > *:nth-child(6) {
-  animation-delay: 240ms;
-}
-
-.containerMotion > *:nth-child(7) {
-  animation-delay: 280ms;
-}
-
-.containerMotion > *:nth-child(8) {
-  animation-delay: 320ms;
-}
-
 .headerTag,
 .heroEyebrow,
 .profileEyebrow,
