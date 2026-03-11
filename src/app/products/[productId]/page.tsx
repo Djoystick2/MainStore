@@ -40,14 +40,14 @@ function getAvailability(product: StoreProduct): {
       return {
         tone: 'danger',
         title: 'Нет в наличии',
-        description: 'Позиция временно закончилась. Сохраните товар в избранное и вернитесь позже.',
+        description: 'Товар временно закончился. Сохраните его в избранное и вернитесь позже.',
         canBuy: false,
       };
     case 'low_stock':
       return {
         tone: 'warn',
         title: 'Осталось мало',
-        description: 'Товар ещё можно заказать, но остаток уже небольшой.',
+        description: 'Позицию ещё можно заказать, но запас уже небольшой.',
         canBuy: true,
       };
     case 'in_stock':
@@ -61,7 +61,7 @@ function getAvailability(product: StoreProduct): {
       return {
         tone: 'default',
         title: 'Наличие уточняется',
-        description: 'Описание и цена актуальны. Детали по наличию обновляются вместе с каталогом.',
+        description: 'Цена и описание актуальны. Детали по наличию обновляются вместе с каталогом.',
         canBuy: true,
       };
   }
@@ -124,7 +124,7 @@ export default async function ProductPage({
 
   if (!product) {
     return (
-      <StoreScreen title="Товар" subtitle="Детали товара" back={true} showBottomNav={false}>
+      <StoreScreen title="Товар" subtitle="Детали позиции" back={true} showBottomNav={false}>
         {productData.message ? (
           <section
             className={classNames(
@@ -132,14 +132,14 @@ export default async function ProductPage({
               (productData.status === 'error' || productData.status === 'fallback_error') && styles.dataNoticeError,
             )}
           >
-            <p className={styles.dataNoticeTitle}>Обновление товара</p>
+            <p className={styles.dataNoticeTitle}>Состояние карточки товара</p>
             <p className={styles.dataNoticeText}>{productData.message}</p>
           </section>
         ) : null}
 
         <StoreEmptyState
           title="Товар не найден"
-          description="Товар не найден или сейчас неактивен. Откройте каталог, чтобы продолжить."
+          description="Позиция недоступна или уже скрыта. Вернитесь в каталог, чтобы продолжить выбор."
           actionLabel="Перейти в каталог"
           actionHref="/catalog"
         />
@@ -153,17 +153,18 @@ export default async function ProductPage({
       ? formatStorePrice(product.compareAtPriceCents, product.currency)
       : null;
   const availability = getAvailability(product);
-  const media = product.media && product.media.length > 0
-    ? product.media
-    : [
-        {
-          id: `${product.id}-fallback`,
-          url: product.imageUrl ?? '',
-          alt: product.imageAlt ?? product.title,
-          isPrimary: true,
-          sortOrder: 0,
-        },
-      ];
+  const media =
+    product.media && product.media.length > 0
+      ? product.media
+      : [
+          {
+            id: `${product.id}-fallback`,
+            url: product.imageUrl ?? '',
+            alt: product.imageAlt ?? product.title,
+            isPrimary: true,
+            sortOrder: 0,
+          },
+        ];
   const leadMedia = media[0];
   const descriptionBlocks = (product.description || '')
     .split(/\n{2,}/)
@@ -180,7 +181,7 @@ export default async function ProductPage({
             (productData.status === 'error' || productData.status === 'fallback_error') && styles.dataNoticeError,
           )}
         >
-          <p className={styles.dataNoticeTitle}>Обновление товара</p>
+          <p className={styles.dataNoticeTitle}>Состояние карточки товара</p>
           <p className={styles.dataNoticeText}>{productData.message}</p>
           {(productData.status === 'error' ||
             productData.status === 'fallback_error' ||
@@ -189,7 +190,7 @@ export default async function ProductPage({
               <Link
                 href={`/products/${product.slug}`}
                 className={styles.dataNoticeRetry}
-                aria-label="Повторить загрузку товара"
+                aria-label="Повторить загрузку карточки товара"
               >
                 Повторить
               </Link>
@@ -290,15 +291,14 @@ export default async function ProductPage({
         </section>
 
         <section className={styles.panel}>
-          <h2 className={styles.panelTitle}>Перед покупкой</h2>
+          <h2 className={styles.panelTitle}>Что важно перед покупкой</h2>
           <p className={styles.panelText}>
-            Карточка открывается и по прямой ссылке, и внутри Telegram Mini App. Если нужно вернуться к просмотру,
-            товар останется в истории навигации.
+            Карточка открывается и по прямой ссылке, и внутри Telegram Mini App. Вы можете спокойно вернуться назад: товар останется в истории навигации.
           </p>
         </section>
 
         {productData.relatedProducts.length > 0 ? (
-          <StoreSection title="Ещё может подойти">
+          <StoreSection title="Может подойти ещё">
             <div className={styles.scrollRow}>
               {productData.relatedProducts.map((item) => (
                 <ProductCard key={item.id} product={item} href={`/products/${item.slug}`} compact />

@@ -81,9 +81,7 @@ export function FavoriteToggleButton({
         }
 
         setIsFavorited(payload.favorited);
-        setStatusMessage(
-          payload.favorited ? 'Добавлено в избранное.' : 'Удалено из избранного.',
-        );
+        setStatusMessage(payload.favorited ? 'Добавлено в избранное.' : 'Удалено из избранного.');
         setIsError(false);
         router.refresh();
       } catch {

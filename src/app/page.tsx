@@ -13,11 +13,11 @@ export default async function HomePage() {
   const homeData = await getHomeStorefrontData();
   const categoryShortcuts = homeData.categories.filter((category) => category.id !== 'all').slice(0, 4);
   const quickLinks = [
-    { id: 'catalog', title: 'Каталог', subtitle: 'Все товары', href: '/catalog' },
+    { id: 'catalog', title: 'Каталог', subtitle: 'Все товары в одном месте', href: '/catalog' },
     ...categoryShortcuts.map((category) => ({
       id: category.id,
       title: category.title,
-      subtitle: category.description || 'Смотреть раздел',
+      subtitle: category.description || 'Открыть раздел',
       href: `/catalog?category=${category.slug}`,
     })),
   ].slice(0, 4);
@@ -36,24 +36,21 @@ export default async function HomePage() {
       <section className={styles.hero}>
         <div className={styles.heroContent}>
           <p className={styles.heroEyebrow}>MainStore</p>
-          <h2 className={styles.heroTitle}>Покупки без лишнего шума</h2>
+          <h2 className={styles.heroTitle}>Покупать проще, чем искать</h2>
           <p className={styles.heroText}>
-            Сначала главное: понятные категории, аккуратные подборки и короткий путь к нужному товару.
+            На главном экране только короткий путь к разделам, подборкам и товарам, которые удобно смотреть с телефона.
           </p>
         </div>
 
         <div className={styles.heroMeta}>
           <span className={styles.heroMetaItem}>{uniqueShownProducts} товаров на витрине</span>
-          <span className={styles.heroMetaItem}>{homeData.collections.length} готовых подборок</span>
+          <span className={styles.heroMetaItem}>{homeData.collections.length} подборок</span>
+          <span className={styles.heroMetaItem}>{Math.max(homeData.categories.length - 1, 0)} категорий</span>
         </div>
 
         <div className={styles.heroActions}>
-          <Link
-            href="/catalog"
-            className={styles.heroButton}
-            aria-label="Открыть каталог с главного экрана"
-          >
-            Смотреть каталог
+          <Link href="/catalog" className={styles.heroButton} aria-label="Открыть каталог с главного экрана">
+            Открыть каталог
           </Link>
         </div>
       </section>
@@ -65,7 +62,7 @@ export default async function HomePage() {
             homeData.status === 'fallback_error' && styles.dataNoticeError,
           )}
         >
-          <p className={styles.dataNoticeTitle}>Обновление витрины</p>
+          <p className={styles.dataNoticeTitle}>Состояние витрины</p>
           <p className={styles.dataNoticeText}>{homeData.message}</p>
           {(homeData.status === 'fallback_error' || homeData.status === 'fallback_env') && (
             <div className={styles.dataNoticeActions}>
@@ -80,12 +77,7 @@ export default async function HomePage() {
       {quickLinks.length > 0 ? (
         <section className={styles.quickLinkRow} aria-label="Быстрые переходы по витрине">
           {quickLinks.map((link) => (
-            <Link
-              key={link.id}
-              href={link.href}
-              className={styles.quickLinkCard}
-              aria-label={`Открыть раздел ${link.title}`}
-            >
+            <Link key={link.id} href={link.href} className={styles.quickLinkCard} aria-label={`Открыть раздел ${link.title}`}>
               <p className={styles.quickLinkTitle}>{link.title}</p>
               <p className={styles.quickLinkSubtitle}>{link.subtitle}</p>
             </Link>
@@ -110,8 +102,8 @@ export default async function HomePage() {
 
       {homeData.status === 'empty' ? (
         <StoreEmptyState
-          title="Товаров пока нет"
-          description="На витрине ещё нет активных товаров. Опубликуйте их в админке, чтобы заполнить магазин."
+          title="Витрина пока пустая"
+          description="Активные товары ещё не опубликованы. Когда каталог заполнится, они появятся здесь."
           actionLabel="Открыть каталог"
           actionHref="/catalog"
         />
@@ -138,7 +130,7 @@ export default async function HomePage() {
           </StoreSection>
 
           {collectionCards.length > 0 ? (
-            <StoreSection title="Подборки для быстрого старта" actionLabel="Каталог" actionHref="/catalog">
+            <StoreSection title="Готовые подборки" actionLabel="Каталог" actionHref="/catalog">
               <div className={styles.collectionRail}>
                 {collectionCards.map((collection) => (
                   <Link
@@ -149,7 +141,7 @@ export default async function HomePage() {
                   >
                     <p className={styles.collectionTitle}>{collection.title}</p>
                     <p className={styles.collectionDescription}>
-                      {collection.description || 'Товары, которые удобно просмотреть за пару минут.'}
+                      {collection.description || 'Короткая подборка товаров, которую удобно просмотреть за пару минут.'}
                     </p>
                     <div className={styles.collectionItems}>
                       {collection.products.slice(0, 2).map((product) => (

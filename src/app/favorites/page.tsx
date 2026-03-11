@@ -29,7 +29,7 @@ export default async function FavoritesPage() {
             favoritesData.status === 'error' && styles.dataNoticeError,
           )}
         >
-          <p className={styles.dataNoticeTitle}>Обновление избранного</p>
+          <p className={styles.dataNoticeTitle}>Состояние избранного</p>
           <p className={styles.dataNoticeText}>{favoritesData.message}</p>
           {(favoritesData.status === 'error' || favoritesData.status === 'not_configured') ? (
             <div className={styles.dataNoticeActions}>
@@ -80,8 +80,7 @@ export default async function FavoritesPage() {
               <section className={styles.panel}>
                 <h2 className={styles.panelTitle}>Что дальше</h2>
                 <p className={styles.panelText}>
-                  Откройте карточку товара, чтобы проверить детали, или вернитесь в корзину, если уже готовы к
-                  оформлению.
+                  Откройте карточку товара, чтобы проверить детали, или вернитесь в корзину, если уже готовы к оформлению.
                 </p>
                 <div className={styles.panelActions}>
                   <Link href="/cart" className={styles.secondaryButton}>

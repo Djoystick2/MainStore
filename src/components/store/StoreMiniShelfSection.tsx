@@ -57,18 +57,12 @@ export function StoreMiniShelfSection({ shelf }: StoreMiniShelfSectionProps) {
                     {product.appliedDiscount ? (
                       <span className={styles.miniProductBadge}>{product.appliedDiscount.badgeText}</span>
                     ) : shelf.isPlaceholder ? (
-                      <span className={classNames(styles.miniProductBadge, styles.miniProductBadgeMuted)}>
-                        Скоро
-                      </span>
+                      <span className={classNames(styles.miniProductBadge, styles.miniProductBadgeMuted)}>Скоро</span>
                     ) : null}
                   </div>
-                  <p className={styles.miniProductDescription}>
-                    {product.shortDescription || product.description}
-                  </p>
+                  <p className={styles.miniProductDescription}>{product.shortDescription || product.description}</p>
                   <div className={styles.miniProductPriceRow}>
-                    <p className={styles.miniProductPrice}>
-                      {formatStorePrice(product.priceCents, product.currency)}
-                    </p>
+                    <p className={styles.miniProductPrice}>{formatStorePrice(product.priceCents, product.currency)}</p>
                     {product.compareAtPriceCents && product.compareAtPriceCents > product.priceCents ? (
                       <p className={styles.miniProductCompare}>
                         {formatStorePrice(product.compareAtPriceCents, product.currency)}

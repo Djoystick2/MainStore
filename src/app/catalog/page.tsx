@@ -197,24 +197,51 @@ export default async function CatalogPage({
         : 'Все товары';
 
   const resultSummary = `${sortedProducts.length} ${
-    sortedProducts.length === 1
-      ? 'товар'
-      : sortedProducts.length >= 2 && sortedProducts.length <= 4
-        ? 'товара'
-        : 'товаров'
+    sortedProducts.length === 1 ? 'товар' : sortedProducts.length >= 2 && sortedProducts.length <= 4 ? 'товара' : 'товаров'
   }`;
 
+  const categoryTiles = catalogData.categories.filter((category) => category.id !== 'all').slice(0, 6);
+  const useListLayout = hasActiveFilters || Boolean(selectedCategory && selectedCategory.id !== 'all');
+
   return (
-    <StoreScreen title="Каталог" subtitle="Поиск, фильтры и подбор товаров без лишней сложности">
+    <StoreScreen title="Каталог" subtitle="Категории, подборки и понятный путь к нужному товару">
       <section className={styles.catalogLead}>
         <p className={styles.catalogLeadEyebrow}>Навигация по витрине</p>
         <h2 className={styles.catalogLeadTitle}>{resultsTitle}</h2>
         <p className={styles.catalogLeadText}>
           {hasActiveFilters
             ? `Сейчас на экране ${resultSummary.toLowerCase()} по выбранным условиям.`
-            : 'Сначала выберите направление: поиск, категория, подборка или быстрый фильтр.'}
+            : 'Сначала выберите раздел плиткой, а внутри переходите к более точному списку через поиск и фильтры.'}
         </p>
       </section>
+
+      {categoryTiles.length > 0 ? (
+        <section className={styles.categoryShortcutGrid} aria-label="Основные категории каталога">
+          {categoryTiles.map((category) => {
+            const isActive = selectedCategory?.id === category.id;
+
+            return (
+              <Link
+                key={category.id}
+                href={buildCatalogHref({
+                  query: searchQueryRaw || undefined,
+                  category: category.slug,
+                  collection: undefined,
+                  sort: selectedSort,
+                  availability: selectedAvailability || undefined,
+                  discounted: discountedOnly,
+                  featured: featuredOnly,
+                })}
+                className={classNames(styles.categoryShortcut, isActive && styles.categoryShortcutActive)}
+                aria-label={`Открыть категорию ${category.title}`}
+              >
+                <p className={styles.categoryShortcutTitle}>{category.title}</p>
+                <p className={styles.categoryShortcutSub}>{category.description || 'Перейти в раздел'}</p>
+              </Link>
+            );
+          })}
+        </section>
+      ) : null}
 
       <form action="/catalog" method="get" className={styles.catalogToolbar}>
         {selectedCategory && selectedCategory.id !== 'all' ? (
@@ -230,7 +257,7 @@ export default async function CatalogPage({
             className={styles.searchInput}
             name="q"
             type="text"
-            placeholder="Найти товар или раздел"
+            placeholder="Найти товар, категорию или подборку"
             defaultValue={searchQueryRaw}
             aria-label="Поиск по каталогу"
           />
@@ -254,30 +281,24 @@ export default async function CatalogPage({
       </form>
 
       <div className={styles.chipRow}>
-        {catalogData.categories.map((category, index) => (
-          <Link
-            key={category.id}
-            href={buildCatalogHref({
-              query: searchQueryRaw || undefined,
-              category: category.id === 'all' ? undefined : category.slug,
-              collection: selectedCollection?.slug,
-              sort: selectedSort,
-              availability: selectedAvailability || undefined,
-              discounted: discountedOnly,
-              featured: featuredOnly,
-            })}
-            className={classNames(
-              styles.chip,
-              (selectedCategory?.id ? selectedCategory.id === category.id : index === 0) && styles.chipActive,
-            )}
-            aria-label={`Фильтр по категории ${category.title}`}
-          >
-            {category.title}
-          </Link>
-        ))}
-      </div>
-
-      <div className={styles.chipRow}>
+        <Link
+          href={buildCatalogHref({
+            query: searchQueryRaw || undefined,
+            sort: selectedSort,
+          })}
+          className={classNames(
+            styles.chip,
+            !selectedCategory &&
+              !selectedCollection &&
+              !selectedAvailability &&
+              !discountedOnly &&
+              !featuredOnly &&
+              selectedSort === 'popular' &&
+              styles.chipActive,
+          )}
+        >
+          Все
+        </Link>
         <Link
           href={buildCatalogHref({
             query: searchQueryRaw || undefined,
@@ -344,7 +365,7 @@ export default async function CatalogPage({
                 aria-label={`Открыть подборку ${collection.title}`}
               >
                 <p className={styles.collectionTitle}>{collection.title}</p>
-                <p className={styles.collectionDescription}>{collection.description || 'Готовая витринная подборка'}</p>
+                <p className={styles.collectionDescription}>{collection.description || 'Готовый сценарий покупок без лишнего поиска.'}</p>
                 <div className={styles.collectionItems}>
                   {collection.products.slice(0, 2).map((product) => (
                     <span key={product.id} className={styles.collectionItemPill}>
@@ -365,7 +386,7 @@ export default async function CatalogPage({
             catalogData.status === 'fallback_error' && styles.dataNoticeError,
           )}
         >
-          <p className={styles.dataNoticeTitle}>Обновление каталога</p>
+          <p className={styles.dataNoticeTitle}>Состояние каталога</p>
           <p className={styles.dataNoticeText}>{catalogData.message}</p>
           {(catalogData.status === 'fallback_error' || catalogData.status === 'fallback_env') && (
             <div className={styles.dataNoticeActions}>
@@ -386,7 +407,7 @@ export default async function CatalogPage({
         ) : null}
       </div>
 
-      {catalogData.promoBanners[0] ? (
+      {catalogData.promoBanners[0] && !selectedCollection ? (
         <section className={styles.bannerCard}>
           <p className={styles.bannerEyebrow}>{catalogData.promoBanners[0].eyebrow}</p>
           <h2 className={styles.bannerTitle}>{catalogData.promoBanners[0].title}</h2>
@@ -405,19 +426,24 @@ export default async function CatalogPage({
         {catalogData.status === 'empty' ? (
           <StoreEmptyState
             title="Каталог пока пуст"
-            description="Активных товаров пока нет. Опубликуйте их в админке и вернитесь сюда."
+            description="Активные товары ещё не опубликованы. Когда витрина заполнится, позиции появятся здесь."
           />
         ) : sortedProducts.length === 0 ? (
           <StoreEmptyState
             title={searchQueryRaw ? `По запросу «${searchQueryRaw}» ничего не найдено` : 'Ничего не найдено'}
-            description="Попробуйте убрать часть условий, открыть другую категорию или посмотреть все товары без фильтров."
+            description="Попробуйте убрать часть условий, открыть другую категорию или вернуться ко всем товарам."
             actionLabel="Показать все товары"
             actionHref="/catalog"
           />
         ) : (
-          <div className={styles.catalogGrid}>
+          <div className={classNames(styles.catalogGrid, useListLayout && styles.catalogList)}>
             {sortedProducts.map((product) => (
-              <ProductCard key={product.id} product={product} href={`/products/${product.slug}`} />
+              <ProductCard
+                key={product.id}
+                product={product}
+                href={`/products/${product.slug}`}
+                layout={useListLayout ? 'list' : 'grid'}
+              />
             ))}
           </div>
         )}

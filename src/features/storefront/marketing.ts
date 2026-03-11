@@ -121,7 +121,7 @@ export function buildStorefrontMiniShelves(input: {
       title: hasRealDiscountProducts ? 'Выгодно сегодня' : 'Место для акций',
       description: hasRealDiscountProducts
         ? 'Здесь уже собраны товары с активными скидками.'
-        : 'Эта горизонтальная полка готова для будущих промо-товаров и скидочных сценариев.',
+        : 'Горизонтальная полка готова для будущих промо-товаров и скидочных сценариев.',
       ctaLabel: 'Смотреть',
       ctaHref: '/catalog',
       tone: 'mint',

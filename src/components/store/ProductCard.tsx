@@ -10,6 +10,7 @@ interface ProductCardProps {
   product: StoreProduct;
   href?: string;
   compact?: boolean;
+  layout?: 'grid' | 'list';
 }
 
 function getStockBadge(product: StoreProduct): { label: string; className: string } | null {
@@ -18,13 +19,13 @@ function getStockBadge(product: StoreProduct): { label: string; className: strin
   }
 
   if (product.stockState === 'low_stock') {
-    return { label: 'Мало в наличии', className: styles.productStatusWarn };
+    return { label: 'Осталось мало', className: styles.productStatusWarn };
   }
 
   return null;
 }
 
-export function ProductCard({ product, href, compact = false }: ProductCardProps) {
+export function ProductCard({ product, href, compact = false, layout = 'grid' }: ProductCardProps) {
   const imageStyle = product.imageUrl
     ? {
         backgroundImage: `linear-gradient(rgba(12, 18, 31, 0.14), rgba(12, 18, 31, 0.14)), url(${product.imageUrl})`,
@@ -35,7 +36,13 @@ export function ProductCard({ product, href, compact = false }: ProductCardProps
   const stockBadge = getStockBadge(product);
 
   const card = (
-    <article className={classNames(styles.productCard, compact && styles.productCardCompact)}>
+    <article
+      className={classNames(
+        styles.productCard,
+        compact && styles.productCardCompact,
+        layout === 'list' && styles.productCardList,
+      )}
+    >
       <div className={styles.productImage} style={imageStyle}>
         <span className={styles.productImageLabel}>{product.imageLabel}</span>
       </div>

@@ -18,7 +18,7 @@ interface ProductShareButtonProps {
 }
 
 function mapShareError(): string {
-  return 'Не удалось подготовить ссылку. Попробуйте еще раз.';
+  return 'Не удалось подготовить ссылку. Попробуйте ещё раз.';
 }
 
 export function ProductShareButton({
