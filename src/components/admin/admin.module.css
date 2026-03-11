@@ -858,3 +858,111 @@
     width: 100%;
   }
 }
+
+/* Final admin alignment wave */
+
+.adminNavLink,
+.adminCard,
+.adminPageLead,
+.adminSummaryCard,
+.adminLinkCard,
+.adminMetaCell,
+.adminCallout,
+.adminCalloutWarn,
+.adminNoAccess {
+  border-color: var(--store-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
+    linear-gradient(180deg, rgba(37, 29, 54, 0.98), rgba(24, 20, 33, 0.98));
+  box-shadow: var(--store-shadow-card);
+}
+
+.adminNavLink {
+  color: var(--store-text-soft);
+  border-radius: 14px;
+}
+
+.adminNavLinkActive {
+  color: var(--store-text);
+  border-color: var(--store-border-strong);
+  background:
+    linear-gradient(180deg, rgba(180, 156, 255, 0.16), rgba(180, 156, 255, 0.04)),
+    linear-gradient(180deg, rgba(37, 29, 54, 0.98), rgba(24, 20, 33, 0.98));
+}
+
+.adminCard,
+.adminPageLead,
+.adminLinkCard {
+  border-radius: 22px;
+}
+
+.adminCardSub,
+.adminPageLeadText,
+.adminSummaryText,
+.adminLinkText,
+.adminCalloutText,
+.adminMetaLabel,
+.adminFieldHint {
+  color: var(--store-text-soft);
+}
+
+.adminPageLead {
+  border-color: var(--store-border-strong);
+  background:
+    radial-gradient(circle at top right, rgba(214, 199, 255, 0.14), transparent 28%),
+    linear-gradient(145deg, rgba(44, 36, 63, 0.98), rgba(26, 21, 37, 0.98));
+}
+
+.adminSummaryCard,
+.adminMetaCell {
+  background:
+    linear-gradient(180deg, rgba(180, 156, 255, 0.08), rgba(180, 156, 255, 0)),
+    linear-gradient(180deg, rgba(37, 29, 54, 0.96), rgba(27, 22, 38, 0.96));
+}
+
+.adminActionLink,
+.adminSecondaryButton,
+.adminDangerButton {
+  border-radius: 12px;
+}
+
+.adminActionLink,
+.adminSecondaryButton {
+  border-color: var(--store-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--store-text);
+}
+
+.adminPrimaryLink {
+  background: linear-gradient(135deg, var(--store-accent) 0%, #d0c1ff 100%);
+  color: var(--store-accent-text);
+  box-shadow: 0 16px 28px rgba(120, 96, 197, 0.32);
+}
+
+.adminDangerButton {
+  border-color: rgba(239, 156, 168, 0.26);
+  background: rgba(239, 156, 168, 0.1);
+  color: #ffd7dd;
+}
+
+.adminCallout {
+  border-color: rgba(180, 156, 255, 0.24);
+  background: rgba(180, 156, 255, 0.12);
+}
+
+.adminCalloutWarn {
+  border-color: rgba(240, 200, 135, 0.22);
+  background: rgba(240, 200, 135, 0.08);
+}
+
+.adminInput,
+.adminTextarea,
+.adminSelect {
+  border-color: rgba(201, 183, 255, 0.16);
+  background: rgba(13, 11, 18, 0.44);
+  color: var(--store-text);
+}
+
+.adminError {
+  color: #ffd7dd;
+}

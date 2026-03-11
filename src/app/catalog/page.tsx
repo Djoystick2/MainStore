@@ -1,11 +1,14 @@
 import Link from 'next/link';
 
+import { FavoriteToggleButton } from '@/components/store/FavoriteToggleButton';
 import { ProductCard } from '@/components/store/ProductCard';
 import { StoreEmptyState } from '@/components/store/StoreEmptyState';
 import { StoreScreen } from '@/components/store/StoreScreen';
 import { StoreSection } from '@/components/store/StoreSection';
 import { classNames } from '@/css/classnames';
+import { getCurrentUserContext } from '@/features/auth';
 import { getCatalogStorefrontData } from '@/features/storefront/data';
+import { getFavoriteProductIdsForProfile } from '@/features/user-store/data';
 import type { StoreProduct } from '@/components/store/types';
 import styles from '@/components/store/store.module.css';
 
@@ -125,7 +128,11 @@ export default async function CatalogPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const catalogData = await getCatalogStorefrontData();
+  const { profile } = await getCurrentUserContext();
+  const [catalogData, favoriteIds] = await Promise.all([
+    getCatalogStorefrontData(),
+    getFavoriteProductIdsForProfile(profile?.id ?? null),
+  ]);
   const searchQueryRaw = normalizeQueryValue(params.q);
   const searchQuery = searchQueryRaw.toLowerCase();
   const selectedCategorySlug = normalizeQueryValue(params.category);
@@ -138,6 +145,7 @@ export default async function CatalogPage({
   const selectedCategory = catalogData.categories.find((category) => category.slug === selectedCategorySlug);
   const selectedCollection = catalogData.collections.find((collection) => collection.slug === selectedCollectionSlug);
   const collectionProductIdSet = new Set(selectedCollection?.products.map((product) => product.id) ?? []);
+  const favoriteIdSet = new Set(favoriteIds);
 
   const filteredProducts = catalogData.products.filter((product) => {
     if (selectedCategory && selectedCategory.id !== 'all' && product.categoryId !== selectedCategory.id) {
@@ -202,6 +210,7 @@ export default async function CatalogPage({
 
   const categoryTiles = catalogData.categories.filter((category) => category.id !== 'all').slice(0, 6);
   const useListLayout = hasActiveFilters || Boolean(selectedCategory && selectedCategory.id !== 'all');
+  const showCategoryTiles = !hasActiveFilters;
 
   return (
     <StoreScreen title="Каталог" subtitle="Категории, подборки и понятный путь к нужному товару">
@@ -215,7 +224,7 @@ export default async function CatalogPage({
         </p>
       </section>
 
-      {categoryTiles.length > 0 ? (
+      {categoryTiles.length > 0 && showCategoryTiles ? (
         <section className={styles.categoryShortcutGrid} aria-label="Основные категории каталога">
           {categoryTiles.map((category) => {
             const isActive = selectedCategory?.id === category.id;
@@ -237,6 +246,40 @@ export default async function CatalogPage({
               >
                 <p className={styles.categoryShortcutTitle}>{category.title}</p>
                 <p className={styles.categoryShortcutSub}>{category.description || 'Перейти в раздел'}</p>
+              </Link>
+            );
+          })}
+        </section>
+      ) : null}
+
+      {categoryTiles.length > 0 && !showCategoryTiles ? (
+        <section className={styles.categoryList} aria-label="РџРµСЂРµС…РѕРґС‹ РїРѕ РєР°С‚РµРіРѕСЂРёСЏРј">
+          {categoryTiles.map((category) => {
+            const isActive = selectedCategory?.id === category.id;
+
+            return (
+              <Link
+                key={category.id}
+                href={buildCatalogHref({
+                  query: searchQueryRaw || undefined,
+                  category: category.slug,
+                  collection: undefined,
+                  sort: selectedSort,
+                  availability: selectedAvailability || undefined,
+                  discounted: discountedOnly,
+                  featured: featuredOnly,
+                })}
+                className={classNames(styles.categoryListItem, isActive && styles.categoryListItemActive)}
+                aria-label={`РћС‚РєСЂС‹С‚СЊ РєР°С‚РµРіРѕСЂРёСЋ ${category.title}`}
+              >
+                <span className={styles.categoryListIcon}>{category.title.slice(0, 1)}</span>
+                <span className={styles.categoryListCopy}>
+                  <span className={styles.categoryListTitle}>{category.title}</span>
+                  <span className={styles.categoryListText}>
+                    {category.description || 'РЈС‚РѕС‡РЅРёС‚Рµ РІС‹Р±РѕСЂ Рё РїСЂРѕРґРѕР»Р¶РёС‚Рµ РїРѕРёСЃРє РІРЅСѓС‚СЂРё СЂР°Р·РґРµР»Р°.'}
+                  </span>
+                </span>
+                <span className={styles.categoryListArrow}>›</span>
               </Link>
             );
           })}
@@ -438,12 +481,20 @@ export default async function CatalogPage({
         ) : (
           <div className={classNames(styles.catalogGrid, useListLayout && styles.catalogList)}>
             {sortedProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                href={`/products/${product.slug}`}
-                layout={useListLayout ? 'list' : 'grid'}
-              />
+              <div key={product.id} className={styles.productCardShell}>
+                <div className={styles.productCardFavorite}>
+                  <FavoriteToggleButton
+                    productId={product.id}
+                    initialFavorited={favoriteIdSet.has(product.id)}
+                    compact
+                  />
+                </div>
+                <ProductCard
+                  product={product}
+                  href={`/products/${product.slug}`}
+                  layout={useListLayout ? 'list' : 'grid'}
+                />
+              </div>
             ))}
           </div>
         )}

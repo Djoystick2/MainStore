@@ -66,13 +66,16 @@ export function ProductCard({ product, href, compact = false, layout = 'grid' }:
 
         <p className={styles.productDescription}>{product.shortDescription || product.description}</p>
 
-        <div className={styles.productPriceRow}>
-          <p className={styles.productPrice}>{formatStorePrice(product.priceCents, product.currency)}</p>
-          {product.compareAtPriceCents && product.compareAtPriceCents > product.priceCents ? (
-            <p className={styles.productPriceCompare}>
-              {formatStorePrice(product.compareAtPriceCents, product.currency)}
-            </p>
-          ) : null}
+        <div className={styles.productFooter}>
+          <div className={styles.productPriceRow}>
+            <p className={styles.productPrice}>{formatStorePrice(product.priceCents, product.currency)}</p>
+            {product.compareAtPriceCents && product.compareAtPriceCents > product.priceCents ? (
+              <p className={styles.productPriceCompare}>
+                {formatStorePrice(product.compareAtPriceCents, product.currency)}
+              </p>
+            ) : null}
+          </div>
+          <span className={styles.productCardCta}>Открыть</span>
         </div>
       </div>
     </article>
