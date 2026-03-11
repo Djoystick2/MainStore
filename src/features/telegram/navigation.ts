@@ -1,3 +1,5 @@
+import { retrieveLaunchParams } from '@tma.js/sdk-react';
+
 export function resolveTelegramBackFallback(pathname: string): string {
   if (!pathname || pathname === '/') {
     return '/';
@@ -71,7 +73,29 @@ export function isTelegramMiniAppRuntime(): boolean {
 
   const runtime = window as Window & {
     Telegram?: { WebApp?: object };
+    TelegramWebviewProxy?: object;
   };
 
-  return Boolean(runtime.Telegram?.WebApp);
+  if (runtime.Telegram?.WebApp || runtime.TelegramWebviewProxy) {
+    return true;
+  }
+
+  const searchParams = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  const launchKeys = ['tgWebAppData', 'tgWebAppPlatform', 'tgWebAppVersion', 'tgWebAppStartParam'];
+
+  if (launchKeys.some((key) => searchParams.has(key) || hashParams.has(key))) {
+    return true;
+  }
+
+  try {
+    const launchParams = retrieveLaunchParams();
+    return Boolean(
+      launchParams.tgWebAppPlatform ||
+        launchParams.tgWebAppVersion ||
+        launchParams.tgWebAppData,
+    );
+  } catch {
+    return false;
+  }
 }

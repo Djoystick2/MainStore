@@ -104,6 +104,20 @@ export default async function OrdersPage() {
   const ordersData = await getOrdersForProfile(profile?.id ?? null);
   const isSessionMissing = ordersData.status === 'unauthorized';
 
+  if (isSessionMissing) {
+    return (
+      <StoreScreen title="Мои заказы" subtitle="История покупок, оплата и текущие статусы в одном месте">
+        <TelegramSessionRequiredState
+          fallbackTitle="Нужна сессия Telegram"
+          fallbackDescription="Откройте MainStore в Telegram, чтобы увидеть историю заказов."
+          fallbackActionLabel="Открыть каталог"
+          fallbackActionHref="/catalog"
+          retryHref="/orders"
+        />
+      </StoreScreen>
+    );
+  }
+
   return (
     <StoreScreen title="Мои заказы" subtitle="История покупок, оплата и текущие статусы в одном месте">
       {ordersData.message ? (

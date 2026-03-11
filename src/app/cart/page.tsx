@@ -41,6 +41,20 @@ export default async function CartPage() {
     ? formatStorePrice(cartData.discountTotalCents, cartData.items[0].product.currency)
     : '$0';
 
+  if (isSessionMissing) {
+    return (
+      <StoreScreen title="Корзина" subtitle="Проверьте состав заказа и переходите к оформлению без лишних шагов">
+        <TelegramSessionRequiredState
+          fallbackTitle="Нужна сессия Telegram"
+          fallbackDescription="Откройте MainStore в Telegram, чтобы загрузить личную корзину."
+          fallbackActionLabel="Открыть каталог"
+          fallbackActionHref="/catalog"
+          retryHref="/cart"
+        />
+      </StoreScreen>
+    );
+  }
+
   return (
     <StoreScreen title="Корзина" subtitle="Проверьте состав заказа и переходите к оформлению без лишних шагов">
       {cartData.message ? (

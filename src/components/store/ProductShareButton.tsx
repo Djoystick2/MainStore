@@ -1,5 +1,6 @@
 'use client';
 
+import { openLink } from '@tma.js/sdk-react';
 import { useState, useTransition } from 'react';
 
 import { classNames } from '@/css/classnames';
@@ -66,11 +67,7 @@ export function ProductShareButton({
         }
 
         if (isTelegramMiniAppRuntime()) {
-          window.open(
-            buildTelegramShareUrl(productUrl, shareText),
-            '_blank',
-            'noopener,noreferrer',
-          );
+          openLink(buildTelegramShareUrl(productUrl, shareText));
           setStatusMessage('Окно Telegram открыто.');
           return;
         }

@@ -17,6 +17,8 @@ import { isTelegramMiniAppRuntime } from '@/features/telegram/navigation';
 
 type TelegramSessionBootstrapStatus = 'idle' | 'pending' | 'ready' | 'failed';
 
+const INIT_DATA_WAIT_TIMEOUT_MS = 2500;
+
 interface TelegramSessionBootstrapContextValue {
   status: TelegramSessionBootstrapStatus;
   hasInitData: boolean;
@@ -56,6 +58,23 @@ function TelegramSessionBootstrapEffect({
       isTelegramRuntime,
     });
   }, [hasInitData, isTelegramRuntime, onStateChange]);
+
+  useEffect(() => {
+    if (hasInitData || !isTelegramRuntime) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      onStateChange({
+        status: 'failed',
+        error: 'init_data_unavailable',
+        hasInitData: false,
+        isTelegramRuntime: true,
+      });
+    }, INIT_DATA_WAIT_TIMEOUT_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [hasInitData, isTelegramRuntime, onStateChange, retryToken]);
 
   useEffect(() => {
     if (!rawInitData || isMockInitData(rawInitData)) {
@@ -127,10 +146,14 @@ function TelegramSessionBootstrapEffect({
   }, [onStateChange, rawInitData, retryToken, router]);
 
   useEffect(() => {
-    const retryHandler = () => setRetryToken((current) => current + 1);
+    const retryHandler = () => {
+      setRetryToken((current) => current + 1);
+      router.refresh();
+    };
+
     window.addEventListener('ms:telegram-session-retry', retryHandler);
     return () => window.removeEventListener('ms:telegram-session-retry', retryHandler);
-  }, []);
+  }, [router]);
 
   return null;
 }
@@ -206,12 +229,12 @@ export function useTelegramUnauthorizedMessage(defaultMessage: string): string {
     return 'Проверяем сессию Telegram. Повторите действие через пару секунд.';
   }
 
-  if (hasInitData && status === 'failed') {
+  if (isTelegramRuntime && status === 'failed') {
     return 'Не удалось подтвердить сессию Telegram. Обновите экран или откройте магазин заново из бота.';
   }
 
   if (isTelegramRuntime && status === 'idle') {
-    return 'Ждем данные запуска Telegram. Повторите действие через пару секунд.';
+    return 'Ждём данные запуска Telegram. Повторите действие через пару секунд.';
   }
 
   return defaultMessage;

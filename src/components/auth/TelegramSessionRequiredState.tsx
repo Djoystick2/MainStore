@@ -1,6 +1,7 @@
 'use client';
 
 import { StoreEmptyState } from '@/components/store/StoreEmptyState';
+
 import { useTelegramSessionBootstrapState } from './TelegramSessionBootstrap';
 
 interface TelegramSessionRequiredStateProps {
@@ -29,10 +30,13 @@ export function TelegramSessionRequiredState({
     );
   }
 
-  if (hasInitData && status === 'failed') {
-    const failureDescription = error
-      ? `Mini App открыт из Telegram, но серверная сессия не создалась. Код: ${error}.`
-      : 'Mini App открыт из Telegram, но серверная сессия не создалась. Обновите экран или откройте магазин заново из бота.';
+  if (isTelegramRuntime && status === 'failed') {
+    const failureDescription =
+      error === 'init_data_unavailable'
+        ? 'Mini App открыт в Telegram, но данные запуска не загрузились вовремя. Обновите экран или откройте магазин заново из бота.'
+        : error
+          ? `Mini App открыт из Telegram, но серверная сессия не создалась. Код: ${error}.`
+          : 'Mini App открыт из Telegram, но серверная сессия не создалась. Обновите экран или откройте магазин заново из бота.';
 
     return (
       <StoreEmptyState
@@ -48,7 +52,7 @@ export function TelegramSessionRequiredState({
     return (
       <StoreEmptyState
         title="Подключаем Telegram"
-        description="Ждем данные запуска от Telegram. Если экран не обновится автоматически, перезапустите Mini App из бота."
+        description="Ждём данные запуска от Telegram. Если экран не обновится автоматически, перезапустите Mini App из бота."
         actionLabel="Обновить экран"
         actionHref={retryHref}
       />
