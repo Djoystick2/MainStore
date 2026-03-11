@@ -14,11 +14,28 @@ export const metadata: Metadata = {
   description: 'MainStore в Telegram: витрина, заказы и админ-панель магазина.',
 };
 
+const storeThemeBootstrapScript = `
+  (function () {
+    try {
+      var storedTheme = window.localStorage.getItem('mainstore:theme');
+      if (storedTheme === 'dark' || storedTheme === 'light') {
+        document.documentElement.dataset.storeTheme = storedTheme;
+        document.documentElement.style.colorScheme = storedTheme;
+      }
+    } catch (error) {
+      // Ignore storage access issues before hydration.
+    }
+  })();
+`;
+
 export default async function RootLayout({ children }: PropsWithChildren) {
   const locale = await getLocale();
 
   return (
     <html lang={locale} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: storeThemeBootstrapScript }} />
+      </head>
       <body>
         <I18nProvider>
           <Root>{children}</Root>

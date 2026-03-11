@@ -1,5 +1,5 @@
 .screen {
-  min-height: 100vh;
+  min-height: 100dvh;
   background:
     radial-gradient(circle at 16% -10%, rgba(255, 203, 167, 0.45), transparent 34%),
     radial-gradient(circle at 88% 0%, rgba(154, 214, 255, 0.32), transparent 30%),
@@ -17,9 +17,13 @@
 }
 
 .headerInner {
-  width: min(100%, 560px);
+  width: min(100%, var(--store-shell-width));
   margin: 0 auto;
-  padding: 0 16px 12px;
+  padding:
+    0
+    calc(var(--store-shell-padding-x) + var(--store-safe-area-right, 0px))
+    12px
+    calc(var(--store-shell-padding-x) + var(--store-safe-area-left, 0px));
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -52,9 +56,13 @@
 }
 
 .container {
-  width: min(100%, 560px);
+  width: min(100%, var(--store-shell-width));
   margin: 0 auto;
-  padding: 16px 16px 28px;
+  padding:
+    16px
+    calc(var(--store-shell-padding-x) + var(--store-safe-area-right, 0px))
+    28px
+    calc(var(--store-shell-padding-x) + var(--store-safe-area-left, 0px));
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -1209,6 +1217,90 @@
   box-shadow: 0 10px 20px rgba(39, 51, 71, 0.12);
 }
 
+.profilePreferences {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profilePreferenceCard {
+  border: 1px solid var(--store-border);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0)),
+    linear-gradient(180deg, rgba(18, 20, 26, 0.96), rgba(8, 9, 12, 0.96));
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profilePreferenceInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profilePreferenceLabel {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 800;
+  color: var(--store-text);
+}
+
+.profilePreferenceHint {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--store-text-soft);
+}
+
+.profilePreferenceStatus {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.3;
+  font-weight: 700;
+  color: var(--store-accent-strong);
+}
+
+.profilePreferenceButtons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.profilePreferenceButton {
+  min-height: 42px;
+  border: 1px solid var(--store-border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--store-text-soft);
+  font-size: 14px;
+  line-height: 1.1;
+  font-weight: 700;
+  text-align: center;
+  padding: 0 12px;
+  transition:
+    border-color var(--store-motion-fast) ease,
+    background-color var(--store-motion-fast) ease,
+    color var(--store-motion-fast) ease,
+    box-shadow var(--store-motion-base) var(--store-motion-ease);
+}
+
+.profilePreferenceButtonActive {
+  border-color: var(--store-border-strong);
+  background: linear-gradient(135deg, var(--store-accent) 0%, #d0c1ff 100%);
+  color: var(--store-accent-text);
+  box-shadow: 0 14px 24px rgba(120, 96, 197, 0.24);
+}
+
+.profilePreferenceButton:focus-visible {
+  outline: none;
+  border-color: var(--store-border-strong);
+  box-shadow: 0 0 0 3px var(--store-accent-soft);
+}
+
 .checkoutForm {
   display: flex;
   flex-direction: column;
@@ -1796,7 +1888,7 @@
 }
 
 .bottomNav {
-  width: min(100%, 560px);
+  width: min(100%, var(--store-shell-width));
   margin: 0 auto;
   background: var(--store-surface);
   border-top: 1px solid var(--store-border);
@@ -2910,11 +3002,12 @@
 }
 
 .bottomNavShell {
-  padding-inline: 12px;
+  padding-left: calc(12px + var(--store-safe-area-left, 0px));
+  padding-right: calc(12px + var(--store-safe-area-right, 0px));
 }
 
 .bottomNav {
-  width: min(100%, 560px);
+  width: min(100%, var(--store-shell-width));
   border: 1px solid var(--store-border);
   border-radius: 24px;
   background: rgba(6, 7, 9, 0.9);
@@ -3719,6 +3812,10 @@
     grid-template-columns: 1fr;
   }
 
+  .profilePreferenceButtons {
+    grid-template-columns: 1fr;
+  }
+
   .detailImageOverlay,
   .panelHeader {
     flex-direction: column;
@@ -3761,4 +3858,203 @@
   .detailShortcutRow {
     gap: 6px;
   }
+}
+
+:global(html[data-store-theme='dark']) .adminEntryText,
+:global(html[data-store-theme='dark']) .orderCardHint,
+:global(html[data-store-theme='dark']) .productMetaBadge,
+:global(html[data-store-theme='dark']) .productImageLabel,
+:global(html[data-store-theme='dark']) .quickLinkSubtitle,
+:global(html[data-store-theme='dark']) .categoryShortcutActive,
+:global(html[data-store-theme='dark']) .categoryShortcutActive .categoryShortcutTitle,
+:global(html[data-store-theme='dark']) .categoryShortcutActive .categoryShortcutSub {
+  color: var(--store-text-soft);
+}
+
+:global(html[data-store-theme='dark']) .categoryShortcutActive {
+  border-color: rgba(214, 199, 255, 0.22);
+  background:
+    linear-gradient(180deg, rgba(180, 156, 255, 0.16), rgba(180, 156, 255, 0.04)),
+    linear-gradient(180deg, rgba(37, 29, 54, 0.98), rgba(24, 20, 33, 0.98));
+}
+
+:global(html[data-store-theme='dark']) .profilePreferenceButton:focus-visible,
+:global(html[data-store-theme='dark']) .profilePreferenceButton:hover {
+  border-color: var(--store-border-strong);
+}
+
+:global(html[data-store-theme='light']) .screen {
+  background:
+    radial-gradient(circle at 12% -4%, rgba(125, 92, 255, 0.08), transparent 28%),
+    radial-gradient(circle at 88% 0%, rgba(112, 183, 255, 0.08), transparent 26%),
+    linear-gradient(180deg, #f8fbff 0, #f3f6fb 220px, var(--store-bg) 100%);
+}
+
+:global(html[data-store-theme='light']) .header {
+  background: rgba(248, 251, 255, 0.88);
+  border-bottom-color: rgba(15, 23, 42, 0.08);
+  box-shadow: 0 14px 34px rgba(72, 84, 111, 0.08);
+}
+
+:global(html[data-store-theme='light']) .headerTag,
+:global(html[data-store-theme='light']) .heroEyebrow,
+:global(html[data-store-theme='light']) .profileEyebrow,
+:global(html[data-store-theme='light']) .adminEntryEyebrow,
+:global(html[data-store-theme='light']) .bannerEyebrow,
+:global(html[data-store-theme='light']) .catalogLeadEyebrow,
+:global(html[data-store-theme='light']) .miniShelfEyebrow,
+:global(html[data-store-theme='light']) .profilePreferenceStatus {
+  color: var(--store-accent-strong);
+}
+
+:global(html[data-store-theme='light']) .headerTitle,
+:global(html[data-store-theme='light']) .heroTitle,
+:global(html[data-store-theme='light']) .bannerTitle,
+:global(html[data-store-theme='light']) .catalogLeadTitle,
+:global(html[data-store-theme='light']) .sectionTitle,
+:global(html[data-store-theme='light']) .collectionTitle,
+:global(html[data-store-theme='light']) .productName,
+:global(html[data-store-theme='light']) .panelTitle,
+:global(html[data-store-theme='light']) .emptyStateTitle,
+:global(html[data-store-theme='light']) .detailTitle,
+:global(html[data-store-theme='light']) .detailDescription,
+:global(html[data-store-theme='light']) .cartItemTitle,
+:global(html[data-store-theme='light']) .orderCardTitle,
+:global(html[data-store-theme='light']) .orderItemTitle,
+:global(html[data-store-theme='light']) .infoValue,
+:global(html[data-store-theme='light']) .infoValueCompact,
+:global(html[data-store-theme='light']) .specsPreviewTitle,
+:global(html[data-store-theme='light']) .specsGroupTitle,
+:global(html[data-store-theme='light']) .reviewTitle,
+:global(html[data-store-theme='light']) .reviewAuthor,
+:global(html[data-store-theme='light']) .categoryListTitle,
+:global(html[data-store-theme='light']) .categoryShortcutTitle,
+:global(html[data-store-theme='light']) .profilePreferenceLabel {
+  color: var(--store-text);
+}
+
+:global(html[data-store-theme='light']) .headerSubtitle,
+:global(html[data-store-theme='light']) .heroText,
+:global(html[data-store-theme='light']) .bannerText,
+:global(html[data-store-theme='light']) .catalogLeadText,
+:global(html[data-store-theme='light']) .miniShelfDescription,
+:global(html[data-store-theme='light']) .productDescription,
+:global(html[data-store-theme='light']) .panelText,
+:global(html[data-store-theme='light']) .checkoutFieldHint,
+:global(html[data-store-theme='light']) .checkoutHint,
+:global(html[data-store-theme='light']) .checkoutSuccessText,
+:global(html[data-store-theme='light']) .collectionDescription,
+:global(html[data-store-theme='light']) .actionItemSub,
+:global(html[data-store-theme='light']) .orderCardPreview,
+:global(html[data-store-theme='light']) .orderMetaItem,
+:global(html[data-store-theme='light']) .orderDetailsMuted,
+:global(html[data-store-theme='light']) .dataNoticeText,
+:global(html[data-store-theme='light']) .emptyStateText,
+:global(html[data-store-theme='light']) .infoLabel,
+:global(html[data-store-theme='light']) .collectionItemPill,
+:global(html[data-store-theme='light']) .catalogResultCount,
+:global(html[data-store-theme='light']) .catalogSelectCaption,
+:global(html[data-store-theme='light']) .categoryShortcutSub,
+:global(html[data-store-theme='light']) .quickLinkSubtitle,
+:global(html[data-store-theme='light']) .heroMetaItem,
+:global(html[data-store-theme='light']) .productMetaBadge,
+:global(html[data-store-theme='light']) .cartItemLineTotal,
+:global(html[data-store-theme='light']) .cartItemDiscount,
+:global(html[data-store-theme='light']) .orderItemSub,
+:global(html[data-store-theme='light']) .adminEntryText,
+:global(html[data-store-theme='light']) .profilePreferenceHint,
+:global(html[data-store-theme='light']) .orderCardHint {
+  color: var(--store-text-soft);
+}
+
+:global(html[data-store-theme='light']) .section,
+:global(html[data-store-theme='light']) .panel,
+:global(html[data-store-theme='light']) .catalogLead,
+:global(html[data-store-theme='light']) .quickLinkCard,
+:global(html[data-store-theme='light']) .bannerCard,
+:global(html[data-store-theme='light']) .collectionCard,
+:global(html[data-store-theme='light']) .productCard,
+:global(html[data-store-theme='light']) .detailCard,
+:global(html[data-store-theme='light']) .cartItem,
+:global(html[data-store-theme='light']) .orderCard,
+:global(html[data-store-theme='light']) .orderItemRow,
+:global(html[data-store-theme='light']) .emptyState,
+:global(html[data-store-theme='light']) .dataNotice,
+:global(html[data-store-theme='light']) .checkoutSummaryCard,
+:global(html[data-store-theme='light']) .checkoutSuccess,
+:global(html[data-store-theme='light']) .categoryListItem,
+:global(html[data-store-theme='light']) .infoItem,
+:global(html[data-store-theme='light']) .miniProductCard,
+:global(html[data-store-theme='light']) .miniShelf,
+:global(html[data-store-theme='light']) .profilePreferenceCard {
+  border-color: var(--store-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(249, 251, 255, 0.98)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9));
+  box-shadow: var(--store-shadow-card);
+}
+
+:global(html[data-store-theme='light']) .hero,
+:global(html[data-store-theme='light']) .profileHero,
+:global(html[data-store-theme='light']) .adminEntryCard {
+  border-color: rgba(125, 92, 255, 0.18);
+  background:
+    radial-gradient(circle at 90% 10%, rgba(125, 92, 255, 0.12), transparent 26%),
+    radial-gradient(circle at 12% 0%, rgba(112, 183, 255, 0.1), transparent 24%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.99), rgba(244, 247, 255, 0.97));
+  color: var(--store-text);
+  box-shadow: 0 22px 48px rgba(78, 91, 120, 0.12);
+}
+
+:global(html[data-store-theme='light']) .heroMetaItem,
+:global(html[data-store-theme='light']) .profileMetaBadge {
+  border-color: rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--store-text);
+}
+
+:global(html[data-store-theme='light']) .heroButton,
+:global(html[data-store-theme='light']) .adminEntryButton,
+:global(html[data-store-theme='light']) .primaryButton,
+:global(html[data-store-theme='light']) .primaryLinkButton,
+:global(html[data-store-theme='light']) .stickyBarButton,
+:global(html[data-store-theme='light']) .emptyStateAction,
+:global(html[data-store-theme='light']) .profilePreferenceButtonActive {
+  background: linear-gradient(135deg, var(--store-accent) 0%, #9275ff 100%);
+  color: var(--store-accent-text);
+  box-shadow: 0 14px 24px rgba(125, 92, 255, 0.22);
+}
+
+:global(html[data-store-theme='light']) .stickyBar {
+  background: rgba(255, 255, 255, 0.86);
+  border-top-color: rgba(15, 23, 42, 0.08);
+}
+
+:global(html[data-store-theme='light']) .secondaryButton,
+:global(html[data-store-theme='light']) .filterButton,
+:global(html[data-store-theme='light']) .catalogSelect,
+:global(html[data-store-theme='light']) .searchInput,
+:global(html[data-store-theme='light']) .quantityButton,
+:global(html[data-store-theme='light']) .cartRemoveButton,
+:global(html[data-store-theme='light']) .dataNoticeRetry,
+:global(html[data-store-theme='light']) .productCardCta,
+:global(html[data-store-theme='light']) .profilePreferenceButton {
+  background: rgba(15, 23, 42, 0.03);
+  border-color: rgba(15, 23, 42, 0.08);
+  color: var(--store-text);
+}
+
+:global(html[data-store-theme='light']) .bottomNav {
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 18px 36px rgba(72, 84, 111, 0.12);
+}
+
+:global(html[data-store-theme='light']) .bottomNavIcon {
+  background: rgba(15, 23, 42, 0.03);
+  border-color: rgba(15, 23, 42, 0.08);
+}
+
+:global(html[data-store-theme='light']) .bottomNavLink,
+:global(html[data-store-theme='light']) .actionItemIcon {
+  color: var(--store-accent-strong);
 }

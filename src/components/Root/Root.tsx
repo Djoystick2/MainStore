@@ -3,7 +3,6 @@
 import { type PropsWithChildren, useEffect } from 'react';
 import {
   initData,
-  miniApp,
   useLaunchParams,
   useSignal,
 } from '@tma.js/sdk-react';
@@ -12,15 +11,30 @@ import { AppRoot } from '@telegram-apps/telegram-ui';
 import { TelegramSessionBootstrap } from '@/components/auth/TelegramSessionBootstrap';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ErrorPage } from '@/components/ErrorPage';
+import {
+  StoreUiPreferencesProvider,
+  useStoreUiPreferences,
+} from '@/components/Root/StoreUiPreferencesProvider';
 import { useDidMount } from '@/hooks/useDidMount';
 import { setLocale } from '@/core/i18n/locale';
 
 import './styles.css';
 
+function RootAppShell({
+  children,
+  platform,
+}: PropsWithChildren<{ platform: 'ios' | 'base' }>) {
+  const { theme } = useStoreUiPreferences();
+
+  return (
+    <AppRoot appearance={theme} platform={platform}>
+      <TelegramSessionBootstrap>{children}</TelegramSessionBootstrap>
+    </AppRoot>
+  );
+}
+
 function RootInner({ children }: PropsWithChildren) {
   const lp = useLaunchParams();
-
-  const isDark = useSignal(miniApp.isDark);
   const initDataUser = useSignal(initData.user);
 
   // Set the user locale.
@@ -31,12 +45,11 @@ function RootInner({ children }: PropsWithChildren) {
   }, [initDataUser]);
 
   return (
-    <AppRoot
-      appearance={isDark ? 'dark' : 'light'}
-      platform={['macos', 'ios'].includes(lp.tgWebAppPlatform) ? 'ios' : 'base'}
-    >
-      <TelegramSessionBootstrap>{children}</TelegramSessionBootstrap>
-    </AppRoot>
+    <StoreUiPreferencesProvider>
+      <RootAppShell platform={['macos', 'ios'].includes(lp.tgWebAppPlatform) ? 'ios' : 'base'}>
+        {children}
+      </RootAppShell>
+    </StoreUiPreferencesProvider>
   );
 }
 

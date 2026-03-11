@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import { TelegramSessionRequiredState } from '@/components/auth/TelegramSessionRequiredState';
+import { ProfileDisplayPreferences } from '@/components/store/ProfileDisplayPreferences';
 import { StoreScreen } from '@/components/store/StoreScreen';
 import { StoreSection } from '@/components/store/StoreSection';
 import { formatStorePrice } from '@/components/store/formatPrice';
@@ -181,6 +182,10 @@ export default async function ProfilePage() {
           </div>
         </section>
       ) : null}
+
+      <StoreSection title="Тема и экран">
+        <ProfileDisplayPreferences />
+      </StoreSection>
 
       <StoreSection title="Что сейчас важно">
         <div className={styles.actionList}>

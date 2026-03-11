@@ -6,6 +6,10 @@
   color-scheme: dark;
   --store-safe-area-top: max(var(--tg-safe-area-inset-top, 0px), env(safe-area-inset-top, 0px));
   --store-safe-area-bottom: max(var(--tg-safe-area-inset-bottom, 0px), env(safe-area-inset-bottom, 0px));
+  --store-safe-area-left: max(var(--tg-safe-area-inset-left, 0px), env(safe-area-inset-left, 0px));
+  --store-safe-area-right: max(var(--tg-safe-area-inset-right, 0px), env(safe-area-inset-right, 0px));
+  --store-shell-width: 560px;
+  --store-shell-padding-x: 16px;
   --store-bg: #050608;
   --store-bg-elevated: #090b0e;
   --store-surface: #0e1116;
@@ -34,12 +38,56 @@
   --store-motion-soft-bounce: cubic-bezier(0.2, 0.9, 0.24, 1);
 }
 
+html,
+body {
+  min-height: 100%;
+}
+
+html[data-store-theme='dark'] {
+  color-scheme: dark;
+}
+
+html[data-store-theme='light'] {
+  color-scheme: light;
+  --store-bg: #eff3f9;
+  --store-bg-elevated: #ffffff;
+  --store-surface: #ffffff;
+  --store-surface-muted: #f5f7fb;
+  --store-surface-strong: #e9eef6;
+  --store-text: #101828;
+  --store-text-soft: #334155;
+  --store-hint: #66758b;
+  --store-border: rgba(15, 23, 42, 0.1);
+  --store-border-strong: rgba(125, 92, 255, 0.28);
+  --store-accent: #7d5cff;
+  --store-accent-strong: #6a45f0;
+  --store-accent-soft: rgba(125, 92, 255, 0.12);
+  --store-accent-glow: rgba(125, 92, 255, 0.18);
+  --store-accent-text: #ffffff;
+  --store-success: #2f8f62;
+  --store-warning: #b77711;
+  --store-danger: #c64d62;
+  --store-shadow-soft: 0 24px 64px rgba(64, 76, 104, 0.12);
+  --store-shadow-card: 0 16px 32px rgba(64, 76, 104, 0.1);
+}
+
+html[data-store-expanded='true'],
+html[data-store-fullscreen='true'] {
+  --store-shell-width: 640px;
+  --store-shell-padding-x: 18px;
+}
+
+html[data-store-fullscreen='true'] {
+  --store-shell-width: 680px;
+}
+
 body {
   background:
     radial-gradient(circle at top left, rgba(180, 156, 255, 0.08), transparent 24%),
     radial-gradient(circle at top right, rgba(112, 94, 172, 0.08), transparent 22%),
     linear-gradient(180deg, #08090c 0%, var(--store-bg) 100%);
   color: var(--store-text);
+  min-height: 100dvh;
   font-size: 16px;
   line-height: 1.45;
   font-family:
@@ -51,6 +99,17 @@ body {
     sans-serif;
   padding: 0;
   margin: 0;
+  transition:
+    background-color var(--store-motion-base) var(--store-motion-ease),
+    color var(--store-motion-fast) ease;
+  overscroll-behavior-y: contain;
+}
+
+html[data-store-theme='light'] body {
+  background:
+    radial-gradient(circle at top left, rgba(125, 92, 255, 0.08), transparent 26%),
+    radial-gradient(circle at top right, rgba(112, 183, 255, 0.08), transparent 24%),
+    linear-gradient(180deg, #f8fbff 0%, var(--store-bg) 100%);
 }
 
 ::selection {

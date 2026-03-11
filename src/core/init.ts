@@ -79,6 +79,7 @@ export async function init(options: {
   try {
     viewport.mount().then(() => {
       viewport.bindCssVars();
+      viewport.expand.ifAvailable();
     });
   } catch (e) {
     // viewport not available

@@ -1012,3 +1012,95 @@
     border-color: var(--store-border-strong);
   }
 }
+
+:global(html[data-store-theme='light']) .adminNavLink,
+:global(html[data-store-theme='light']) .adminCard,
+:global(html[data-store-theme='light']) .adminPageLead,
+:global(html[data-store-theme='light']) .adminSummaryCard,
+:global(html[data-store-theme='light']) .adminLinkCard,
+:global(html[data-store-theme='light']) .adminMetaCell,
+:global(html[data-store-theme='light']) .adminCallout,
+:global(html[data-store-theme='light']) .adminCalloutWarn,
+:global(html[data-store-theme='light']) .adminNoAccess {
+  border-color: var(--store-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(249, 251, 255, 0.98)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9));
+  box-shadow: var(--store-shadow-card);
+}
+
+:global(html[data-store-theme='light']) .adminNavLink {
+  color: var(--store-text-soft);
+}
+
+:global(html[data-store-theme='light']) .adminNavLinkActive {
+  color: var(--store-text);
+  border-color: var(--store-border-strong);
+  background:
+    linear-gradient(180deg, rgba(125, 92, 255, 0.12), rgba(125, 92, 255, 0.04)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(246, 248, 255, 0.98));
+}
+
+:global(html[data-store-theme='light']) .adminCardSub,
+:global(html[data-store-theme='light']) .adminPageLeadText,
+:global(html[data-store-theme='light']) .adminSummaryText,
+:global(html[data-store-theme='light']) .adminLinkText,
+:global(html[data-store-theme='light']) .adminCalloutText,
+:global(html[data-store-theme='light']) .adminMetaLabel,
+:global(html[data-store-theme='light']) .adminFieldHint {
+  color: var(--store-text-soft);
+}
+
+:global(html[data-store-theme='light']) .adminCardTitle,
+:global(html[data-store-theme='light']) .adminPageLeadTitle,
+:global(html[data-store-theme='light']) .adminLinkTitle,
+:global(html[data-store-theme='light']) .adminSummaryValue,
+:global(html[data-store-theme='light']) .adminCalloutTitle,
+:global(html[data-store-theme='light']) .adminMetaValue {
+  color: var(--store-text);
+}
+
+:global(html[data-store-theme='light']) .adminPageLead {
+  border-color: var(--store-border-strong);
+  background:
+    radial-gradient(circle at top right, rgba(125, 92, 255, 0.12), transparent 24%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.99), rgba(244, 247, 255, 0.97));
+}
+
+:global(html[data-store-theme='light']) .adminSummaryCard,
+:global(html[data-store-theme='light']) .adminMetaCell {
+  background:
+    linear-gradient(180deg, rgba(125, 92, 255, 0.04), rgba(125, 92, 255, 0)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(249, 251, 255, 0.98));
+}
+
+:global(html[data-store-theme='light']) .adminActionLink,
+:global(html[data-store-theme='light']) .adminSecondaryButton {
+  border-color: rgba(15, 23, 42, 0.08);
+  background: rgba(15, 23, 42, 0.03);
+  color: var(--store-text);
+}
+
+:global(html[data-store-theme='light']) .adminPrimaryLink {
+  background: linear-gradient(135deg, var(--store-accent) 0%, #9275ff 100%);
+  color: var(--store-accent-text);
+  box-shadow: 0 14px 24px rgba(125, 92, 255, 0.22);
+}
+
+:global(html[data-store-theme='light']) .adminCallout {
+  border-color: rgba(125, 92, 255, 0.18);
+  background: rgba(125, 92, 255, 0.08);
+}
+
+:global(html[data-store-theme='light']) .adminCalloutWarn {
+  border-color: rgba(183, 119, 17, 0.2);
+  background: rgba(255, 242, 220, 0.9);
+}
+
+:global(html[data-store-theme='light']) .adminInput,
+:global(html[data-store-theme='light']) .adminTextarea,
+:global(html[data-store-theme='light']) .adminSelect {
+  border-color: rgba(15, 23, 42, 0.1);
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--store-text);
+}
