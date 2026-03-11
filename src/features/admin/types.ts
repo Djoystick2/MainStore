@@ -21,6 +21,7 @@ export interface AdminCategoryOption {
   catalogGroupOrder: number;
   catalogVisible: boolean;
   catalogVisual: string | null;
+  catalogGroupArtworkUrl: string | null;
 }
 
 export interface AdminCollectionOption {
@@ -197,6 +198,7 @@ export interface CategoryUpsertInput {
   catalogGroupOrder?: number;
   catalogVisible?: boolean;
   catalogVisual?: string | null;
+  catalogGroupArtworkUrl?: string | null;
 }
 
 export interface CollectionUpsertInput {

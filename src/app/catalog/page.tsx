@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { CSSProperties } from 'react';
 
 import { AddToCartButton } from '@/components/store/AddToCartButton';
 import { FavoriteToggleButton } from '@/components/store/FavoriteToggleButton';
@@ -145,6 +146,30 @@ function pluralizeProducts(count: number): string {
   return 'товаров';
 }
 
+function buildCategoryTileStyle(artworkUrl: string | null): CSSProperties | undefined {
+  if (!artworkUrl) {
+    return undefined;
+  }
+
+  try {
+    const parsed = new URL(artworkUrl);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return undefined;
+    }
+  } catch {
+    return undefined;
+  }
+
+  return {
+    backgroundImage: [
+      'linear-gradient(180deg, rgba(5, 6, 8, 0.14) 0%, rgba(5, 6, 8, 0.54) 72%, rgba(5, 6, 8, 0.82) 100%)',
+      `url(${artworkUrl})`,
+    ].join(', '),
+    backgroundPosition: 'center',
+    backgroundSize: 'cover',
+  };
+}
+
 export default async function CatalogPage({
   searchParams,
 }: {
@@ -269,9 +294,20 @@ export default async function CatalogPage({
               className={styles.categoryShortcut}
               aria-label={`Открыть раздел ${group.title}`}
             >
-              {group.visual ? <span className={styles.categoryShortcutVisual}>{group.visual}</span> : null}
-              <p className={styles.categoryShortcutTitle}>{group.title}</p>
-              <p className={styles.categoryShortcutSub}>{group.description}</p>
+              <span
+                className={styles.categoryShortcutBackdrop}
+                style={buildCategoryTileStyle(group.artworkUrl)}
+                aria-hidden="true"
+              />
+              <span className={styles.categoryShortcutScrim} aria-hidden="true" />
+              <span className={styles.categoryShortcutHighlight} aria-hidden="true" />
+              <span className={styles.categoryShortcutContent}>
+                {group.visual ? <span className={styles.categoryShortcutVisual}>{group.visual}</span> : null}
+                <span className={styles.categoryShortcutCopy}>
+                  <span className={styles.categoryShortcutTitle}>{group.title}</span>
+                  <span className={styles.categoryShortcutSub}>{group.description}</span>
+                </span>
+              </span>
             </Link>
           ))}
         </section>

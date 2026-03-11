@@ -143,6 +143,7 @@ function mapCategories(rows: CategoryRow[]): AdminCategoryOption[] {
         catalogGroupOrder: metadata.catalogGroupOrder,
         catalogVisible: metadata.catalogVisible,
         catalogVisual: metadata.catalogVisual,
+        catalogGroupArtworkUrl: metadata.catalogGroupArtworkUrl,
       };
     });
 }

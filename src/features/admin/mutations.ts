@@ -107,6 +107,11 @@ function validateTaxonomyInput(
     ) {
       return 'invalid_catalog_group_order';
     }
+
+    const normalizedArtworkUrl = normalizeText(categoryInput.catalogGroupArtworkUrl, 2000);
+    if (normalizedArtworkUrl && !isHttpUrl(normalizedArtworkUrl)) {
+      return 'invalid_catalog_group_artwork_url';
+    }
   }
 
   return null;
@@ -884,6 +889,7 @@ export async function createAdminCategory(
           catalogGroupOrder: input.catalogGroupOrder,
           catalogVisible: input.catalogVisible,
           catalogVisual: input.catalogVisual,
+          catalogGroupArtworkUrl: input.catalogGroupArtworkUrl,
         }),
       } as never,
     )
@@ -938,6 +944,7 @@ export async function updateAdminCategory(
           catalogGroupOrder: input.catalogGroupOrder,
           catalogVisible: input.catalogVisible,
           catalogVisual: input.catalogVisual,
+          catalogGroupArtworkUrl: input.catalogGroupArtworkUrl,
         }),
       } as never,
     )

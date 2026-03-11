@@ -10,6 +10,7 @@ interface TaxonomyMetadataShape {
   catalog_group_order?: number;
   catalog_visible?: boolean;
   catalog_visual?: string;
+  catalog_group_artwork_url?: string;
 }
 
 export interface ParsedTaxonomyMetadata {
@@ -22,6 +23,7 @@ export interface ParsedTaxonomyMetadata {
   catalogGroupOrder: number;
   catalogVisible: boolean;
   catalogVisual: string | null;
+  catalogGroupArtworkUrl: string | null;
 }
 
 function isRecord(value: Json): value is Record<string, Json | undefined> {
@@ -40,6 +42,7 @@ export function parseTaxonomyMetadata(metadata: Json): ParsedTaxonomyMetadata {
       catalogGroupOrder: 0,
       catalogVisible: true,
       catalogVisual: null,
+      catalogGroupArtworkUrl: null,
     };
   }
 
@@ -76,6 +79,10 @@ export function parseTaxonomyMetadata(metadata: Json): ParsedTaxonomyMetadata {
       typeof shape.catalog_visual === 'string' && shape.catalog_visual.trim()
         ? shape.catalog_visual.trim().slice(0, 24)
         : null,
+    catalogGroupArtworkUrl:
+      typeof shape.catalog_group_artwork_url === 'string' && shape.catalog_group_artwork_url.trim()
+        ? shape.catalog_group_artwork_url.trim().slice(0, 2000)
+        : null,
   };
 }
 
@@ -89,6 +96,7 @@ export function buildTaxonomyMetadata(input: {
   catalogGroupOrder?: number;
   catalogVisible?: boolean;
   catalogVisual?: string | null;
+  catalogGroupArtworkUrl?: string | null;
 }): Json {
   return {
     short_text: input.shortText?.trim() ? input.shortText.trim().slice(0, 180) : null,
@@ -113,6 +121,9 @@ export function buildTaxonomyMetadata(input: {
     catalog_visible: input.catalogVisible !== false,
     catalog_visual: input.catalogVisual?.trim()
       ? input.catalogVisual.trim().slice(0, 24)
+      : null,
+    catalog_group_artwork_url: input.catalogGroupArtworkUrl?.trim()
+      ? input.catalogGroupArtworkUrl.trim().slice(0, 2000)
       : null,
   };
 }

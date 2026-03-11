@@ -15,6 +15,7 @@ export interface CatalogCategoryGroup {
   description: string;
   order: number;
   visual: string | null;
+  artworkUrl: string | null;
   subcategories: StorefrontCategory[];
 }
 
@@ -75,6 +76,7 @@ interface ResolvedGroupConfig {
   description: string;
   order: number;
   visual: string | null;
+  artworkUrl: string | null;
 }
 
 function normalizeGroupConfig(category: StorefrontCategory): ResolvedGroupConfig | null {
@@ -87,6 +89,7 @@ function normalizeGroupConfig(category: StorefrontCategory): ResolvedGroupConfig
       description: category.catalogGroupDescription?.trim() || category.description || 'Подкатегории раздела',
       order: category.catalogGroupOrder ?? category.sortOrder ?? 999,
       visual: category.catalogVisual?.trim() || null,
+      artworkUrl: category.catalogGroupArtworkUrl?.trim() || null,
     };
   }
 
@@ -98,6 +101,7 @@ function normalizeGroupConfig(category: StorefrontCategory): ResolvedGroupConfig
       description: fallbackGroup.description,
       order: fallbackGroup.order,
       visual: fallbackGroup.visual ?? null,
+      artworkUrl: null,
     };
   }
 
@@ -111,6 +115,7 @@ function normalizeGroupConfig(category: StorefrontCategory): ResolvedGroupConfig
     description: category.description || 'Откройте раздел и перейдите к товарам.',
     order: category.sortOrder ?? 999,
     visual: category.catalogVisual?.trim() || category.title.slice(0, 1),
+    artworkUrl: category.catalogGroupArtworkUrl?.trim() || null,
   };
 }
 
@@ -145,6 +150,7 @@ export function buildCatalogCategoryGroups(categories: StorefrontCategory[]): Ca
         description: config.description,
         order: config.order,
         visual: config.visual,
+        artworkUrl: config.artworkUrl,
         subcategories: [category],
       });
       return;
@@ -160,8 +166,11 @@ export function buildCatalogCategoryGroups(categories: StorefrontCategory[]): Ca
       existing.description = config.description;
       existing.order = config.order;
       existing.visual = config.visual;
+      existing.artworkUrl = config.artworkUrl;
     } else if (!existing.visual && config.visual) {
       existing.visual = config.visual;
+    } else if (!existing.artworkUrl && config.artworkUrl) {
+      existing.artworkUrl = config.artworkUrl;
     }
   });
 

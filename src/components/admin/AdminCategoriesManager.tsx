@@ -26,6 +26,7 @@ interface CatalogSectionSummary {
   description: string;
   order: number;
   visual: string | null;
+  artworkUrl: string | null;
   categoriesCount: number;
 }
 
@@ -43,6 +44,23 @@ function normalizeOptionalText(value: string): string | null {
   return normalized ? normalized : null;
 }
 
+function getSafeArtworkUrl(value: string | null | undefined): string | null {
+  if (!value?.trim()) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(value.trim());
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return parsed.toString();
+    }
+  } catch {
+    // Ignore invalid artwork URLs in preview mode.
+  }
+
+  return null;
+}
+
 function mapAdminCategoryError(error: string | undefined): string {
   switch (error) {
     case 'not_configured':
@@ -57,6 +75,8 @@ function mapAdminCategoryError(error: string | undefined): string {
       return 'Код верхнего раздела должен содержать только строчные буквы, цифры и дефисы.';
     case 'invalid_catalog_group_order':
       return 'Порядок верхнего раздела должен быть неотрицательным целым числом.';
+    case 'invalid_catalog_group_artwork_url':
+      return 'Укажите корректный http или https URL для изображения верхней плитки.';
     case 'slug_conflict':
       return 'Этот слаг уже используется другой категорией.';
     case 'category_not_found':
@@ -85,10 +105,11 @@ function buildCatalogSections(categories: AdminCategoryOption[]): CatalogSection
       'Подкатегории этого раздела';
     const order = category.catalogGroupOrder ?? category.sortOrder;
     const visual = category.catalogVisual?.trim() || null;
+    const artworkUrl = category.catalogGroupArtworkUrl?.trim() || null;
 
     const current = sections.get(slug);
     if (!current) {
-      sections.set(slug, { slug, title, description, order, visual, categoriesCount: 1 });
+      sections.set(slug, { slug, title, description, order, visual, artworkUrl, categoriesCount: 1 });
       return;
     }
 
@@ -98,8 +119,11 @@ function buildCatalogSections(categories: AdminCategoryOption[]): CatalogSection
       current.description = description;
       current.order = order;
       current.visual = visual;
+      current.artworkUrl = artworkUrl;
     } else if (!current.visual && visual) {
       current.visual = visual;
+    } else if (!current.artworkUrl && artworkUrl) {
+      current.artworkUrl = artworkUrl;
     }
   });
 
@@ -178,6 +202,7 @@ function CategoryEditor({
   const [catalogGroupOrder, setCatalogGroupOrder] = useState(String(category?.catalogGroupOrder ?? 0));
   const [catalogVisible, setCatalogVisible] = useState(category?.catalogVisible ?? true);
   const [catalogVisual, setCatalogVisual] = useState(category?.catalogVisual ?? '');
+  const [catalogGroupArtworkUrl, setCatalogGroupArtworkUrl] = useState(category?.catalogGroupArtworkUrl ?? '');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const isSubmittingRef = useRef(false);
@@ -214,6 +239,7 @@ function CategoryEditor({
       catalogGroupOrder: parsedCatalogGroupOrder,
       catalogVisible,
       catalogVisual: normalizeOptionalText(catalogVisual),
+      catalogGroupArtworkUrl: normalizeOptionalText(catalogGroupArtworkUrl),
     };
 
     isSubmittingRef.current = true;
@@ -239,6 +265,7 @@ function CategoryEditor({
           setCatalogGroupOrder('0');
           setCatalogVisible(true);
           setCatalogVisual('');
+          setCatalogGroupArtworkUrl('');
         }
       }
 
@@ -290,7 +317,7 @@ function CategoryEditor({
       <section className={styles.adminFormSection}>
         <div className={styles.adminFormSectionHead}>
           <h4 className={styles.adminFormSectionTitle}>Каталог и плитка раздела</h4>
-          <p className={styles.adminFormSectionText}>Эти поля управляют верхним уровнем каталога и переходом к листингу.</p>
+          <p className={styles.adminFormSectionText}>Эти поля управляют верхним уровнем каталога, artwork первой плитки и переходом к листингу.</p>
         </div>
 
         <div className={styles.adminInlineRow}>
@@ -319,6 +346,45 @@ function CategoryEditor({
             <span className={styles.adminLabel}>Визуал плитки</span>
             <input className={styles.adminInput} value={catalogVisual} onChange={(event) => setCatalogVisual(event.target.value)} placeholder="ОД или emoji" />
           </label>
+        </div>
+
+        <label className={styles.adminField}>
+          <span className={styles.adminLabel}>Фоновое изображение верхней плитки</span>
+          <input
+            className={styles.adminInput}
+            value={catalogGroupArtworkUrl}
+            onChange={(event) => setCatalogGroupArtworkUrl(event.target.value)}
+            placeholder="https://example.com/catalog-apparel.jpg"
+            inputMode="url"
+          />
+          <span className={styles.adminFieldHint}>
+            Это изображение используется на первом экране каталога для верхней плитки раздела.
+          </span>
+        </label>
+
+        <div className={styles.adminCatalogArtworkPreview}>
+          <div
+            className={styles.adminCatalogArtworkPreviewMedia}
+            style={
+              getSafeArtworkUrl(catalogGroupArtworkUrl)
+                ? {
+                    backgroundImage: `linear-gradient(180deg, rgba(5, 6, 8, 0.12) 0%, rgba(5, 6, 8, 0.56) 72%, rgba(5, 6, 8, 0.84) 100%), url(${getSafeArtworkUrl(catalogGroupArtworkUrl)})`,
+                  }
+                : undefined
+            }
+          >
+            <span className={styles.adminCatalogArtworkPreviewBadge}>
+              {(catalogVisual || catalogGroupTitle || title || 'Раздел').slice(0, 2).toUpperCase()}
+            </span>
+            <div className={styles.adminCatalogArtworkPreviewCopy}>
+              <p className={styles.adminCatalogArtworkPreviewTitle}>
+                {catalogGroupTitle || title || 'Верхняя плитка каталога'}
+              </p>
+              <p className={styles.adminCatalogArtworkPreviewText}>
+                {catalogGroupDescription || shortText || description || 'Превью верхней плитки каталога для storefront.'}
+              </p>
+            </div>
+          </div>
         </div>
 
         <label className={styles.adminField}>
@@ -416,13 +482,27 @@ export function AdminCategoriesManager({ categories }: AdminCategoriesManagerPro
 
         <div className={styles.adminCallout}>
           <p className={styles.adminCalloutTitle}>Как управлять верхними плитками</p>
-          <p className={styles.adminCalloutText}>Используйте одинаковый код верхнего раздела у нужных подкатегорий. Заголовок, описание, порядок и визуал этого раздела также задаются здесь.</p>
+          <p className={styles.adminCalloutText}>Используйте одинаковый код верхнего раздела у нужных подкатегорий. Заголовок, описание, порядок, визуал и фоновый artwork этой плитки также задаются здесь.</p>
         </div>
 
         {catalogSections.length > 0 ? (
           <div className={styles.adminLinkGrid}>
             {catalogSections.map((section) => (
               <article key={section.slug} className={styles.adminLinkCard}>
+                <div
+                  className={styles.adminCatalogSectionPreview}
+                  style={
+                    getSafeArtworkUrl(section.artworkUrl)
+                      ? {
+                          backgroundImage: `linear-gradient(180deg, rgba(5, 6, 8, 0.12) 0%, rgba(5, 6, 8, 0.56) 72%, rgba(5, 6, 8, 0.84) 100%), url(${getSafeArtworkUrl(section.artworkUrl)})`,
+                        }
+                      : undefined
+                  }
+                >
+                  {section.visual ? (
+                    <span className={styles.adminCatalogSectionPreviewBadge}>{section.visual}</span>
+                  ) : null}
+                </div>
                 <p className={styles.adminLinkTitle}>{section.visual ? `${section.visual} ` : ''}{section.title}</p>
                 <p className={styles.adminLinkText}>{section.description}</p>
                 <div className={styles.adminMetaGrid}>

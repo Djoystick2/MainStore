@@ -701,6 +701,7 @@ async function fetchActiveCategories(): Promise<StorefrontCategory[]> {
           catalogGroupOrder: metadata.catalogGroupOrder,
           catalogVisible: metadata.catalogVisible,
           catalogVisual: metadata.catalogVisual,
+          catalogGroupArtworkUrl: metadata.catalogGroupArtworkUrl,
         };
       }),
   ]);
@@ -719,6 +720,7 @@ export interface StorefrontCategory {
   catalogGroupOrder?: number;
   catalogVisible?: boolean;
   catalogVisual?: string | null;
+  catalogGroupArtworkUrl?: string | null;
 }
 
 export interface StorefrontCollection {

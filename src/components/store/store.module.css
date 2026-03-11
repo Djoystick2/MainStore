@@ -581,49 +581,105 @@
 }
 
 .categoryShortcut {
-  border: 1px solid var(--store-border);
-  border-radius: 14px;
-  background: var(--store-surface-muted);
-  padding: 12px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  min-height: 176px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top left, rgba(214, 199, 255, 0.18), transparent 32%),
+    linear-gradient(160deg, rgba(34, 36, 46, 0.98), rgba(10, 11, 15, 0.98));
+  padding: 14px;
   text-decoration: none;
   color: inherit;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 16px 34px rgba(4, 3, 10, 0.24);
 }
 
-.categoryShortcutActive {
-  border-color: rgba(39, 51, 71, 0.14);
-  background: rgba(255, 243, 228, 0.92);
-  box-shadow: 0 10px 22px rgba(31, 49, 84, 0.06);
+.categoryShortcutBackdrop,
+.categoryShortcutScrim,
+.categoryShortcutHighlight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.categoryShortcutBackdrop {
+  background:
+    radial-gradient(circle at top right, rgba(214, 199, 255, 0.14), transparent 28%),
+    linear-gradient(180deg, rgba(22, 25, 33, 0.86), rgba(10, 11, 15, 0.98));
+  background-position: center;
+  background-size: cover;
+  transform: scale(1.02);
+}
+
+.categoryShortcutScrim {
+  background:
+    linear-gradient(180deg, rgba(5, 6, 8, 0.04) 0%, rgba(5, 6, 8, 0.18) 48%, rgba(5, 6, 8, 0.82) 100%),
+    radial-gradient(circle at 85% 0%, rgba(255, 255, 255, 0.16), transparent 24%);
+}
+
+.categoryShortcutHighlight {
+  inset: 1px;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  mask: linear-gradient(180deg, rgba(0, 0, 0, 0.86), transparent);
+}
+
+.categoryShortcutContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100%;
+  width: 100%;
+  gap: 30px;
+}
+
+.categoryShortcutCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .categoryShortcutTitle {
   margin: 0;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.15;
-  font-weight: 700;
+  font-weight: 800;
+  color: #ffffff;
+  text-shadow: 0 10px 26px rgba(4, 3, 10, 0.42);
 }
 
 .categoryShortcutSub {
-  margin: 6px 0 0;
+  margin: 0;
   font-size: 13px;
-  line-height: 1.2;
-  color: var(--store-hint);
+  line-height: 1.32;
+  color: rgba(244, 239, 255, 0.92);
+  text-shadow: 0 6px 22px rgba(4, 3, 10, 0.34);
 }
 
 .categoryShortcutVisual {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 38px;
-  min-height: 38px;
+  min-width: 46px;
+  min-height: 46px;
   width: fit-content;
-  padding: 0 10px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--store-accent-strong);
-  font-size: 12px;
+  padding: 0 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(7, 8, 11, 0.26);
+  backdrop-filter: blur(14px);
+  color: #ffffff;
+  font-size: 13px;
   line-height: 1;
   font-weight: 800;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .scrollRow {
@@ -1895,52 +1951,90 @@
   pointer-events: auto;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  padding: 8px 10px 12px;
-  gap: 6px;
+  padding: 10px 10px 12px;
+  gap: 8px;
 }
 
 .bottomNavLink {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  min-height: 56px;
-  border-radius: 12px;
+  gap: 6px;
+  min-height: 60px;
+  border-radius: 18px;
   color: var(--store-hint);
   text-decoration: none;
   border: 1px solid transparent;
+  overflow: hidden;
 }
 
 .bottomNavIcon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 34px;
+  height: 34px;
   border-radius: 999px;
   border: 1px solid var(--store-border);
   font-size: 10px;
   line-height: 1;
   font-weight: 800;
+  position: relative;
+  z-index: 1;
+}
+
+.bottomNavIconGlyph {
+  width: 18px;
+  height: 18px;
 }
 
 .bottomNavLabel {
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.1;
   font-weight: 700;
   text-align: center;
   white-space: normal;
+  letter-spacing: -0.01em;
+  position: relative;
+  z-index: 1;
+}
+
+.bottomNavActiveGlow {
+  position: absolute;
+  inset: auto 12px 8px;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(180, 156, 255, 0), rgba(180, 156, 255, 0.96), rgba(180, 156, 255, 0));
+  opacity: 0;
+  transform: scaleX(0.45);
+  transition:
+    opacity var(--store-motion-fast) ease,
+    transform var(--store-motion-base) var(--store-motion-ease);
 }
 
 .bottomNavLinkActive {
-  color: var(--store-accent);
-  border-color: rgba(45, 99, 241, 0.38);
-  background: rgba(45, 99, 241, 0.12);
+  color: var(--store-text);
+  border-color: var(--store-border-strong);
+  background:
+    linear-gradient(180deg, rgba(180, 156, 255, 0.18), rgba(180, 156, 255, 0.04)),
+    rgba(255, 255, 255, 0.03);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 12px 20px rgba(4, 3, 10, 0.2);
 }
 
 .bottomNavLinkActive .bottomNavIcon {
-  border-color: var(--store-accent);
+  border-color: rgba(214, 199, 255, 0.34);
+  background: linear-gradient(180deg, rgba(214, 199, 255, 0.26), rgba(180, 156, 255, 0.08));
+  color: var(--store-accent-strong);
+  box-shadow: 0 8px 18px rgba(120, 96, 197, 0.18);
+}
+
+.bottomNavLinkActive .bottomNavActiveGlow {
+  opacity: 1;
+  transform: scaleX(1);
 }
 
 .productPageBottomSpace {
@@ -3009,16 +3103,20 @@
 .bottomNav {
   width: min(100%, var(--store-shell-width));
   border: 1px solid var(--store-border);
-  border-radius: 24px;
-  background: rgba(6, 7, 9, 0.9);
-  box-shadow: 0 18px 40px rgba(4, 3, 10, 0.38);
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0)),
+    rgba(6, 7, 9, 0.92);
+  box-shadow:
+    0 22px 44px rgba(4, 3, 10, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(18px);
-  padding: 8px 10px 12px;
+  padding: 10px 10px 12px;
 }
 
 .bottomNavIcon {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(201, 183, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(201, 183, 255, 0.14);
 }
 
 .detailCard {
@@ -3798,6 +3896,15 @@
     padding: 18px 16px;
   }
 
+  .categoryShortcut {
+    min-height: 164px;
+    border-radius: 22px;
+  }
+
+  .categoryShortcutContent {
+    gap: 24px;
+  }
+
   .productCard {
     min-height: 276px;
   }
@@ -3844,6 +3951,24 @@
 }
 
 @media (max-width: 380px) {
+  .bottomNav {
+    gap: 6px;
+    padding-inline: 8px;
+  }
+
+  .bottomNavLink {
+    min-height: 56px;
+  }
+
+  .bottomNavIcon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .bottomNavLabel {
+    font-size: 10px;
+  }
+
   .categoryListItem {
     grid-template-columns: 38px minmax(0, 1fr) auto;
     padding: 11px 12px;
@@ -3864,18 +3989,8 @@
 :global(html[data-store-theme='dark']) .orderCardHint,
 :global(html[data-store-theme='dark']) .productMetaBadge,
 :global(html[data-store-theme='dark']) .productImageLabel,
-:global(html[data-store-theme='dark']) .quickLinkSubtitle,
-:global(html[data-store-theme='dark']) .categoryShortcutActive,
-:global(html[data-store-theme='dark']) .categoryShortcutActive .categoryShortcutTitle,
-:global(html[data-store-theme='dark']) .categoryShortcutActive .categoryShortcutSub {
+:global(html[data-store-theme='dark']) .quickLinkSubtitle {
   color: var(--store-text-soft);
-}
-
-:global(html[data-store-theme='dark']) .categoryShortcutActive {
-  border-color: rgba(214, 199, 255, 0.22);
-  background:
-    linear-gradient(180deg, rgba(180, 156, 255, 0.16), rgba(180, 156, 255, 0.04)),
-    linear-gradient(180deg, rgba(37, 29, 54, 0.98), rgba(24, 20, 33, 0.98));
 }
 
 :global(html[data-store-theme='dark']) .profilePreferenceButton:focus-visible,
@@ -4006,6 +4121,25 @@
   box-shadow: 0 22px 48px rgba(78, 91, 120, 0.12);
 }
 
+:global(html[data-store-theme='light']) .categoryShortcut {
+  border-color: rgba(125, 92, 255, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 18px 32px rgba(78, 91, 120, 0.12);
+}
+
+:global(html[data-store-theme='light']) .categoryShortcutBackdrop {
+  background:
+    radial-gradient(circle at top right, rgba(125, 92, 255, 0.22), transparent 28%),
+    linear-gradient(160deg, rgba(118, 86, 226, 0.92), rgba(58, 81, 143, 0.92));
+}
+
+:global(html[data-store-theme='light']) .categoryShortcutScrim {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(18, 24, 38, 0.16) 52%, rgba(18, 24, 38, 0.72) 100%),
+    radial-gradient(circle at 85% 0%, rgba(255, 255, 255, 0.28), transparent 24%);
+}
+
 :global(html[data-store-theme='light']) .heroMetaItem,
 :global(html[data-store-theme='light']) .profileMetaBadge {
   border-color: rgba(15, 23, 42, 0.08);
@@ -4045,16 +4179,35 @@
 }
 
 :global(html[data-store-theme='light']) .bottomNav {
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 18px 36px rgba(72, 84, 111, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 249, 255, 0.92)),
+    rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 18px 36px rgba(72, 84, 111, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
 }
 
 :global(html[data-store-theme='light']) .bottomNavIcon {
-  background: rgba(15, 23, 42, 0.03);
+  background: rgba(15, 23, 42, 0.04);
   border-color: rgba(15, 23, 42, 0.08);
 }
 
 :global(html[data-store-theme='light']) .bottomNavLink,
 :global(html[data-store-theme='light']) .actionItemIcon {
+  color: var(--store-accent-strong);
+}
+
+:global(html[data-store-theme='light']) .bottomNavLinkActive {
+  background:
+    linear-gradient(180deg, rgba(125, 92, 255, 0.14), rgba(125, 92, 255, 0.03)),
+    rgba(255, 255, 255, 0.82);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 12px 22px rgba(125, 92, 255, 0.12);
+}
+
+:global(html[data-store-theme='light']) .bottomNavLinkActive .bottomNavIcon {
+  background: linear-gradient(180deg, rgba(125, 92, 255, 0.16), rgba(125, 92, 255, 0.06));
+  border-color: rgba(125, 92, 255, 0.22);
   color: var(--store-accent-strong);
 }
