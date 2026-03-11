@@ -189,7 +189,7 @@ export default async function ProfilePage() {
               <p className={styles.actionItemTitle}>{nextAction.title}</p>
               <p className={styles.actionItemSub}>{nextAction.text}</p>
             </div>
-            <span className={styles.actionItemIcon}>--&gt;</span>
+            <span className={styles.actionItemIcon}>›</span>
           </Link>
         </div>
       </StoreSection>
@@ -258,7 +258,7 @@ export default async function ProfilePage() {
               <p className={styles.actionItemTitle}>Мои заказы</p>
               <p className={styles.actionItemSub}>Статусы, оплата и история покупок</p>
             </div>
-            <span className={styles.actionItemIcon}>--&gt;</span>
+            <span className={styles.actionItemIcon}>›</span>
           </Link>
 
           <Link href="/favorites" className={styles.actionItem} aria-label="Открыть избранное">
@@ -266,7 +266,7 @@ export default async function ProfilePage() {
               <p className={styles.actionItemTitle}>Избранное</p>
               <p className={styles.actionItemSub}>Сохраненные товары для быстрого возврата</p>
             </div>
-            <span className={styles.actionItemIcon}>--&gt;</span>
+            <span className={styles.actionItemIcon}>›</span>
           </Link>
 
           <Link href="/cart" className={styles.actionItem} aria-label="Открыть корзину">
@@ -274,7 +274,7 @@ export default async function ProfilePage() {
               <p className={styles.actionItemTitle}>Корзина</p>
               <p className={styles.actionItemSub}>Проверьте состав заказа и переходите к оформлению</p>
             </div>
-            <span className={styles.actionItemIcon}>--&gt;</span>
+            <span className={styles.actionItemIcon}>›</span>
           </Link>
         </div>
       </StoreSection>
