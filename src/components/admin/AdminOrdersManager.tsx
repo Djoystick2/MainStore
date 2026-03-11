@@ -113,6 +113,11 @@ export function AdminOrdersManager({ orders }: AdminOrdersManagerProps) {
   const [statusFilter, setStatusFilter] = useState<'all' | OrderStatus>('all');
   const [paymentFilter, setPaymentFilter] = useState<'all' | PaymentStatus>('all');
   const [attentionFilter, setAttentionFilter] = useState<'all' | 'attention' | 'completed'>('all');
+  const hasActiveFilters =
+    search.trim().length > 0 ||
+    statusFilter !== 'all' ||
+    paymentFilter !== 'all' ||
+    attentionFilter !== 'all';
 
   const filteredOrders = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -206,7 +211,7 @@ export function AdminOrdersManager({ orders }: AdminOrdersManagerProps) {
               className={styles.adminInput}
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Номер, покупатель или username"
+              placeholder="Номер, покупатель или @username"
             />
           </label>
 
@@ -271,6 +276,22 @@ export function AdminOrdersManager({ orders }: AdminOrdersManagerProps) {
               ? 'Новые заказы появятся здесь после оформления покупок на витрине.'
               : 'Измените фильтры или поисковый запрос, чтобы увидеть нужные заказы.'}
           </p>
+          {hasActiveFilters ? (
+            <div className={styles.adminActions}>
+              <button
+                type="button"
+                className={styles.adminSecondaryButton}
+                onClick={() => {
+                  setSearch('');
+                  setStatusFilter('all');
+                  setPaymentFilter('all');
+                  setAttentionFilter('all');
+                }}
+              >
+                Сбросить фильтры
+              </button>
+            </div>
+          ) : null}
         </section>
       ) : (
         <div className={styles.adminCardList}>

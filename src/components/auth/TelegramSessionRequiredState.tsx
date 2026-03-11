@@ -25,7 +25,7 @@ export function TelegramSessionRequiredState({
     return (
       <StoreEmptyState
         title="Проверяем сессию Telegram"
-        description="Личный раздел откроется автоматически, как только подтвердится сессия Mini App."
+        description="Личный раздел откроется автоматически, как только подтвердится сессия магазина в Telegram."
       />
     );
   }
@@ -33,10 +33,10 @@ export function TelegramSessionRequiredState({
   if (isTelegramRuntime && status === 'failed') {
     const failureDescription =
       error === 'init_data_unavailable'
-        ? 'Mini App открыт в Telegram, но данные запуска не загрузились вовремя. Обновите экран или откройте магазин заново из бота.'
+        ? 'Магазин открыт в Telegram, но данные запуска не успели загрузиться. Обновите экран или откройте магазин заново из бота.'
         : error
-          ? `Mini App открыт из Telegram, но серверная сессия не создалась. Код: ${error}.`
-          : 'Mini App открыт из Telegram, но серверная сессия не создалась. Обновите экран или откройте магазин заново из бота.';
+          ? `Магазин открыт из Telegram, но серверная сессия не создалась. Код: ${error}.`
+          : 'Магазин открыт из Telegram, но серверная сессия не создалась. Обновите экран или откройте магазин заново из бота.';
 
     return (
       <StoreEmptyState
@@ -52,7 +52,7 @@ export function TelegramSessionRequiredState({
     return (
       <StoreEmptyState
         title="Подключаем Telegram"
-        description="Ждём данные запуска от Telegram. Если экран не обновится автоматически, перезапустите Mini App из бота."
+        description="Ждём данные запуска от Telegram. Если экран не обновится автоматически, перезапустите магазин из бота."
         actionLabel="Обновить экран"
         actionHref={retryHref}
       />

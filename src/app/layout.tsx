@@ -11,7 +11,7 @@ import './_assets/globals.css';
 
 export const metadata: Metadata = {
   title: 'MainStore',
-  description: 'Telegram Mini App skeleton for future MainStore',
+  description: 'MainStore в Telegram: витрина, заказы и админ-панель магазина.',
 };
 
 export default async function RootLayout({ children }: PropsWithChildren) {

@@ -293,7 +293,7 @@ export default async function ProductPage({
         <section className={styles.panel}>
           <h2 className={styles.panelTitle}>Что важно перед покупкой</h2>
           <p className={styles.panelText}>
-            Карточка открывается и по прямой ссылке, и внутри Telegram Mini App. Вы можете спокойно вернуться назад: товар останется в истории навигации.
+            Карточка открывается и по прямой ссылке, и внутри магазина в Telegram. Вы можете спокойно вернуться назад: товар останется в истории навигации.
           </p>
         </section>
 

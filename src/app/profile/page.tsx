@@ -114,7 +114,7 @@ export default async function ProfilePage() {
   }
 
   const displayName = profile.displayName || profile.username || 'Пользователь Telegram';
-  const username = profile.username ? `@${profile.username}` : 'username не указан';
+  const username = profile.username ? `@${profile.username}` : 'Имя пользователя не указано';
   const isAdmin = hasAdminRole(profile.role);
   const roleLabel = formatProfileRole(profile.role);
 
