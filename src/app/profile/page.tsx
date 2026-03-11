@@ -1,7 +1,6 @@
 import Link from 'next/link';
 
 import { TelegramSessionRequiredState } from '@/components/auth/TelegramSessionRequiredState';
-import { StoreEmptyState } from '@/components/store/StoreEmptyState';
 import { StoreScreen } from '@/components/store/StoreScreen';
 import { StoreSection } from '@/components/store/StoreSection';
 import { formatStorePrice } from '@/components/store/formatPrice';
@@ -17,7 +16,7 @@ function formatOrderStatus(status: string): string {
     case 'pending':
       return 'Ожидает';
     case 'confirmed':
-      return 'Подтверждён';
+      return 'Подтвержден';
     case 'processing':
       return 'В обработке';
     case 'shipped':
@@ -25,7 +24,7 @@ function formatOrderStatus(status: string): string {
     case 'delivered':
       return 'Доставлен';
     case 'cancelled':
-      return 'Отменён';
+      return 'Отменен';
     default:
       return status;
   }
@@ -57,8 +56,8 @@ function getNextAction(input: {
 
   if (input.favoritesCount > 0) {
     return {
-      title: 'В избранном есть сохранённые товары',
-      text: 'Посмотрите сохранённые позиции и верните их в покупку, когда захотите.',
+      title: 'В избранном есть сохраненные товары',
+      text: 'Посмотрите сохраненные позиции и верните их в покупку, когда захотите.',
       href: '/favorites',
       label: 'Открыть избранное',
     };
@@ -113,7 +112,10 @@ export default async function ProfilePage() {
   const username = profile.username ? `@${profile.username}` : 'username не указан';
 
   return (
-    <StoreScreen title="Профиль" subtitle="Личное пространство для заказов, избранного и корзины">
+    <StoreScreen
+      title="Профиль"
+      subtitle="Личное пространство для заказов, избранного и корзины"
+    >
       {ordersData.message ? (
         <section
           className={classNames(
@@ -125,7 +127,11 @@ export default async function ProfilePage() {
           <p className={styles.dataNoticeText}>{ordersData.message}</p>
           {(ordersData.status === 'error' || ordersData.status === 'not_configured') ? (
             <div className={styles.dataNoticeActions}>
-              <Link href="/profile" className={styles.dataNoticeRetry} aria-label="Повторить загрузку профиля">
+              <Link
+                href="/profile"
+                className={styles.dataNoticeRetry}
+                aria-label="Повторить загрузку профиля"
+              >
                 Повторить
               </Link>
             </div>
@@ -139,7 +145,7 @@ export default async function ProfilePage() {
         <p className={styles.panelText}>
           {username}
           <br />
-          Личный раздел для покупок, истории заказов и сохранённых товаров.
+          Личный раздел для покупок, истории заказов и сохраненных товаров.
         </p>
         <div className={styles.profileHeroMeta}>
           <span className={styles.profileMetaBadge}>Роль: {profile.role}</span>
@@ -183,25 +189,36 @@ export default async function ProfilePage() {
 
       {latestOrder ? (
         <StoreSection title="Последний заказ">
-          <Link href={`/orders/${latestOrder.id}`} className={styles.orderCard} aria-label="Открыть последний заказ">
+          <Link
+            href={`/orders/${latestOrder.id}`}
+            className={styles.orderCard}
+            aria-label="Открыть последний заказ"
+          >
             <div className={styles.orderCardHeader}>
               <p className={styles.orderCardId}>Заказ #{latestOrder.id.slice(0, 8).toUpperCase()}</p>
-              <p className={styles.orderMetaItem}>{formatStorePrice(latestOrder.totalCents, latestOrder.currency)}</p>
+              <p className={styles.orderMetaItem}>
+                {formatStorePrice(latestOrder.totalCents, latestOrder.currency)}
+              </p>
             </div>
             <div className={styles.paymentBadgeRow}>
               <span className={styles.orderStatusBadge}>{formatOrderStatus(latestOrder.status)}</span>
-              <span className={styles.paymentStatusBadge}>{formatPaymentStatus(latestOrder.paymentStatus)}</span>
+              <span className={styles.paymentStatusBadge}>
+                {formatPaymentStatus(latestOrder.paymentStatus)}
+              </span>
             </div>
             <p className={styles.orderCardHint}>
-              {latestOrder.canRetryPayment ? 'Ожидает оплаты или подтверждения платежа' : 'Открыть детали заказа'}
+              {latestOrder.canRetryPayment
+                ? 'Ожидает оплаты или подтверждения платежа'
+                : 'Открыть детали заказа'}
             </p>
           </Link>
         </StoreSection>
       ) : (
         <section className={styles.panel}>
-          <h2 className={styles.panelTitle}>История заказов ещё пустая</h2>
+          <h2 className={styles.panelTitle}>История заказов еще пустая</h2>
           <p className={styles.panelText}>
-            Когда появится первый заказ, здесь будет удобно вернуться к оплате, доставке и деталям покупки.
+            Когда появится первый заказ, здесь будет удобно вернуться к оплате, доставке и
+            деталям покупки.
           </p>
         </section>
       )}
@@ -219,7 +236,7 @@ export default async function ProfilePage() {
           <Link href="/favorites" className={styles.actionItem} aria-label="Открыть избранное">
             <div>
               <p className={styles.actionItemTitle}>Избранное</p>
-              <p className={styles.actionItemSub}>Сохранённые товары для быстрого возврата</p>
+              <p className={styles.actionItemSub}>Сохраненные товары для быстрого возврата</p>
             </div>
             <span className={styles.actionItemIcon}>--&gt;</span>
           </Link>

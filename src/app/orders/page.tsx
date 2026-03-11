@@ -24,7 +24,7 @@ function formatOrderStatus(status: string): string {
     case 'pending':
       return 'Ожидает';
     case 'confirmed':
-      return 'Подтверждён';
+      return 'Подтвержден';
     case 'processing':
       return 'В обработке';
     case 'shipped':
@@ -32,7 +32,7 @@ function formatOrderStatus(status: string): string {
     case 'delivered':
       return 'Доставлен';
     case 'cancelled':
-      return 'Отменён';
+      return 'Отменен';
     default:
       return status;
   }
@@ -76,7 +76,11 @@ function getPaymentStatusClass(status: string): string {
   }
 }
 
-function getOrderListHint(input: { canRetryPayment: boolean; status: string; paymentStatus: string }): string {
+function getOrderListHint(input: {
+  canRetryPayment: boolean;
+  status: string;
+  paymentStatus: string;
+}): string {
   if (input.canRetryPayment) {
     return 'Нужно завершить оплату';
   }
@@ -87,10 +91,10 @@ function getOrderListHint(input: { canRetryPayment: boolean; status: string; pay
     return 'Заказ уже в пути';
   }
   if (input.status === 'delivered') {
-    return 'Заказ завершён';
+    return 'Заказ завершен';
   }
   if (input.status === 'cancelled') {
-    return 'Заказ отменён';
+    return 'Заказ отменен';
   }
   if (input.paymentStatus === 'paid') {
     return 'Оплата подтверждена';
@@ -106,7 +110,10 @@ export default async function OrdersPage() {
 
   if (isSessionMissing) {
     return (
-      <StoreScreen title="Мои заказы" subtitle="История покупок, оплата и текущие статусы в одном месте">
+      <StoreScreen
+        title="Мои заказы"
+        subtitle="История покупок, оплата и текущие статусы в одном месте"
+      >
         <TelegramSessionRequiredState
           fallbackTitle="Нужна сессия Telegram"
           fallbackDescription="Откройте MainStore в Telegram, чтобы увидеть историю заказов."
@@ -119,7 +126,10 @@ export default async function OrdersPage() {
   }
 
   return (
-    <StoreScreen title="Мои заказы" subtitle="История покупок, оплата и текущие статусы в одном месте">
+    <StoreScreen
+      title="Мои заказы"
+      subtitle="История покупок, оплата и текущие статусы в одном месте"
+    >
       {ordersData.message ? (
         <section
           className={classNames(
@@ -131,22 +141,16 @@ export default async function OrdersPage() {
           <p className={styles.dataNoticeText}>{ordersData.message}</p>
           {(ordersData.status === 'error' || ordersData.status === 'not_configured') ? (
             <div className={styles.dataNoticeActions}>
-              <Link href="/orders" className={styles.dataNoticeRetry} aria-label="Повторить загрузку заказов">
+              <Link
+                href="/orders"
+                className={styles.dataNoticeRetry}
+                aria-label="Повторить загрузку заказов"
+              >
                 Повторить
               </Link>
             </div>
           ) : null}
         </section>
-      ) : null}
-
-      {isSessionMissing ? (
-        <TelegramSessionRequiredState
-          fallbackTitle="Нужна сессия Telegram"
-          fallbackDescription="Откройте MainStore в Telegram, чтобы увидеть историю заказов."
-          fallbackActionLabel="Открыть каталог"
-          fallbackActionHref="/catalog"
-          retryHref="/orders"
-        />
       ) : null}
 
       <StoreSection title="Статистика">
@@ -203,12 +207,14 @@ export default async function OrdersPage() {
                 {order.previewTitle ? (
                   <p className={styles.orderCardPreview}>
                     {order.previewTitle}
-                    {order.itemsCount > 1 ? ` и ещё ${order.itemsCount - 1}` : ''}
+                    {order.itemsCount > 1 ? ` и еще ${order.itemsCount - 1}` : ''}
                   </p>
                 ) : null}
 
                 <div className={styles.orderMetaGrid}>
-                  <p className={styles.orderMetaItem}>{formatStorePrice(order.totalCents, order.currency)}</p>
+                  <p className={styles.orderMetaItem}>
+                    {formatStorePrice(order.totalCents, order.currency)}
+                  </p>
                   <p className={styles.orderMetaItem}>{order.itemsCount} шт.</p>
                   <p className={styles.orderMetaItem}>
                     {order.canRetryPayment ? 'Открыть и оплатить' : 'Открыть детали'}

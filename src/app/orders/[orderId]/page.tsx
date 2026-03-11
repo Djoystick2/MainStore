@@ -1,4 +1,4 @@
-﻿import Link from 'next/link';
+import Link from 'next/link';
 import type { CSSProperties } from 'react';
 
 import { TelegramSessionRequiredState } from '@/components/auth/TelegramSessionRequiredState';
@@ -27,17 +27,17 @@ function formatOrderDate(value: string): string {
 function formatOrderStatus(status: string): string {
   switch (status) {
     case 'pending':
-      return 'РћР¶РёРґР°РµС‚';
+      return 'Ожидает';
     case 'confirmed':
-      return 'РџРѕРґС‚РІРµСЂР¶РґС‘РЅ';
+      return 'Подтвержден';
     case 'processing':
-      return 'Р’ РѕР±СЂР°Р±РѕС‚РєРµ';
+      return 'В обработке';
     case 'shipped':
-      return 'РћС‚РїСЂР°РІР»РµРЅ';
+      return 'Отправлен';
     case 'delivered':
-      return 'Р”РѕСЃС‚Р°РІР»РµРЅ';
+      return 'Доставлен';
     case 'cancelled':
-      return 'РћС‚РјРµРЅС‘РЅ';
+      return 'Отменен';
     default:
       return status;
   }
@@ -81,23 +81,25 @@ function getPaymentStatusClass(status: string): string {
   }
 }
 
-function mapPaymentQueryNotice(value: string | undefined): { title: string; text: string; isError?: boolean } | null {
+function mapPaymentQueryNotice(
+  value: string | undefined,
+): { title: string; text: string; isError?: boolean } | null {
   switch (value) {
     case 'success':
       return {
-        title: 'РћРїР»Р°С‚Р° РїРѕРґС‚РІРµСЂР¶РґРµРЅР°',
-        text: 'РџР»Р°С‚С‘Р¶ Р·Р°РІРµСЂС€С‘РЅ, Р·Р°РєР°Р· РїРµСЂРµРІРµРґС‘РЅ РІ РїРѕРґС‚РІРµСЂР¶РґС‘РЅРЅРѕРµ СЃРѕСЃС‚РѕСЏРЅРёРµ.',
+        title: 'Оплата подтверждена',
+        text: 'Платеж завершен, заказ переведен в подтвержденное состояние.',
       };
     case 'cancel':
       return {
-        title: 'РћРїР»Р°С‚Р° РѕС‚РјРµРЅРµРЅР°',
-        text: 'Р’С‹ РјРѕР¶РµС‚Рµ РІРµСЂРЅСѓС‚СЊСЃСЏ Рє Р·Р°РєР°Р·Сѓ Рё Р·Р°РїСѓСЃС‚РёС‚СЊ РѕРїР»Р°С‚Сѓ РїРѕРІС‚РѕСЂРЅРѕ.',
+        title: 'Оплата отменена',
+        text: 'Вы можете вернуться к заказу и запустить оплату повторно.',
         isError: true,
       };
     case 'failed':
       return {
-        title: 'РћРїР»Р°С‚Р° РЅРµ РїСЂРѕС€Р»Р°',
-        text: 'РџСЂРѕРІРµСЂСЊС‚Рµ Р·Р°РєР°Р· Рё РїРѕРїСЂРѕР±СѓР№С‚Рµ РѕРїР»Р°С‚РёС‚СЊ РµРіРѕ РµС‰С‘ СЂР°Р·.',
+        title: 'Оплата не прошла',
+        text: 'Проверьте заказ и попробуйте оплатить его еще раз.',
         isError: true,
       };
     default:
@@ -126,49 +128,49 @@ function getNextActionSummary(input: {
 }): { title: string; text: string } {
   if (input.canRetryPayment) {
     return {
-      title: 'РќСѓР¶РЅРѕ Р·Р°РІРµСЂС€РёС‚СЊ РѕРїР»Р°С‚Сѓ',
-      text: 'Р—Р°РєР°Р· СѓР¶Рµ СЃРѕР·РґР°РЅ. РџСЂРѕРґРѕР»Р¶РёС‚Рµ РѕРїР»Р°С‚Сѓ, С‡С‚РѕР±С‹ РјР°РіР°Р·РёРЅ РЅР°С‡Р°Р» РµРіРѕ РѕР±СЂР°Р±РѕС‚РєСѓ.',
+      title: 'Нужно завершить оплату',
+      text: 'Заказ уже создан. Продолжите оплату, чтобы магазин начал его обработку.',
     };
   }
 
   if (input.status === 'processing') {
     return {
-      title: 'Р—Р°РєР°Р· РІ СЂР°Р±РѕС‚Рµ',
-      text: 'РњС‹ СѓР¶Рµ РѕР±СЂР°Р±Р°С‚С‹РІР°РµРј Р·Р°РєР°Р·. РЎР»РµРґСѓСЋС‰РµРµ Р·Р°РјРµС‚РЅРѕРµ РѕР±РЅРѕРІР»РµРЅРёРµ РїРѕСЏРІРёС‚СЃСЏ, РєРѕРіРґР° РѕРЅ Р±СѓРґРµС‚ РѕС‚РїСЂР°РІР»РµРЅ.',
+      title: 'Заказ в работе',
+      text: 'Мы уже обрабатываем заказ. Следующее заметное обновление появится, когда он будет отправлен.',
     };
   }
 
   if (input.status === 'shipped') {
     return {
-      title: 'Р—Р°РєР°Р· РѕС‚РїСЂР°РІР»РµРЅ',
-      text: 'Р”Р°Р»СЊС€Рµ РѕСЃС‚Р°С‘С‚СЃСЏ РґРѕР¶РґР°С‚СЊСЃСЏ РґРѕСЃС‚Р°РІРєРё. Р’СЃРµ РїРѕР·РёС†РёРё Рё Р°РґСЂРµСЃ СЃРѕС…СЂР°РЅРµРЅС‹ РІ РґРµС‚Р°Р»СЏС… РЅРёР¶Рµ.',
+      title: 'Заказ отправлен',
+      text: 'Дальше остается дождаться доставки. Все позиции и адрес сохранены в деталях ниже.',
     };
   }
 
   if (input.status === 'delivered') {
     return {
-      title: 'Р—Р°РєР°Р· Р·Р°РІРµСЂС€С‘РЅ',
-      text: 'РњРѕР¶РЅРѕ РІРµСЂРЅСѓС‚СЊСЃСЏ РІ РєР°С‚Р°Р»РѕРі РёР»Рё РїРѕРІС‚РѕСЂРёС‚СЊ Р·Р°РєР°Р·, РµСЃР»Рё С…РѕС‚РёС‚Рµ РєСѓРїРёС‚СЊ СЌС‚Рё РїРѕР·РёС†РёРё СЃРЅРѕРІР°.',
+      title: 'Заказ завершен',
+      text: 'Можно вернуться в каталог или повторить заказ, если хотите купить эти позиции снова.',
     };
   }
 
   if (input.status === 'cancelled') {
     return {
-      title: 'Р—Р°РєР°Р· РѕС‚РјРµРЅС‘РЅ',
-      text: 'Р•СЃР»Рё РїРѕР·РёС†РёРё РІСЃС‘ РµС‰С‘ Р°РєС‚СѓР°Р»СЊРЅС‹, РјРѕР¶РЅРѕ СЃРѕР±СЂР°С‚СЊ РЅРѕРІС‹Р№ Р·Р°РєР°Р· С‡РµСЂРµР· РєР°С‚Р°Р»РѕРі РёР»Рё РїРѕРІС‚РѕСЂ Р·Р°РєР°Р·Р°.',
+      title: 'Заказ отменен',
+      text: 'Если позиции все еще актуальны, можно собрать новый заказ через каталог или повторить этот заказ.',
     };
   }
 
   if (input.paymentStatus === 'paid') {
     return {
-      title: 'РћРїР»Р°С‚Р° РїРѕРґС‚РІРµСЂР¶РґРµРЅР°',
-      text: 'Р—Р°РєР°Р· РѕРїР»Р°С‡РµРЅ Рё РѕР¶РёРґР°РµС‚ РґР°Р»СЊРЅРµР№С€РµРіРѕ РѕР±РЅРѕРІР»РµРЅРёСЏ СЃС‚Р°С‚СѓСЃР° РјР°РіР°Р·РёРЅР°.',
+      title: 'Оплата подтверждена',
+      text: 'Заказ оплачен и ожидает дальнейшего обновления статуса магазина.',
     };
   }
 
   return {
-    title: 'РЎР»РµРґРёС‚Рµ Р·Р° СЃС‚Р°С‚СѓСЃРѕРј',
-    text: 'Р’СЃРµ РѕР±РЅРѕРІР»РµРЅРёСЏ РїРѕ РѕРїР»Р°С‚Рµ Рё РѕР±СЂР°Р±РѕС‚РєРµ Р±СѓРґСѓС‚ РїРѕСЏРІР»СЏС‚СЊСЃСЏ РїСЂСЏРјРѕ РІ СЌС‚РѕР№ РєР°СЂС‚РѕС‡РєРµ.',
+    title: 'Следите за статусом',
+    text: 'Все обновления по оплате и обработке будут появляться прямо в этой карточке.',
   };
 }
 
@@ -201,11 +203,11 @@ export default async function OrderDetailPage({
 
   if (orderData.status === 'not_found') {
     return (
-      <StoreScreen title="Р—Р°РєР°Р·" subtitle="Р”РµС‚Р°Р»Рё Р·Р°РєР°Р·Р° Рё РґРѕСЃС‚Р°РІРєР°" back={true}>
+      <StoreScreen title="Заказ" subtitle="Детали заказа и доставка" back={true}>
         <StoreEmptyState
-          title="Р—Р°РєР°Р· РЅРµ РЅР°Р№РґРµРЅ"
-          description="РўР°РєРѕРіРѕ Р·Р°РєР°Р·Р° РЅРµС‚ РёР»Рё РѕРЅ РЅРµ РѕС‚РЅРѕСЃРёС‚СЃСЏ Рє РІР°С€РµРјСѓ Р°РєРєР°СѓРЅС‚Сѓ."
-          actionLabel="Рљ Р·Р°РєР°Р·Р°Рј"
+          title="Заказ не найден"
+          description="Такого заказа нет или он не относится к вашему аккаунту."
+          actionLabel="К заказам"
           actionHref="/orders"
         />
       </StoreScreen>
@@ -221,7 +223,7 @@ export default async function OrderDetailPage({
     : null;
 
   return (
-    <StoreScreen title="Р—Р°РєР°Р·" subtitle="Р”РµС‚Р°Р»Рё Р·Р°РєР°Р·Р° Рё РґРѕСЃС‚Р°РІРєР°" back={true}>
+    <StoreScreen title="Заказ" subtitle="Детали заказа и доставка" back={true}>
       {paymentNotice ? (
         <section className={classNames(styles.dataNotice, paymentNotice.isError && styles.dataNoticeError)}>
           <p className={styles.dataNoticeTitle}>{paymentNotice.title}</p>
@@ -236,12 +238,16 @@ export default async function OrderDetailPage({
             orderData.status === 'error' && styles.dataNoticeError,
           )}
         >
-          <p className={styles.dataNoticeTitle}>РћР±РЅРѕРІР»РµРЅРёРµ Р·Р°РєР°Р·Р°</p>
+          <p className={styles.dataNoticeTitle}>Обновление заказа</p>
           <p className={styles.dataNoticeText}>{orderData.message}</p>
           {(orderData.status === 'error' || orderData.status === 'not_configured') ? (
             <div className={styles.dataNoticeActions}>
-              <Link href={`/orders/${orderId}`} className={styles.dataNoticeRetry} aria-label="РџРѕРІС‚РѕСЂРёС‚СЊ Р·Р°РіСЂСѓР·РєСѓ Р·Р°РєР°Р·Р°">
-                РџРѕРІС‚РѕСЂРёС‚СЊ
+              <Link
+                href={`/orders/${orderId}`}
+                className={styles.dataNoticeRetry}
+                aria-label="Повторить загрузку заказа"
+              >
+                Повторить
               </Link>
             </div>
           ) : null}
@@ -252,7 +258,7 @@ export default async function OrderDetailPage({
         <>
           <section className={styles.panel}>
             <div className={styles.orderCardHeader}>
-              <h2 className={styles.panelTitle}>Р—Р°РєР°Р· #{order.id.slice(0, 8).toUpperCase()}</h2>
+              <h2 className={styles.panelTitle}>Заказ #{order.id.slice(0, 8).toUpperCase()}</h2>
               <p className={styles.orderMetaItem}>{formatOrderDate(order.createdAt)}</p>
             </div>
 
@@ -265,12 +271,18 @@ export default async function OrderDetailPage({
               </span>
             </div>
 
-            <p className={styles.checkoutHint}>РџСЂРѕРІР°Р№РґРµСЂ: {formatPaymentProvider(order.paymentProvider)}</p>
+            <p className={styles.checkoutHint}>
+              Провайдер: {formatPaymentProvider(order.paymentProvider)}
+            </p>
             {order.paymentCompletedAt ? (
-              <p className={styles.checkoutHint}>РћРїР»Р°С‚Р° РїРѕРґС‚РІРµСЂР¶РґРµРЅР° {formatOrderDate(order.paymentCompletedAt)}</p>
+              <p className={styles.checkoutHint}>
+                Оплата подтверждена {formatOrderDate(order.paymentCompletedAt)}
+              </p>
             ) : null}
             {order.paymentLastError ? (
-              <p className={classNames(styles.inlineActionMessage, styles.inlineActionMessageError)}>{order.paymentLastError}</p>
+              <p className={classNames(styles.inlineActionMessage, styles.inlineActionMessageError)}>
+                {order.paymentLastError}
+              </p>
             ) : null}
           </section>
 
@@ -279,51 +291,67 @@ export default async function OrderDetailPage({
               <h2 className={styles.panelTitle}>{nextAction.title}</h2>
               <p className={styles.panelText}>{nextAction.text}</p>
               <div className={styles.panelActions}>
-                {order.canRetryPayment ? <OrderPaymentAction orderId={order.id} label="РџСЂРѕРґРѕР»Р¶РёС‚СЊ РѕРїР»Р°С‚Сѓ" /> : null}
+                {order.canRetryPayment ? (
+                  <OrderPaymentAction orderId={order.id} label="Продолжить оплату" />
+                ) : null}
                 <OrderRepeatAction orderId={order.id} />
                 <Link href="/catalog" className={styles.secondaryButton}>
-                  Р’РµСЂРЅСѓС‚СЊСЃСЏ РІ РєР°С‚Р°Р»РѕРі
+                  Вернуться в каталог
                 </Link>
               </div>
             </section>
           ) : null}
 
-          <StoreSection title="РЎРІРѕРґРєР°">
+          <StoreSection title="Сводка">
             <div className={styles.infoGrid}>
               <div className={styles.infoItem}>
-                <p className={styles.infoLabel}>РџРѕРґС‹С‚РѕРі</p>
-                <p className={styles.infoValue}>{formatStorePrice(order.subtotalCents, order.currency)}</p>
+                <p className={styles.infoLabel}>Подытог</p>
+                <p className={styles.infoValue}>
+                  {formatStorePrice(order.subtotalCents, order.currency)}
+                </p>
               </div>
               {order.discountCents > 0 ? (
                 <div className={styles.infoItem}>
-                  <p className={styles.infoLabel}>РЎРєРёРґРєР°</p>
-                  <p className={styles.infoValue}>{formatStorePrice(order.discountCents, order.currency)}</p>
+                  <p className={styles.infoLabel}>Скидка</p>
+                  <p className={styles.infoValue}>
+                    {formatStorePrice(order.discountCents, order.currency)}
+                  </p>
                 </div>
               ) : null}
               <div className={styles.infoItem}>
-                <p className={styles.infoLabel}>РС‚РѕРіРѕ</p>
-                <p className={styles.infoValue}>{formatStorePrice(order.totalCents, order.currency)}</p>
+                <p className={styles.infoLabel}>Итого</p>
+                <p className={styles.infoValue}>
+                  {formatStorePrice(order.totalCents, order.currency)}
+                </p>
               </div>
               <div className={styles.infoItem}>
-                <p className={styles.infoLabel}>РџРѕР·РёС†РёРё</p>
+                <p className={styles.infoLabel}>Позиции</p>
                 <p className={styles.infoValue}>{order.items.length}</p>
               </div>
             </div>
           </StoreSection>
 
-          <StoreSection title="Р”РѕСЃС‚Р°РІРєР°">
+          <StoreSection title="Доставка">
             <div className={styles.orderDetailsGrid}>
-              <p className={styles.orderDetailsValue}>{order.customerDisplayName || 'РџРѕРєСѓРїР°С‚РµР»СЊ'}</p>
-              <p className={styles.orderDetailsValue}>{order.customerPhone || 'РўРµР»РµС„РѕРЅ РЅРµ СѓРєР°Р·Р°РЅ'}</p>
-              <p className={styles.orderDetailsMuted}>{order.shippingAddress.city || 'Р“РѕСЂРѕРґ РЅРµ СѓРєР°Р·Р°РЅ'}</p>
-              <p className={styles.orderDetailsMuted}>{order.shippingAddress.addressLine || 'РђРґСЂРµСЃ РЅРµ СѓРєР°Р·Р°РЅ'}</p>
+              <p className={styles.orderDetailsValue}>
+                {order.customerDisplayName || 'Покупатель'}
+              </p>
+              <p className={styles.orderDetailsValue}>
+                {order.customerPhone || 'Телефон не указан'}
+              </p>
+              <p className={styles.orderDetailsMuted}>
+                {order.shippingAddress.city || 'Город не указан'}
+              </p>
+              <p className={styles.orderDetailsMuted}>
+                {order.shippingAddress.addressLine || 'Адрес не указан'}
+              </p>
               {order.shippingAddress.postalCode ? (
-                <p className={styles.orderDetailsMuted}>РРЅРґРµРєСЃ: {order.shippingAddress.postalCode}</p>
+                <p className={styles.orderDetailsMuted}>Индекс: {order.shippingAddress.postalCode}</p>
               ) : null}
             </div>
           </StoreSection>
 
-          <StoreSection title="РЎРѕСЃС‚Р°РІ Р·Р°РєР°Р·Р°">
+          <StoreSection title="Состав заказа">
             <div className={styles.orderItemsList}>
               {order.items.map((item) => {
                 const preview = (
@@ -334,7 +362,9 @@ export default async function OrderDetailPage({
                       <p className={styles.orderItemSub}>
                         {item.quantity} x {formatStorePrice(item.unitPriceCents, item.currency)}
                       </p>
-                      <p className={styles.orderItemTotal}>{formatStorePrice(item.lineTotalCents, item.currency)}</p>
+                      <p className={styles.orderItemTotal}>
+                        {formatStorePrice(item.lineTotalCents, item.currency)}
+                      </p>
                     </div>
                   </>
                 );
@@ -345,7 +375,7 @@ export default async function OrderDetailPage({
                       key={item.id}
                       href={`/products/${item.productSlug}`}
                       className={styles.orderItemRow}
-                      aria-label={`РћС‚РєСЂС‹С‚СЊ С‚РѕРІР°СЂ ${item.productTitle}`}
+                      aria-label={`Открыть товар ${item.productTitle}`}
                     >
                       {preview}
                     </Link>
@@ -363,7 +393,7 @@ export default async function OrderDetailPage({
 
           {order.notes ? (
             <section className={styles.panel}>
-              <h2 className={styles.panelTitle}>РљРѕРјРјРµРЅС‚Р°СЂРёР№ Рє Р·Р°РєР°Р·Сѓ</h2>
+              <h2 className={styles.panelTitle}>Комментарий к заказу</h2>
               <p className={styles.panelText}>{order.notes}</p>
             </section>
           ) : null}
@@ -372,5 +402,3 @@ export default async function OrderDetailPage({
     </StoreScreen>
   );
 }
-
-
