@@ -19,7 +19,7 @@ function mapReorderError(error: string | undefined, unauthorizedMessage: string)
     case 'not_configured':
       return 'Корзина временно недоступна.';
     default:
-      return 'Не удалось повторить заказ. Попробуйте ещё раз.';
+      return 'Не удалось повторить заказ. Попробуйте еще раз.';
   }
 }
 
@@ -74,7 +74,7 @@ export function OrderRepeatAction({ orderId }: OrderRepeatActionProps) {
 
         if (payload.unavailableItemsCount > 0) {
           setSuccessMessage(
-            `В корзину добавлено ${payload.addedItemsCount} поз. Недоступно сейчас: ${payload.unavailableItemsCount}.`,
+            `В корзину добавлено ${payload.addedItemsCount} поз. Сейчас недоступно: ${payload.unavailableItemsCount}.`,
           );
           return;
         }
