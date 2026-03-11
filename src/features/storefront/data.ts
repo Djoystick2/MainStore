@@ -7,6 +7,7 @@ import type { StoreCollectionLink, StoreProduct, StoreProductMedia, StoreStockSt
 import type { Database } from '@/types/db';
 import { parseTaxonomyMetadata } from '@/features/catalog-taxonomy/metadata';
 import { resolvePricingForProducts } from '@/features/pricing';
+import { buildProductPresentation } from '@/features/storefront/product-presentation';
 
 import {
   buildStorefrontPromoBanners,
@@ -71,6 +72,38 @@ const fallbackCategories: StorefrontCategory[] = [
   { id: 'tech', slug: 'tech', title: 'Техника' },
 ];
 
+const presentationCategoryPool: StorefrontCategory[] = [
+  { id: 'hoodies', slug: 'hoodies', title: 'Худи', description: 'Мягкие модели на каждый день' },
+  { id: 'jackets', slug: 'jackets', title: 'Куртки', description: 'Городские верхние слои' },
+  { id: 'tshirts', slug: 'tshirts', title: 'Футболки', description: 'Базовые и акцентные модели' },
+  { id: 'shirts', slug: 'shirts', title: 'Рубашки', description: 'Чистые силуэты и фактуры' },
+  { id: 'pants', slug: 'pants', title: 'Брюки', description: 'Повседневные и свободные силуэты' },
+  { id: 'sneakers', slug: 'sneakers', title: 'Кроссовки', description: 'Лёгкие пары на каждый день' },
+  { id: 'bags', slug: 'bags', title: 'Сумки', description: 'Небольшие и готовые к поездкам' },
+  { id: 'backpacks', slug: 'backpacks', title: 'Рюкзаки', description: 'Работа, город и поездки' },
+  { id: 'accessories', slug: 'accessories', title: 'Аксессуары', description: 'Финальные детали образа' },
+  { id: 'home-living', slug: 'home-living', title: 'Дом', description: 'Уютные предметы для пространства' },
+  { id: 'lighting', slug: 'lighting', title: 'Свет', description: 'Лампы и мягкое освещение' },
+  { id: 'kitchen', slug: 'kitchen', title: 'Кухня', description: 'Практичные предметы на каждый день' },
+  { id: 'audio', slug: 'audio', title: 'Аудио', description: 'Колонки и звуковые сценарии' },
+  { id: 'chargers', slug: 'chargers', title: 'Зарядка', description: 'Кабели, блоки и дорожные наборы' },
+  { id: 'wellness', slug: 'wellness', title: 'Уход', description: 'Бутылки, уход и ритм дня' },
+  { id: 'travel', slug: 'travel', title: 'Путешествия', description: 'Компактные вещи в дорогу' },
+  { id: 'stationery', slug: 'stationery', title: 'Канцелярия', description: 'Блокноты и вещи для рабочего стола' },
+  { id: 'sport', slug: 'sport', title: 'Спорт', description: 'Вещи для активного режима' },
+  { id: 'kids', slug: 'kids', title: 'Детское', description: 'Мягкие решения на каждый день' },
+  { id: 'gifts', slug: 'gifts', title: 'Подарки', description: 'Готовые идеи и наборы' },
+];
+
+const catalogPresentationCategories: StorefrontCategory[] = [
+  { id: 'all', slug: 'all', title: 'Все' },
+  ...presentationCategoryPool,
+  ...fallbackCategories.filter(
+    (category) =>
+      category.id !== 'all' && !presentationCategoryPool.some((item) => item.slug === category.slug),
+  ),
+];
+
 const fallbackCollectionDefinitions = [
   {
     id: 'fallback-featured',
@@ -132,6 +165,16 @@ function buildLabel(title: string): string {
     return 'Товар';
   }
   return words.slice(0, 2).join(' ');
+}
+
+function withPresentationCategories(categories: StorefrontCategory[]): StorefrontCategory[] {
+  const actual = categories.filter((category) => category.id !== 'all');
+  const actualSlugs = new Set(actual.map((category) => category.slug));
+  const missing = presentationCategoryPool
+    .filter((category) => !actualSlugs.has(category.slug))
+    .map((category) => ({ ...category, isPresentationOnly: true }));
+
+  return [{ id: 'all', slug: 'all', title: 'Все' }, ...actual, ...missing].slice(0, 21);
 }
 
 
@@ -362,7 +405,7 @@ async function mapProductRows(
       pricing?.compareAtPrice ?? (row.compare_at_price ? Number(row.compare_at_price) : null);
     const stockQuantity = Number.isFinite(row.stock_quantity) ? Number(row.stock_quantity) : null;
 
-    return {
+    const product = {
       id: row.id,
       slug: row.slug,
       title: row.title,
@@ -390,6 +433,11 @@ async function mapProductRows(
       popularityScore: signal?.popularityScore ?? 0,
       media,
       collections: context.collectionsByProductId.get(row.id) ?? [],
+    };
+
+    return {
+      ...product,
+      presentation: buildProductPresentation(product),
     };
   });
 }
@@ -612,7 +660,7 @@ async function fetchActiveCollections(
 async function fetchActiveCategories(): Promise<StorefrontCategory[]> {
   const client = createSupabaseServerClientOptional();
   if (!client) {
-    return fallbackCategories;
+    return catalogPresentationCategories;
   }
 
   const { data, error } = await client
@@ -621,10 +669,10 @@ async function fetchActiveCategories(): Promise<StorefrontCategory[]> {
     .eq('is_active', true);
 
   if (error || !data || data.length === 0) {
-    return fallbackCategories;
+    return catalogPresentationCategories;
   }
 
-  return [
+  return withPresentationCategories([
     { id: 'all', slug: 'all', title: 'Все' },
     ...(data as Array<Pick<CategoryRow, 'id' | 'slug' | 'title' | 'description' | 'metadata'>>)
       .sort((left, right) => {
@@ -641,7 +689,7 @@ async function fetchActiveCategories(): Promise<StorefrontCategory[]> {
         title: row.title,
         description: parseTaxonomyMetadata(row.metadata).shortText ?? row.description,
       })),
-  ];
+  ]);
 }
 
 export interface StorefrontCategory {
@@ -649,6 +697,7 @@ export interface StorefrontCategory {
   slug: string;
   title: string;
   description?: string | null;
+  isPresentationOnly?: boolean;
 }
 
 export interface StorefrontCollection {

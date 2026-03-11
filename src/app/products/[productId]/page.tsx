@@ -5,6 +5,7 @@ import { AddToCartButton } from '@/components/store/AddToCartButton';
 import { FavoriteToggleButton } from '@/components/store/FavoriteToggleButton';
 import { ProductCard } from '@/components/store/ProductCard';
 import { ProductShareButton } from '@/components/store/ProductShareButton';
+import { StoreProductExperience } from '@/components/store/StoreProductExperience';
 import { StoreEmptyState } from '@/components/store/StoreEmptyState';
 import { StoreScreen } from '@/components/store/StoreScreen';
 import { StoreSection } from '@/components/store/StoreSection';
@@ -171,6 +172,7 @@ export default async function ProductPage({
     .map((block) => block.trim())
     .filter(Boolean);
   const collectionNames = (product.collections ?? []).map((collection) => collection.title).join(', ');
+  const presentation = product.presentation;
 
   return (
     <StoreScreen title="Товар" subtitle={product.title} back={true} showBottomNav={false}>
@@ -289,6 +291,8 @@ export default async function ProductPage({
             </div>
           </div>
         </section>
+
+        {presentation ? <StoreProductExperience presentation={presentation} /> : null}
 
         <section className={styles.panel}>
           <h2 className={styles.panelTitle}>Что важно перед покупкой</h2>

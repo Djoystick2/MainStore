@@ -2667,6 +2667,9 @@
 
 .productCardShell {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .productCardFavorite {
@@ -2688,6 +2691,18 @@
   background: rgba(18, 15, 26, 0.7);
   border-color: rgba(214, 199, 255, 0.2);
   backdrop-filter: blur(12px);
+}
+
+.productCardAction {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid rgba(201, 183, 255, 0.18);
+  border-radius: 16px;
+  background: rgba(180, 156, 255, 0.14);
+  color: var(--store-text);
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 700;
 }
 
 .productCard {
@@ -2906,6 +2921,260 @@
     linear-gradient(180deg, rgba(35, 28, 51, 0.98), rgba(24, 20, 33, 0.98));
 }
 
+.optionGroupStack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.optionGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.optionGroupHead {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.optionGroupTitle {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.optionGroupHint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--store-text-soft);
+}
+
+.optionValueRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.optionValueButton {
+  min-height: 40px;
+  border: 1px solid rgba(201, 183, 255, 0.14);
+  border-radius: 14px;
+  padding: 0 14px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--store-text);
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.optionValueButtonActive {
+  border-color: var(--store-border-strong);
+  background: rgba(180, 156, 255, 0.16);
+  box-shadow: 0 10px 18px rgba(115, 93, 186, 0.16);
+}
+
+.optionSwatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  flex-shrink: 0;
+}
+
+.sizeGuideTable {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sizeGuideRow {
+  display: grid;
+  grid-template-columns: 72px repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  align-items: center;
+  border: 1px solid var(--store-border);
+  border-radius: 16px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--store-text-soft);
+}
+
+.sizeGuideHead {
+  color: var(--store-text);
+  font-weight: 800;
+}
+
+.specsCardHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.specsTrigger {
+  width: auto;
+  flex-shrink: 0;
+  padding-inline: 14px;
+}
+
+.specsPreviewGrid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.specsPreviewCard,
+.reviewCard,
+.specsGroup {
+  border: 1px solid var(--store-border);
+  border-radius: 18px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.specsPreviewTitle,
+.specsGroupTitle,
+.reviewTitle,
+.reviewAuthor {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.specsPreviewItem,
+.specsListItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  padding-top: 8px;
+  margin-top: 8px;
+  border-top: 1px solid rgba(201, 183, 255, 0.12);
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--store-text-soft);
+}
+
+.specsPreviewItem strong,
+.specsListItem strong {
+  color: var(--store-text);
+  text-align: right;
+}
+
+.reviewRail {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-top: 12px;
+  padding-bottom: 2px;
+}
+
+.reviewRail::-webkit-scrollbar {
+  display: none;
+}
+
+.reviewCard {
+  min-width: 240px;
+}
+
+.reviewCardHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reviewMeta,
+.reviewText,
+.reviewNote {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--store-text-soft);
+}
+
+.reviewStars {
+  margin: 0;
+  color: var(--store-accent-strong);
+  font-size: 14px;
+  line-height: 1;
+}
+
+.reviewTitle {
+  margin-top: 12px;
+}
+
+.reviewText {
+  margin-top: 8px;
+}
+
+.reviewNote {
+  margin-top: 12px;
+}
+
+.specsOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(10, 9, 15, 0.72);
+  backdrop-filter: blur(18px);
+  padding: 20px 16px;
+  display: flex;
+  align-items: flex-end;
+}
+
+.specsModal {
+  width: min(100%, 560px);
+  max-height: min(78vh, 720px);
+  margin: 0 auto;
+  overflow: auto;
+  border: 1px solid var(--store-border-strong);
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0)),
+    linear-gradient(180deg, rgba(39, 31, 57, 0.99), rgba(23, 19, 31, 0.99));
+  box-shadow: 0 34px 72px rgba(4, 3, 10, 0.48);
+  padding: 18px;
+}
+
+.specsModalHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.specsModalEyebrow {
+  margin: 0 0 6px;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--store-accent-strong);
+}
+
+.specsCloseButton {
+  width: auto;
+  padding-inline: 14px;
+}
+
+.specsGroupStack {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .quantityControl {
   background: rgba(255, 255, 255, 0.04);
 }
@@ -2954,6 +3223,21 @@
 
   .productImage {
     height: 154px;
+  }
+
+  .specsCardHead,
+  .specsModalHead {
+    flex-direction: column;
+  }
+
+  .specsTrigger,
+  .specsCloseButton {
+    width: 100%;
+  }
+
+  .specsPreviewGrid,
+  .sizeGuideRow {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -16,6 +16,57 @@ export interface StoreCollectionLink {
   title: string;
 }
 
+export interface StoreProductOptionValue {
+  id: string;
+  label: string;
+  swatch?: string;
+  hint?: string;
+}
+
+export interface StoreProductOptionGroup {
+  id: string;
+  title: string;
+  type: 'size' | 'color' | 'variant';
+  values: StoreProductOptionValue[];
+  helperText?: string;
+}
+
+export interface StoreProductSizeGuideRow {
+  size: string;
+  chest: string;
+  waist: string;
+  fit: string;
+}
+
+export interface StoreProductSpecItem {
+  label: string;
+  value: string;
+}
+
+export interface StoreProductSpecGroup {
+  id: string;
+  title: string;
+  items: StoreProductSpecItem[];
+}
+
+export interface StoreProductReviewPreview {
+  id: string;
+  author: string;
+  rating: number;
+  title: string;
+  text: string;
+  meta: string;
+}
+
+export interface StoreProductPresentation {
+  optionGroups: StoreProductOptionGroup[];
+  sizeGuide?: StoreProductSizeGuideRow[];
+  specificationGroups: StoreProductSpecGroup[];
+  reviews: StoreProductReviewPreview[];
+  reviewsLabel: string;
+  reviewNote?: string;
+}
+
 export interface StoreProduct {
   id: string;
   slug: string;
@@ -41,4 +92,5 @@ export interface StoreProduct {
   popularityScore?: number;
   media?: StoreProductMedia[];
   collections?: StoreCollectionLink[];
+  presentation?: StoreProductPresentation;
 }

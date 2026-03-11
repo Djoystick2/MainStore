@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { AddToCartButton } from '@/components/store/AddToCartButton';
 import { FavoriteToggleButton } from '@/components/store/FavoriteToggleButton';
 import { ProductCard } from '@/components/store/ProductCard';
 import { StoreEmptyState } from '@/components/store/StoreEmptyState';
@@ -286,7 +287,9 @@ export default async function CatalogPage({
         </section>
       ) : null}
 
-      <form action="/catalog" method="get" className={styles.catalogToolbar}>
+      {!showCategoryTiles ? (
+        <>
+          <form action="/catalog" method="get" className={styles.catalogToolbar}>
         {selectedCategory && selectedCategory.id !== 'all' ? (
           <input type="hidden" name="category" value={selectedCategory.slug} />
         ) : null}
@@ -321,9 +324,9 @@ export default async function CatalogPage({
             </select>
           </label>
         </div>
-      </form>
+          </form>
 
-      <div className={styles.chipRow}>
+          <div className={styles.chipRow}>
         <Link
           href={buildCatalogHref({
             query: searchQueryRaw || undefined,
@@ -384,9 +387,9 @@ export default async function CatalogPage({
         >
           Рекомендуемые
         </Link>
-      </div>
+          </div>
 
-      {catalogData.collections.length > 0 ? (
+          {catalogData.collections.length > 0 ? (
         <StoreSection title="Подборки">
           <div className={styles.collectionRail}>
             {catalogData.collections.slice(0, 8).map((collection) => (
@@ -420,6 +423,8 @@ export default async function CatalogPage({
             ))}
           </div>
         </StoreSection>
+          ) : null}
+        </>
       ) : null}
 
       {catalogData.message ? (
@@ -450,7 +455,7 @@ export default async function CatalogPage({
         ) : null}
       </div>
 
-      {catalogData.promoBanners[0] && !selectedCollection ? (
+      {catalogData.promoBanners[0] && !selectedCollection && !showCategoryTiles ? (
         <section className={styles.bannerCard}>
           <p className={styles.bannerEyebrow}>{catalogData.promoBanners[0].eyebrow}</p>
           <h2 className={styles.bannerTitle}>{catalogData.promoBanners[0].title}</h2>
@@ -465,7 +470,7 @@ export default async function CatalogPage({
         </section>
       ) : null}
 
-      <StoreSection title={resultsTitle}>
+      {!showCategoryTiles ? <StoreSection title={resultsTitle}>
         {catalogData.status === 'empty' ? (
           <StoreEmptyState
             title="Каталог пока пуст"
@@ -494,11 +499,12 @@ export default async function CatalogPage({
                   href={`/products/${product.slug}`}
                   layout={useListLayout ? 'list' : 'grid'}
                 />
+                <AddToCartButton productId={product.id} className={styles.productCardAction} />
               </div>
             ))}
           </div>
         )}
-      </StoreSection>
+      </StoreSection> : null}
     </StoreScreen>
   );
 }
