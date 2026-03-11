@@ -21,7 +21,7 @@ type ApiResponse<T> =
   | { ok: false; error: string };
 
 const fieldLabels: Record<ImportFieldKey, string> = {
-  slug: 'Slug',
+  slug: 'Слаг',
   title: 'Название',
   short_description: 'Короткое описание',
   description: 'Описание',
@@ -33,18 +33,20 @@ const fieldLabels: Record<ImportFieldKey, string> = {
   stock_quantity: 'Остаток',
   category: 'Категория',
   collection: 'Подборка',
-  image_url: 'URL изображения',
-  image_alt: 'Alt изображения',
+  image_url: 'Ссылка на изображение',
+  image_alt: 'Описание изображения (alt)',
   image_sort_order: 'Порядок изображения',
   image_is_primary: 'Главное изображение',
 };
 
 const fieldHints: Partial<Record<ImportFieldKey, string>> = {
-  status: 'Допустимо: draft, active, archived',
-  is_featured: 'Значения: true/false, yes/no, 1/0',
-  image_is_primary: 'Значения: true/false, yes/no, 1/0',
-  category: 'Использует существующую категорию или создает новую',
+  slug: 'Адрес карточки. Только строчные латинские буквы, цифры и дефисы.',
+  status: 'Допустимые значения: draft, active, archived',
+  is_featured: 'Допустимые значения: true/false, yes/no, 1/0',
+  image_is_primary: 'Допустимые значения: true/false, yes/no, 1/0',
+  category: 'Использует существующую категорию или создает новую при импорте',
   collection: 'Можно указывать несколько значений через запятую',
+  image_url: 'Полная ссылка на изображение, начиная с http:// или https://',
 };
 
 async function callImportApi<T>(url: string, body: FormData): Promise<ApiResponse<T>> {
@@ -211,31 +213,41 @@ export function AdminCatalogImportFlow() {
   return (
     <section className={styles.adminCard}>
       <h2 className={styles.adminCardTitle}>Импорт каталога из Excel</h2>
-      <p className={styles.adminCardSub}>Загрузка файла, предпросмотр, маппинг колонок, проверка и импорт.</p>
+      <p className={styles.adminCardSub}>
+        Загрузка файла, предпросмотр, сопоставление колонок, проверка и безопасный импорт.
+      </p>
 
       <div className={styles.importStageList}>
         <p className={styles.importStageItem}>1. Загрузите Excel-файл</p>
-        <p className={styles.importStageItem}>2. Проверьте превью и колонки</p>
+        <p className={styles.importStageItem}>2. Проверьте лист и колонки</p>
         <p className={styles.importStageItem}>3. Запустите валидацию</p>
-        <p className={styles.importStageItem}>4. Импортируйте валидные строки</p>
+        <p className={styles.importStageItem}>4. Импортируйте только валидные строки</p>
       </div>
 
       <div className={styles.adminForm}>
         <label className={styles.adminField}>
           <span className={styles.adminLabel}>Файл Excel (XLSX, XLS, XLSM, XLTX)</span>
           <input type="file" accept=".xlsx,.xls,.xlsm,.xltx" className={styles.adminInput} onChange={(event) => { const nextFile = event.target.files?.[0] ?? null; setFile(nextFile); resetFlow(); }} />
+          <span className={styles.adminFieldHint}>
+            Поддерживаемые форматы не менялись: XLSX, XLS, XLSM и XLTX.
+          </span>
         </label>
 
         <div className={styles.adminActions}>
           <a href="/api/admin/import/template" className={styles.adminActionLink} aria-label="Скачать шаблон Excel для импорта">
             Скачать шаблон (.xlsx)
           </a>
+          {(preview || validation || report || globalError) && (
+            <button type="button" className={styles.adminSecondaryButton} onClick={resetFlow}>
+              Начать заново
+            </button>
+          )}
         </div>
 
-        {file && <p className={styles.adminCardSub}>Выбрано: {file.name} ({formatBytes(file.size)})</p>}
+        {file && <p className={styles.adminCardSub}>Выбран файл: {file.name} ({formatBytes(file.size)})</p>}
 
         <button type="button" className={styles.adminPrimaryButton} onClick={handleLoadPreview} disabled={!file || isLoadingPreview || isValidating || isImporting} aria-label="Загрузить предпросмотр импорта">
-          {isLoadingPreview ? 'Готовим превью...' : 'Загрузить превью'}
+          {isLoadingPreview ? 'Готовим предпросмотр...' : 'Показать предпросмотр'}
         </button>
       </div>
 
@@ -245,7 +257,7 @@ export function AdminCatalogImportFlow() {
         <section className={styles.importSection}>
           <h3 className={styles.adminCardTitle}>Предпросмотр</h3>
           <p className={styles.adminCardSub}>
-            Лист: {preview.sheetName} | Найдено строк: {preview.totalRows}
+            Лист: {preview.sheetName} · Найдено строк: {preview.totalRows}
             {preview.truncatedRowsCount > 0 ? ` (ограничено, пропущено ${preview.truncatedRowsCount} строк)` : ''}
           </p>
 
@@ -277,6 +289,10 @@ export function AdminCatalogImportFlow() {
       {preview && (
         <section className={styles.importSection}>
           <h3 className={styles.adminCardTitle}>Сопоставление колонок</h3>
+          <p className={styles.adminCardSub}>
+            Обязательные поля помечены звездочкой. Если столбец не нужен, оставьте значение
+            {' '}&quot;Не выбрано&quot;.
+          </p>
           <div className={styles.importMappingGrid}>
             {orderedFields.map((field) => {
               const isRequired = requiredImportFields.includes(field);
@@ -308,6 +324,17 @@ export function AdminCatalogImportFlow() {
             <article className={styles.importSummaryItem}><p className={styles.importSummaryLabel}>Всего строк</p><p className={styles.importSummaryValue}>{validation.summary.totalRows}</p></article>
             <article className={styles.importSummaryItem}><p className={styles.importSummaryLabel}>Валидных строк</p><p className={styles.importSummaryValue}>{validation.summary.validRows}</p></article>
             <article className={styles.importSummaryItem}><p className={styles.importSummaryLabel}>Строк с ошибками</p><p className={styles.importSummaryValue}>{validation.summary.rowsWithErrors}</p></article>
+          </div>
+
+          <div className={hasBlockingMappingErrors ? styles.adminCalloutWarn : styles.adminCallout}>
+            <p className={styles.adminCalloutTitle}>
+              {hasBlockingMappingErrors ? 'Сначала исправьте сопоставление колонок' : 'Проверка завершена'}
+            </p>
+            <p className={styles.adminCalloutText}>
+              {hasBlockingMappingErrors
+                ? 'Пока есть ошибки маппинга, импорт запускать нельзя.'
+                : 'Импорт обработает только валидные строки. Ошибки ниже помогут быстро поправить файл.'}
+            </p>
           </div>
 
           {currentErrors.length > 0 && (
@@ -343,6 +370,17 @@ export function AdminCatalogImportFlow() {
             <article className={styles.importSummaryItem}><p className={styles.importSummaryLabel}>Обновлено изображений</p><p className={styles.importSummaryValue}>{report.summary.updatedImages}</p></article>
           </div>
 
+          <div className={report.summary.importErrors > 0 ? styles.adminCalloutWarn : styles.adminCallout}>
+            <p className={styles.adminCalloutTitle}>
+              {report.summary.importErrors > 0 ? 'Импорт завершен с ошибками' : 'Импорт завершен'}
+            </p>
+            <p className={styles.adminCalloutText}>
+              {report.summary.importErrors > 0
+                ? 'Проверьте список ошибок и при необходимости повторите загрузку после исправлений.'
+                : 'Каталог обновлен. При необходимости можно скачать отчет и сразу перейти к повторной проверке.'}
+            </p>
+          </div>
+
           {report.errors.length > 0 && (
             <div className={styles.importErrorList}>
               {report.errors.map((error, index) => (
@@ -354,8 +392,8 @@ export function AdminCatalogImportFlow() {
           )}
 
           <div className={styles.adminActions}>
-            <button type="button" className={styles.adminActionButton} onClick={downloadReport} aria-label="Скачать отчет импорта">Скачать отчет (JSON)</button>
-            <button type="button" className={classNames(styles.adminActionButton, styles.importSecondaryAction)} onClick={() => { setValidation(null); setReport(null); setGlobalError(null); }} aria-label="Запустить проверку заново">Проверить заново</button>
+            <button type="button" className={styles.adminActionButton} onClick={downloadReport} aria-label="Скачать отчет импорта">Скачать отчет JSON</button>
+            <button type="button" className={classNames(styles.adminActionButton, styles.importSecondaryAction)} onClick={() => { setValidation(null); setReport(null); setGlobalError(null); }} aria-label="Запустить проверку заново">Вернуться к проверке</button>
           </div>
         </section>
       )}

@@ -85,11 +85,11 @@ function getOrderActionHint(status: string, paymentStatus: string): string {
 
   switch (status) {
     case 'pending':
-      return 'Оплата уже подтверждена. Следующий шаг — подтвердить заказ и передать его в работу.';
+      return 'Оплата уже подтверждена. Следующий шаг: подтвердить заказ и передать его в работу.';
     case 'confirmed':
       return 'Заказ подтвержден. Можно переводить в обработку.';
     case 'processing':
-      return 'Заказ собирается. Следующий шаг — отправка.';
+      return 'Заказ собирается. Следующий шаг: отправка.';
     case 'shipped':
       return 'Заказ отправлен. Дальше остается дождаться доставки.';
     case 'delivered':
@@ -370,7 +370,7 @@ export default async function AdminOrderDetailPage({
                           rel="noreferrer"
                           className={adminStyles.adminExternalLink}
                         >
-                          Открыть payment page
+                          Открыть страницу оплаты
                         </a>
                       </div>
                     )}

@@ -7,16 +7,24 @@ import { StoreSection } from '@/components/store/StoreSection';
 
 export default function AdminImportPage() {
   return (
-    <AdminScreen title="Импорт каталога" subtitle="Массовое обновление товаров через Excel">
+    <AdminScreen
+      title="Импорт каталога"
+      subtitle="Массовое обновление товаров через Excel"
+    >
       <section className={adminStyles.adminPageLead}>
-        <h2 className={adminStyles.adminPageLeadTitle}>Импорт с предпросмотром без слепой записи в базу</h2>
+        <h2 className={adminStyles.adminPageLeadTitle}>
+          Импорт с предпросмотром и понятной проверкой
+        </h2>
         <p className={adminStyles.adminPageLeadText}>
-          Используйте импорт для больших обновлений каталога, а точечные правки оставляйте для
-          рабочей карточки товара. Форматы `XLSX`, `XLS`, `XLSM`, `XLTX` сохраняются без изменений.
+          Используйте импорт для крупных обновлений каталога, а точечные правки оставляйте для
+          карточки товара. Поддержка форматов XLSX, XLS, XLSM и XLTX остается без изменений.
         </p>
         <div className={adminStyles.adminActionBar}>
           <Link href="/admin/products" className={adminStyles.adminActionLink}>
-            Открыть каталог
+            Вернуться к товарам
+          </Link>
+          <Link href="/admin" className={adminStyles.adminActionLink}>
+            К обзору админки
           </Link>
         </div>
       </section>
@@ -32,14 +40,14 @@ export default function AdminImportPage() {
               <p className={adminStyles.adminSummaryLabel}>Подходит для</p>
               <p className={adminStyles.adminSummaryValue}>Массовых правок</p>
               <p className={adminStyles.adminSummaryText}>
-                Цена, остатки, описания, изображения и связки каталога в одном файле.
+                Цены, остатки, описания, изображения и связи каталога в одном файле.
               </p>
             </div>
             <div className={adminStyles.adminSummaryCard}>
               <p className={adminStyles.adminSummaryLabel}>Не заменяет</p>
               <p className={adminStyles.adminSummaryValue}>Ручное редактирование</p>
               <p className={adminStyles.adminSummaryText}>
-                Для точечной публикации, проверки карточки и быстрых правок удобнее интерфейс товара.
+                Для точечной публикации и быстрых правок удобнее карточка товара в админке.
               </p>
             </div>
           </div>

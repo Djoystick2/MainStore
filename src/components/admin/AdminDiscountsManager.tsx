@@ -67,7 +67,7 @@ function formatDiscountValue(type: DiscountType, value: number): string {
     return `${Math.round(value)}%`;
   }
 
-  return `-${value}`;
+  return `−${value}`;
 }
 
 function formatScheduleLabel(startsAt: string | null, endsAt: string | null): string {
@@ -143,6 +143,7 @@ function DiscountRow({ discount, targetOptionsByScope }: DiscountRowProps) {
   const isSubmittingRef = useRef(false);
 
   const targetOptions = targetOptionsByScope[scope];
+  const hasTargets = targetOptions.length > 0;
 
   const onSave = () => {
     if (isPending || isSubmittingRef.current) {
@@ -254,11 +255,16 @@ function DiscountRow({ discount, targetOptionsByScope }: DiscountRowProps) {
 
           <label className={styles.adminField}>
             <span className={styles.adminLabel}>Цель</span>
-            <select className={styles.adminSelect} value={targetId} onChange={(event) => setTargetId(event.target.value)}>
+            <select className={styles.adminSelect} value={targetId} onChange={(event) => setTargetId(event.target.value)} disabled={!hasTargets}>
               {targetOptions.map((option) => (
                 <option key={option.id} value={option.id}>{option.title}</option>
               ))}
             </select>
+            {!hasTargets ? (
+              <span className={styles.adminFieldHint}>
+                Для этой области пока нет доступных целей.
+              </span>
+            ) : null}
           </label>
         </div>
 
@@ -274,6 +280,9 @@ function DiscountRow({ discount, targetOptionsByScope }: DiscountRowProps) {
               <option value="percentage">Процент</option>
               <option value="fixed">Фиксированная сумма</option>
             </select>
+            <span className={styles.adminFieldHint}>
+              Процент подходит для любых товаров, фиксированная сумма требует единую валюту.
+            </span>
           </label>
         </div>
 
@@ -281,6 +290,9 @@ function DiscountRow({ discount, targetOptionsByScope }: DiscountRowProps) {
           <label className={styles.adminField}>
             <span className={styles.adminLabel}>Значение</span>
             <input type="number" min="0" step="0.01" className={styles.adminInput} value={value} onChange={(event) => setValue(event.target.value)} />
+            <span className={styles.adminFieldHint}>
+              Для процента укажите число от 0 до 100, для суммы - значение в валюте товара.
+            </span>
           </label>
 
           <label className={styles.adminCheckboxRow}>
@@ -293,11 +305,17 @@ function DiscountRow({ discount, targetOptionsByScope }: DiscountRowProps) {
           <label className={styles.adminField}>
             <span className={styles.adminLabel}>Начало</span>
             <input type="datetime-local" className={styles.adminInput} value={startsAt} onChange={(event) => setStartsAt(event.target.value)} />
+            <span className={styles.adminFieldHint}>
+              Оставьте пустым, если скидка должна начать действовать сразу после активации.
+            </span>
           </label>
 
           <label className={styles.adminField}>
             <span className={styles.adminLabel}>Окончание</span>
             <input type="datetime-local" className={styles.adminInput} value={endsAt} onChange={(event) => setEndsAt(event.target.value)} />
+            <span className={styles.adminFieldHint}>
+              Оставьте пустым, если скидка действует без даты завершения.
+            </span>
           </label>
         </div>
 
@@ -359,6 +377,7 @@ export function AdminDiscountsManager({ discounts, products, categories, collect
   });
 
   const currentTargetOptions = targetOptionsByScope[scope];
+  const canCreateDiscount = currentTargetOptions.length > 0;
   const scheduledCount = discounts.filter((discount) => discount.currentState === 'scheduled').length;
   const expiredCount = discounts.filter((discount) => discount.currentState === 'expired').length;
   const inactiveCount = discounts.filter((discount) => discount.currentState === 'inactive').length;
@@ -436,7 +455,7 @@ export function AdminDiscountsManager({ discounts, products, categories, collect
           <div className={styles.adminSummaryCard}>
             <p className={styles.adminSummaryLabel}>Активные</p>
             <p className={styles.adminSummaryValue}>{liveCount}</p>
-            <p className={styles.adminSummaryText}>Уже влияют на витрину, карточки товаров и checkout summary.</p>
+            <p className={styles.adminSummaryText}>Уже влияют на витрину, карточки товаров и расчёт заказа.</p>
           </div>
           <div className={styles.adminSummaryCard}>
             <p className={styles.adminSummaryLabel}>Запланированные</p>
@@ -446,12 +465,12 @@ export function AdminDiscountsManager({ discounts, products, categories, collect
           <div className={styles.adminSummaryCard}>
             <p className={styles.adminSummaryLabel}>Завершенные</p>
             <p className={styles.adminSummaryValue}>{expiredCount}</p>
-            <p className={styles.adminSummaryText}>Больше не участвуют в расчете effective price.</p>
+            <p className={styles.adminSummaryText}>Больше не участвуют в расчёте итоговой цены.</p>
           </div>
           <div className={styles.adminSummaryCard}>
             <p className={styles.adminSummaryLabel}>Отключенные</p>
             <p className={styles.adminSummaryValue}>{inactiveCount}</p>
-            <p className={styles.adminSummaryText}>Сохранены в админке, но не применяются к storefront.</p>
+            <p className={styles.adminSummaryText}>Сохранены в админке, но не применяются на витрине.</p>
           </div>
         </div>
 
@@ -486,14 +505,39 @@ export function AdminDiscountsManager({ discounts, products, categories, collect
         <div className={styles.adminCallout}>
           <p className={styles.adminCalloutTitle}>Как скидка влияет на витрину</p>
           <p className={styles.adminCalloutText}>
-            Storefront, cart, checkout и order snapshot используют один pricing layer. Если скидка
-            активна, она меняет effective price без ручных правок в товарах.
+            Витрина, корзина, оформление заказа и снимок заказа используют единый расчёт цены.
+            Если скидка активна, итоговая цена обновляется без ручных правок в товарах.
           </p>
+        </div>
+
+        <div className={styles.adminToolbar}>
+          <p className={styles.adminToolbarMeta}>
+            В рабочем списке{' '}
+            <span className={styles.adminToolbarStrong}>{filteredDiscounts.length}</span> скидок.
+          </p>
+          {(search.trim() || scopeFilter !== 'all' || stateFilter !== 'all') ? (
+            <button
+              type="button"
+              className={styles.adminSecondaryButton}
+              onClick={() => {
+                setSearch('');
+                setScopeFilter('all');
+                setStateFilter('all');
+              }}
+            >
+              Сбросить фильтры
+            </button>
+          ) : null}
         </div>
       </section>
 
       <section className={styles.adminCard}>
-        <h2 className={styles.adminCardTitle}>Создать скидку</h2>
+        <div className={styles.adminFormSectionHead}>
+          <h2 className={styles.adminCardTitle}>Создать скидку</h2>
+          <p className={styles.adminCardSub}>
+            Настройте область действия, тип и расписание. Бизнес-логика расчёта не меняется.
+          </p>
+        </div>
         <form className={styles.adminForm} onSubmit={onCreate} aria-busy={isPending}>
           <div className={styles.adminInlineRow}>
             <label className={styles.adminField}>
@@ -507,11 +551,16 @@ export function AdminDiscountsManager({ discounts, products, categories, collect
 
             <label className={styles.adminField}>
               <span className={styles.adminLabel}>Цель</span>
-              <select className={styles.adminSelect} value={targetId} onChange={(event) => setTargetId(event.target.value)}>
+              <select className={styles.adminSelect} value={targetId} onChange={(event) => setTargetId(event.target.value)} disabled={!canCreateDiscount}>
                 {currentTargetOptions.map((option) => (
                   <option key={option.id} value={option.id}>{option.title}</option>
                 ))}
               </select>
+              {!canCreateDiscount ? (
+                <span className={styles.adminFieldHint}>
+                  Для этой области пока нет доступных товаров, категорий или подборок.
+                </span>
+              ) : null}
             </label>
           </div>
 
@@ -527,6 +576,9 @@ export function AdminDiscountsManager({ discounts, products, categories, collect
                 <option value="percentage">Процент</option>
                 <option value="fixed">Фиксированная сумма</option>
               </select>
+              <span className={styles.adminFieldHint}>
+                Процент подходит для любых товаров, фиксированная сумма требует единую валюту.
+              </span>
             </label>
           </div>
 
@@ -534,6 +586,9 @@ export function AdminDiscountsManager({ discounts, products, categories, collect
             <label className={styles.adminField}>
               <span className={styles.adminLabel}>Значение</span>
               <input type="number" min="0" step="0.01" className={styles.adminInput} value={value} onChange={(event) => setValue(event.target.value)} required />
+              <span className={styles.adminFieldHint}>
+                Для процента укажите число от 0 до 100, для суммы - значение в валюте товара.
+              </span>
             </label>
 
             <label className={styles.adminCheckboxRow}>
@@ -546,15 +601,21 @@ export function AdminDiscountsManager({ discounts, products, categories, collect
             <label className={styles.adminField}>
               <span className={styles.adminLabel}>Начало</span>
               <input type="datetime-local" className={styles.adminInput} value={startsAt} onChange={(event) => setStartsAt(event.target.value)} />
+              <span className={styles.adminFieldHint}>
+                Оставьте пустым, если скидка должна начать действовать сразу после активации.
+              </span>
             </label>
 
             <label className={styles.adminField}>
               <span className={styles.adminLabel}>Окончание</span>
               <input type="datetime-local" className={styles.adminInput} value={endsAt} onChange={(event) => setEndsAt(event.target.value)} />
+              <span className={styles.adminFieldHint}>
+                Оставьте пустым, если скидка действует без даты завершения.
+              </span>
             </label>
           </div>
 
-          <button type="submit" className={styles.adminPrimaryButton} disabled={isPending}>
+          <button type="submit" className={styles.adminPrimaryButton} disabled={isPending || !canCreateDiscount}>
             {isPending ? 'Создаем...' : 'Создать скидку'}
           </button>
 

@@ -1,9 +1,9 @@
-﻿import type { AdminProductDetail } from '@/features/admin';
+import type { AdminProductDetail } from '@/features/admin';
 
 import styles from './admin.module.css';
 
 function formatPrice(amount: number, currency: string) {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('ru-RU', {
     style: 'currency',
     currency: currency || 'USD',
     minimumFractionDigits: 0,
@@ -20,6 +20,19 @@ function formatProductStatus(status: AdminProductDetail['status']): string {
       return 'Архив';
     default:
       return status;
+  }
+}
+
+function formatDiscountScope(scope: string): string {
+  switch (scope) {
+    case 'product':
+      return 'товар';
+    case 'category':
+      return 'категория';
+    case 'collection':
+      return 'подборка';
+    default:
+      return scope;
   }
 }
 
@@ -63,11 +76,11 @@ export function AdminProductOverviewCard({ product }: AdminProductOverviewCardPr
             <div className={styles.adminMetaCell}>
               <p className={styles.adminMetaLabel}>Цена</p>
               <p className={styles.adminMetaValue}>{formatPrice(product.price, product.currency)}</p>
-              {product.displayCompareAtPrice && product.displayCompareAtPrice > product.price && (
+              {product.displayCompareAtPrice && product.displayCompareAtPrice > product.price ? (
                 <p className={styles.adminCardSub}>
                   Было {formatPrice(product.displayCompareAtPrice, product.currency)}
                 </p>
-              )}
+              ) : null}
             </div>
             <div className={styles.adminMetaCell}>
               <p className={styles.adminMetaLabel}>Остаток</p>
@@ -81,7 +94,7 @@ export function AdminProductOverviewCard({ product }: AdminProductOverviewCardPr
               <p className={styles.adminMetaLabel}>Скидка</p>
               <p className={styles.adminMetaValue}>
                 {product.appliedDiscount
-                  ? `${product.appliedDiscount.badgeText} В· ${product.appliedDiscount.scope}`
+                  ? `${product.appliedDiscount.badgeText} · ${formatDiscountScope(product.appliedDiscount.scope)}`
                   : 'Нет активной скидки'}
               </p>
             </div>
@@ -118,4 +131,3 @@ export function AdminProductOverviewCard({ product }: AdminProductOverviewCardPr
     </section>
   );
 }
-

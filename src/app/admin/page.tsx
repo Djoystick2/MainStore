@@ -12,7 +12,10 @@ export default async function AdminPage() {
   const data = dashboard.dashboard;
 
   return (
-    <AdminScreen title="Админка" subtitle="Операционная панель магазина">
+    <AdminScreen
+      title="Админка"
+      subtitle="Рабочее пространство для каталога, заказов и импорта"
+    >
       {dashboard.message && (
         <section
           className={classNames(
@@ -41,8 +44,8 @@ export default async function AdminPage() {
           <section className={adminStyles.adminPageLead}>
             <h2 className={adminStyles.adminPageLeadTitle}>Что важно сейчас</h2>
             <p className={adminStyles.adminPageLeadText}>
-              Держите под контролем оплату, публикацию каталога и активные витринные блоки из
-              одного рабочего пространства.
+              Здесь удобно начинать рабочий день: проверить оплату и заказы, обновить каталог,
+              сверить скидки и при необходимости запустить импорт без лишних переходов.
             </p>
             <div className={adminStyles.adminActionBar}>
               <Link href="/admin/orders" className={adminStyles.adminPrimaryLink}>
@@ -52,7 +55,10 @@ export default async function AdminPage() {
                 Создать товар
               </Link>
               <Link href="/admin/import" className={adminStyles.adminActionLink}>
-                Импортировать Excel
+                Открыть импорт
+              </Link>
+              <Link href="/" className={adminStyles.adminActionLink}>
+                Открыть витрину
               </Link>
             </div>
           </section>
@@ -62,7 +68,7 @@ export default async function AdminPage() {
               <p className={adminStyles.adminSummaryLabel}>Каталог</p>
               <p className={adminStyles.adminSummaryValue}>{data.productsCount}</p>
               <p className={adminStyles.adminSummaryText}>
-                {data.activeProductsCount} активных, {data.draftProductsCount} черновиков,{' '}
+                {data.activeProductsCount} активных, {data.draftProductsCount} черновиков и{' '}
                 {data.archivedProductsCount} в архиве.
               </p>
             </article>
@@ -70,8 +76,8 @@ export default async function AdminPage() {
               <p className={adminStyles.adminSummaryLabel}>Заказы</p>
               <p className={adminStyles.adminSummaryValue}>{data.ordersCount}</p>
               <p className={adminStyles.adminSummaryText}>
-                {data.pendingOrdersCount} требуют операционного внимания, {data.awaitingPaymentOrdersCount}{' '}
-                еще ждут оплату.
+                {data.pendingOrdersCount} требуют внимания, {data.awaitingPaymentOrdersCount} еще
+                ждут оплату.
               </p>
             </article>
             <article className={adminStyles.adminSummaryCard}>
@@ -81,7 +87,7 @@ export default async function AdminPage() {
               </p>
               <p className={adminStyles.adminSummaryText}>
                 {data.categoriesCount} категорий и {data.collectionsCount} подборок для витрины и
-                входов в каталог.
+                навигации.
               </p>
             </article>
             <article className={adminStyles.adminSummaryCard}>
@@ -97,9 +103,10 @@ export default async function AdminPage() {
           <section className={adminStyles.adminCard}>
             <div className={adminStyles.adminCardHead}>
               <div>
-                <h2 className={adminStyles.adminCardTitle}>Операционные маршруты</h2>
+                <h2 className={adminStyles.adminCardTitle}>Куда идти дальше</h2>
                 <p className={adminStyles.adminCardSub}>
-                  Разделы сгруппированы по реальным задачам магазина, а не только по сущностям.
+                  Разделы сгруппированы по реальным задачам магазина, чтобы быстрее доходить до
+                  нужного действия.
                 </p>
               </div>
             </div>
@@ -107,19 +114,19 @@ export default async function AdminPage() {
               <Link href="/admin/products" className={adminStyles.adminLinkCard}>
                 <p className={adminStyles.adminLinkTitle}>Каталог</p>
                 <p className={adminStyles.adminLinkText}>
-                  Товары, публикация, остатки, изображения и быстрые операции по карточкам.
+                  Товары, публикация, остатки, изображения и быстрые действия по карточкам.
                 </p>
               </Link>
               <Link href="/admin/categories" className={adminStyles.adminLinkCard}>
                 <p className={adminStyles.adminLinkTitle}>Категории</p>
                 <p className={adminStyles.adminLinkText}>
-                  Навигация витрины, порядок показа и безопасное управление связями товаров.
+                  Навигация витрины, порядок показа и связь товаров с разделами каталога.
                 </p>
               </Link>
               <Link href="/admin/collections" className={adminStyles.adminLinkCard}>
                 <p className={adminStyles.adminLinkTitle}>Подборки</p>
                 <p className={adminStyles.adminLinkText}>
-                  Контентные и витринные группы для главной, каталога и акцентов.
+                  Тематические группы для главной, каталога и рекламных акцентов.
                 </p>
               </Link>
               <Link href="/admin/discounts" className={adminStyles.adminLinkCard}>
@@ -147,9 +154,10 @@ export default async function AdminPage() {
           <section className={adminStyles.adminCard}>
             <div className={adminStyles.adminCardHead}>
               <div>
-                <h2 className={adminStyles.adminCardTitle}>Быстрые приоритеты</h2>
+                <h2 className={adminStyles.adminCardTitle}>Быстрый чек-лист</h2>
                 <p className={adminStyles.adminCardSub}>
-                  Короткий operational checklist, чтобы не терять время на повседневных задачах.
+                  Короткий список повседневных проверок, чтобы не искать следующий шаг по всей
+                  админке.
                 </p>
               </div>
             </div>
@@ -157,15 +165,15 @@ export default async function AdminPage() {
               <div className={adminStyles.adminCalloutWarn}>
                 <p className={adminStyles.adminCalloutTitle}>Заказы без оплаты</p>
                 <p className={adminStyles.adminCalloutText}>
-                  Сейчас {data.awaitingPaymentOrdersCount} заказов нельзя безопасно продвигать в
-                  исполнение до подтверждения платежа.
+                  Сейчас {data.awaitingPaymentOrdersCount} заказов нельзя безопасно переводить в
+                  работу до подтверждения платежа.
                 </p>
               </div>
               <div className={adminStyles.adminCallout}>
-                <p className={adminStyles.adminCalloutTitle}>Черновики и мерчандайзинг</p>
+                <p className={adminStyles.adminCalloutTitle}>Черновики и витрина</p>
                 <p className={adminStyles.adminCalloutText}>
-                  Проверьте {data.draftProductsCount} черновиков и {data.liveDiscountsCount} активных
-                  скидок, чтобы витрина оставалась актуальной.
+                  Проверьте {data.draftProductsCount} черновиков и {data.liveDiscountsCount}{' '}
+                  активных скидок, чтобы витрина оставалась актуальной.
                 </p>
               </div>
             </div>

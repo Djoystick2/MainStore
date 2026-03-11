@@ -36,11 +36,11 @@ function mapAdminCollectionError(error: string | undefined): string {
     case 'collection_title_required':
       return 'Укажите название подборки.';
     case 'invalid_collection_slug':
-      return 'Slug подборки должен содержать только строчные буквы, цифры и дефисы.';
+      return 'Слаг подборки должен содержать только строчные буквы, цифры и дефисы.';
     case 'invalid_collection_sort_order':
       return 'Порядок вывода должен быть неотрицательным целым числом.';
     case 'slug_conflict':
-      return 'Этот slug уже используется другой подборкой.';
+      return 'Этот слаг уже используется другой подборкой.';
     case 'collection_not_found':
       return 'Эта подборка больше недоступна.';
     case 'invalid_collection_payload':
@@ -190,7 +190,7 @@ function CollectionRow({ collection }: CollectionRowProps) {
           </label>
 
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Slug</span>
+            <span className={styles.adminLabel}>Слаг</span>
             <div className={styles.adminInlineActionRow}>
               <input className={styles.adminInput} value={slug} onChange={(event) => setSlug(event.target.value)} />
               <button
@@ -202,6 +202,9 @@ function CollectionRow({ collection }: CollectionRowProps) {
                 Из названия
               </button>
             </div>
+            <span className={styles.adminFieldHint}>
+              Используйте строчные латинские буквы, цифры и дефисы.
+            </span>
           </label>
         </div>
 
@@ -209,6 +212,9 @@ function CollectionRow({ collection }: CollectionRowProps) {
           <label className={styles.adminField}>
             <span className={styles.adminLabel}>Короткий текст</span>
             <input className={styles.adminInput} value={shortText} onChange={(event) => setShortText(event.target.value)} />
+            <span className={styles.adminFieldHint}>
+              Короткая подпись для витрины и маркетинговых блоков.
+            </span>
           </label>
           <label className={styles.adminField}>
             <span className={styles.adminLabel}>Порядок вывода</span>
@@ -220,6 +226,7 @@ function CollectionRow({ collection }: CollectionRowProps) {
               value={sortOrder}
               onChange={(event) => setSortOrder(event.target.value)}
             />
+            <span className={styles.adminFieldHint}>Чем меньше число, тем выше подборка в списке.</span>
           </label>
         </div>
 
@@ -266,10 +273,10 @@ function CollectionRow({ collection }: CollectionRowProps) {
 
         <div className={styles.adminActions}>
           <button type="button" className={styles.adminActionButton} onClick={onSave} disabled={isPending}>
-            {isPending ? 'Сохраняем...' : 'Сохранить'}
+            {isPending ? 'Сохраняем...' : 'Сохранить подборку'}
           </button>
           <button type="button" className={styles.adminDangerButton} onClick={onDelete} disabled={isPending}>
-            {isConfirmingDelete ? 'Подтвердить удаление' : 'Удалить'}
+            {isConfirmingDelete ? 'Подтвердить удаление' : 'Удалить подборку'}
           </button>
         </div>
 
@@ -410,12 +417,12 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
           <div className={styles.adminSummaryCard}>
             <p className={styles.adminSummaryLabel}>Видимые подборки</p>
             <p className={styles.adminSummaryValue}>{visibleCount}</p>
-            <p className={styles.adminSummaryText}>Участвуют в storefront и витринных сценариях.</p>
+            <p className={styles.adminSummaryText}>Участвуют в витрине и тематических сценариях.</p>
           </div>
           <div className={styles.adminSummaryCard}>
             <p className={styles.adminSummaryLabel}>Рекомендуемые</p>
             <p className={styles.adminSummaryValue}>{featuredCount}</p>
-            <p className={styles.adminSummaryText}>Приоритетны для home и маркетинговых блоков.</p>
+            <p className={styles.adminSummaryText}>Приоритетны для главной страницы и маркетинговых блоков.</p>
           </div>
           <div className={styles.adminSummaryCard}>
             <p className={styles.adminSummaryLabel}>Связанные товары</p>
@@ -471,6 +478,27 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
           </label>
         </div>
 
+        <div className={styles.adminToolbar}>
+          <p className={styles.adminToolbarMeta}>
+            В рабочем списке{' '}
+            <span className={styles.adminToolbarStrong}>{filteredCollections.length}</span>{' '}
+            подборок.
+          </p>
+          {(search.trim() || visibilityFilter !== 'all' || featuredFilter !== 'all') ? (
+            <button
+              type="button"
+              className={styles.adminSecondaryButton}
+              onClick={() => {
+                setSearch('');
+                setVisibilityFilter('all');
+                setFeaturedFilter('all');
+              }}
+            >
+              Сбросить фильтры
+            </button>
+          ) : null}
+        </div>
+
         <div className={styles.adminCallout}>
           <p className={styles.adminCalloutTitle}>Связь с витриной</p>
           <p className={styles.adminCalloutText}>
@@ -481,7 +509,12 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
       </section>
 
       <section className={styles.adminCard}>
-        <h2 className={styles.adminCardTitle}>Создать подборку</h2>
+        <div className={styles.adminFormSectionHead}>
+          <h2 className={styles.adminCardTitle}>Создать подборку</h2>
+          <p className={styles.adminCardSub}>
+            Подборка пригодится для главной страницы, каталога и ручных акцентов на витрине.
+          </p>
+        </div>
 
         <form className={styles.adminForm} onSubmit={onCreate} aria-busy={isPending}>
           <div className={styles.adminInlineRow}>
@@ -491,7 +524,7 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
             </label>
 
             <label className={styles.adminField}>
-              <span className={styles.adminLabel}>Slug</span>
+              <span className={styles.adminLabel}>Слаг</span>
               <div className={styles.adminInlineActionRow}>
                 <input className={styles.adminInput} value={slug} onChange={(event) => setSlug(event.target.value)} required />
                 <button
@@ -503,6 +536,9 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
                   Из названия
                 </button>
               </div>
+              <span className={styles.adminFieldHint}>
+                Используйте строчные латинские буквы, цифры и дефисы.
+              </span>
             </label>
           </div>
 
@@ -510,6 +546,9 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
             <label className={styles.adminField}>
               <span className={styles.adminLabel}>Короткий текст</span>
               <input className={styles.adminInput} value={shortText} onChange={(event) => setShortText(event.target.value)} />
+              <span className={styles.adminFieldHint}>
+                Короткая подпись для витрины и маркетинговых блоков.
+              </span>
             </label>
             <label className={styles.adminField}>
               <span className={styles.adminLabel}>Порядок вывода</span>
@@ -521,6 +560,7 @@ export function AdminCollectionsManager({ collections }: AdminCollectionsManager
                 value={sortOrder}
                 onChange={(event) => setSortOrder(event.target.value)}
               />
+              <span className={styles.adminFieldHint}>Чем меньше число, тем выше подборка в списке.</span>
             </label>
           </div>
 

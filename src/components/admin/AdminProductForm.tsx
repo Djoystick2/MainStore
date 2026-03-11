@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useRef, useState, useTransition, type FormEventHandler } from 'react';
 import { useRouter } from 'next/navigation';
@@ -52,9 +52,9 @@ function mapAdminProductError(error: string | undefined): string {
     case 'not_configured':
       return 'Админ-часть временно недоступна.';
     case 'invalid_slug':
-      return 'Slug должен содержать только строчные буквы, цифры и дефисы.';
+      return 'Слаг должен содержать только строчные буквы, цифры и дефисы.';
     case 'slug_conflict':
-      return 'Этот slug уже используется другим товаром.';
+      return 'Этот слаг уже используется другим товаром.';
     case 'title_required':
       return 'Укажите название товара.';
     case 'invalid_status':
@@ -80,7 +80,15 @@ function mapAdminProductError(error: string | undefined): string {
   }
 }
 
-export function AdminProductForm({ mode, product, categories }: { mode: 'create' | 'edit'; product?: AdminProductDetail | null; categories: AdminCategoryOption[]; }) {
+export function AdminProductForm({
+  mode,
+  product,
+  categories,
+}: {
+  mode: 'create' | 'edit';
+  product?: AdminProductDetail | null;
+  categories: AdminCategoryOption[];
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -91,18 +99,29 @@ export function AdminProductForm({ mode, product, categories }: { mode: 'create'
   const [shortDescription, setShortDescription] = useState(product?.shortDescription ?? '');
   const [description, setDescription] = useState(product?.description ?? '');
   const [price, setPrice] = useState(product?.price !== undefined ? String(product.price) : '');
-  const [compareAtPrice, setCompareAtPrice] = useState(product?.compareAtPrice !== null && product?.compareAtPrice !== undefined ? String(product.compareAtPrice) : '');
+  const [compareAtPrice, setCompareAtPrice] = useState(
+    product?.compareAtPrice !== null && product?.compareAtPrice !== undefined
+      ? String(product.compareAtPrice)
+      : '',
+  );
   const [currency, setCurrency] = useState(product?.currency ?? 'USD');
   const [status, setStatus] = useState<ProductStatus>(product?.status ?? 'draft');
-  const [stockQuantity, setStockQuantity] = useState(product?.stockQuantity !== undefined ? String(product.stockQuantity) : '0');
+  const [stockQuantity, setStockQuantity] = useState(
+    product?.stockQuantity !== undefined ? String(product.stockQuantity) : '0',
+  );
   const [categoryId, setCategoryId] = useState(product?.categoryId ?? '');
   const [isFeatured, setIsFeatured] = useState(product?.isFeatured ?? false);
   const isSubmittingRef = useRef(false);
 
   const heading = mode === 'create' ? 'Создание товара' : 'Редактирование товара';
-  const primaryActionLabel = mode === 'create'
-    ? isPending ? 'Создаем...' : 'Создать товар'
-    : isPending ? 'Сохраняем...' : 'Сохранить изменения';
+  const primaryActionLabel =
+    mode === 'create'
+      ? isPending
+        ? 'Создаем...'
+        : 'Создать товар'
+      : isPending
+        ? 'Сохраняем...'
+        : 'Сохранить изменения';
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
@@ -206,23 +225,43 @@ export function AdminProductForm({ mode, product, categories }: { mode: 'create'
           <div className={styles.adminFormSectionHead}>
             <h3 className={styles.adminFormSectionTitle}>Основа карточки</h3>
             <p className={styles.adminFormSectionText}>
-              Название и slug формируют публичную карточку товара.
+              Название и адрес карточки определяют, как товар будет выглядеть и открываться на
+              витрине.
             </p>
           </div>
 
           <label className={styles.adminField}>
             <span className={styles.adminLabel}>Название</span>
-            <input className={styles.adminInput} value={title} onChange={(event) => setTitle(event.target.value)} required />
+            <input
+              className={styles.adminInput}
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              required
+            />
           </label>
 
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Slug</span>
+            <span className={styles.adminLabel}>Адрес карточки</span>
             <div className={styles.adminInlineActionRow}>
-              <input className={styles.adminInput} value={slug} onChange={(event) => setSlug(event.target.value)} required />
-              <button type="button" className={styles.adminActionButton} onClick={() => setSlug(slugify(title))} disabled={!title.trim() || isPending} aria-label="Сгенерировать slug из названия">
+              <input
+                className={styles.adminInput}
+                value={slug}
+                onChange={(event) => setSlug(event.target.value)}
+                required
+              />
+              <button
+                type="button"
+                className={styles.adminActionButton}
+                onClick={() => setSlug(slugify(title))}
+                disabled={!title.trim() || isPending}
+                aria-label="Сгенерировать слаг из названия"
+              >
                 Из названия
               </button>
             </div>
+            <span className={styles.adminFieldHint}>
+              Используйте только строчные латинские буквы, цифры и дефисы.
+            </span>
           </label>
         </section>
 
@@ -230,31 +269,66 @@ export function AdminProductForm({ mode, product, categories }: { mode: 'create'
           <div className={styles.adminFormSectionHead}>
             <h3 className={styles.adminFormSectionTitle}>Цена и наличие</h3>
             <p className={styles.adminFormSectionText}>
-              Здесь управляются текущая цена и доступность товара.
+              Здесь управляются текущая цена, старая цена и количество товара в наличии.
             </p>
           </div>
 
           <div className={styles.adminInlineRow}>
             <label className={styles.adminField}>
               <span className={styles.adminLabel}>Цена</span>
-              <input type="number" min="0" step="0.01" className={styles.adminInput} value={price} onChange={(event) => setPrice(event.target.value)} required />
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                className={styles.adminInput}
+                value={price}
+                onChange={(event) => setPrice(event.target.value)}
+                required
+              />
             </label>
 
             <label className={styles.adminField}>
               <span className={styles.adminLabel}>Старая цена</span>
-              <input type="number" min="0" step="0.01" className={styles.adminInput} value={compareAtPrice} onChange={(event) => setCompareAtPrice(event.target.value)} />
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                className={styles.adminInput}
+                value={compareAtPrice}
+                onChange={(event) => setCompareAtPrice(event.target.value)}
+              />
+              <span className={styles.adminFieldHint}>
+                Оставьте пустым, если товар продается без перечеркнутой цены.
+              </span>
             </label>
           </div>
 
           <div className={styles.adminInlineRow}>
             <label className={styles.adminField}>
               <span className={styles.adminLabel}>Валюта</span>
-              <input className={styles.adminInput} value={currency} onChange={(event) => setCurrency(event.target.value.toUpperCase())} maxLength={3} required />
+              <input
+                className={styles.adminInput}
+                value={currency}
+                onChange={(event) => setCurrency(event.target.value.toUpperCase())}
+                maxLength={3}
+                required
+              />
+              <span className={styles.adminFieldHint}>
+                Трехбуквенный код валюты, например `USD`.
+              </span>
             </label>
 
             <label className={styles.adminField}>
               <span className={styles.adminLabel}>Остаток</span>
-              <input type="number" min="0" step="1" className={styles.adminInput} value={stockQuantity} onChange={(event) => setStockQuantity(event.target.value)} required />
+              <input
+                type="number"
+                min="0"
+                step="1"
+                className={styles.adminInput}
+                value={stockQuantity}
+                onChange={(event) => setStockQuantity(event.target.value)}
+                required
+              />
             </label>
           </div>
         </section>
@@ -263,33 +337,53 @@ export function AdminProductForm({ mode, product, categories }: { mode: 'create'
           <div className={styles.adminFormSectionHead}>
             <h3 className={styles.adminFormSectionTitle}>Публикация</h3>
             <p className={styles.adminFormSectionText}>
-              Управляйте видимостью, продвижением и категорией товара.
+              Определите, виден ли товар покупателям, и нужно ли выделять его на витрине.
             </p>
           </div>
 
           <div className={styles.adminInlineRow}>
             <label className={styles.adminField}>
               <span className={styles.adminLabel}>Статус</span>
-              <select className={styles.adminSelect} value={status} onChange={(event) => setStatus(event.target.value as ProductStatus)}>
+              <select
+                className={styles.adminSelect}
+                value={status}
+                onChange={(event) => setStatus(event.target.value as ProductStatus)}
+              >
                 {statusOptions.map((option) => (
-                  <option key={option} value={option}>{formatProductStatus(option)}</option>
+                  <option key={option} value={option}>
+                    {formatProductStatus(option)}
+                  </option>
                 ))}
               </select>
+              <span className={styles.adminFieldHint}>
+                Черновик скрыт, активный товар виден, архив убирает карточку из рабочего потока.
+              </span>
             </label>
 
             <label className={styles.adminField}>
               <span className={styles.adminLabel}>Категория</span>
-              <select className={styles.adminSelect} value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
+              <select
+                className={styles.adminSelect}
+                value={categoryId}
+                onChange={(event) => setCategoryId(event.target.value)}
+              >
                 <option value="">Без категории</option>
                 {categories.map((category) => (
-                  <option key={category.id} value={category.id}>{category.title}</option>
+                  <option key={category.id} value={category.id}>
+                    {category.title}
+                  </option>
                 ))}
               </select>
             </label>
           </div>
 
           <label className={styles.adminCheckboxRow}>
-            <input type="checkbox" className={styles.adminCheckbox} checked={isFeatured} onChange={(event) => setIsFeatured(event.target.checked)} />
+            <input
+              type="checkbox"
+              className={styles.adminCheckbox}
+              checked={isFeatured}
+              onChange={(event) => setIsFeatured(event.target.checked)}
+            />
             <span className={styles.adminLabel}>Показывать как рекомендуемый</span>
           </label>
         </section>
@@ -298,24 +392,48 @@ export function AdminProductForm({ mode, product, categories }: { mode: 'create'
           <div className={styles.adminFormSectionHead}>
             <h3 className={styles.adminFormSectionTitle}>Описания</h3>
             <p className={styles.adminFormSectionText}>
-              Короткий текст для карточки, полный текст для страницы товара.
+              Короткий текст используется в карточке и списках, полный текст нужен для страницы
+              товара.
             </p>
           </div>
 
           <label className={styles.adminField}>
             <span className={styles.adminLabel}>Короткое описание</span>
-            <textarea className={styles.adminTextarea} value={shortDescription} onChange={(event) => setShortDescription(event.target.value)} rows={3} />
+            <textarea
+              className={styles.adminTextarea}
+              value={shortDescription}
+              onChange={(event) => setShortDescription(event.target.value)}
+              rows={3}
+            />
+            <span className={styles.adminFieldHint}>
+              Подходит для быстрых подборок, карточек каталога и витринных блоков.
+            </span>
           </label>
 
           <label className={styles.adminField}>
             <span className={styles.adminLabel}>Полное описание</span>
-            <textarea className={styles.adminTextarea} value={description} onChange={(event) => setDescription(event.target.value)} rows={5} />
+            <textarea
+              className={styles.adminTextarea}
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              rows={5}
+            />
+            <span className={styles.adminFieldHint}>
+              Здесь удобно хранить развернутый текст, характеристики и детали для страницы товара.
+            </span>
           </label>
         </section>
 
-        <button type="submit" className={styles.adminPrimaryButton} disabled={isPending} aria-label={mode === 'create' ? 'Создать товар' : 'Сохранить товар'}>
-          {primaryActionLabel}
-        </button>
+        <div className={styles.adminFormActions}>
+          <button
+            type="submit"
+            className={styles.adminPrimaryButton}
+            disabled={isPending}
+            aria-label={mode === 'create' ? 'Создать товар' : 'Сохранить товар'}
+          >
+            {primaryActionLabel}
+          </button>
+        </div>
 
         {errorMessage && <p className={styles.adminError}>{errorMessage}</p>}
         {successMessage && <p className={styles.adminSuccess}>{successMessage}</p>}
@@ -323,4 +441,3 @@ export function AdminProductForm({ mode, product, categories }: { mode: 'create'
     </section>
   );
 }
-

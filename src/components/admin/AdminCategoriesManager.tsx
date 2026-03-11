@@ -36,11 +36,11 @@ function mapAdminCategoryError(error: string | undefined): string {
     case 'category_title_required':
       return 'Укажите название категории.';
     case 'invalid_category_slug':
-      return 'Slug категории должен содержать только строчные буквы, цифры и дефисы.';
+      return 'Слаг категории должен содержать только строчные буквы, цифры и дефисы.';
     case 'invalid_category_sort_order':
       return 'Порядок вывода должен быть неотрицательным целым числом.';
     case 'slug_conflict':
-      return 'Этот slug уже используется другой категорией.';
+      return 'Этот слаг уже используется другой категорией.';
     case 'category_not_found':
       return 'Эта категория больше недоступна.';
     case 'invalid_category_payload':
@@ -187,7 +187,7 @@ function CategoryRow({ category }: CategoryRowProps) {
           </label>
 
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Slug</span>
+            <span className={styles.adminLabel}>Слаг</span>
             <div className={styles.adminInlineActionRow}>
               <input className={styles.adminInput} value={slug} onChange={(event) => setSlug(event.target.value)} />
               <button
@@ -199,6 +199,9 @@ function CategoryRow({ category }: CategoryRowProps) {
                 Из названия
               </button>
             </div>
+            <span className={styles.adminFieldHint}>
+              Используйте строчные латинские буквы, цифры и дефисы.
+            </span>
           </label>
         </div>
 
@@ -206,6 +209,9 @@ function CategoryRow({ category }: CategoryRowProps) {
           <label className={styles.adminField}>
             <span className={styles.adminLabel}>Короткий текст</span>
             <input className={styles.adminInput} value={shortText} onChange={(event) => setShortText(event.target.value)} />
+            <span className={styles.adminFieldHint}>
+              Короткая подпись для витрины и переходов в каталог.
+            </span>
           </label>
 
           <label className={styles.adminField}>
@@ -218,6 +224,7 @@ function CategoryRow({ category }: CategoryRowProps) {
               value={sortOrder}
               onChange={(event) => setSortOrder(event.target.value)}
             />
+            <span className={styles.adminFieldHint}>Чем меньше число, тем выше категория в списке.</span>
           </label>
         </div>
 
@@ -245,17 +252,17 @@ function CategoryRow({ category }: CategoryRowProps) {
           <div className={styles.adminCalloutWarn}>
             <p className={styles.adminCalloutTitle}>Подтверждение удаления</p>
             <p className={styles.adminCalloutText}>
-              Категория удалится, а связанные товары останутся в каталоге без категории.
+              Категория удалится, а связанные товары останутся в каталоге без привязки к разделу.
             </p>
           </div>
         )}
 
         <div className={styles.adminActions}>
           <button type="button" className={styles.adminActionButton} onClick={onSave} disabled={isPending}>
-            {isPending ? 'Сохраняем...' : 'Сохранить'}
+            {isPending ? 'Сохраняем...' : 'Сохранить категорию'}
           </button>
           <button type="button" className={styles.adminDangerButton} onClick={onDelete} disabled={isPending}>
-            {isConfirmingDelete ? 'Подтвердить удаление' : 'Удалить'}
+            {isConfirmingDelete ? 'Подтвердить удаление' : 'Удалить категорию'}
           </button>
         </div>
 
@@ -430,17 +437,42 @@ export function AdminCategoriesManager({ categories }: AdminCategoriesManagerPro
           </label>
         </div>
 
+        <div className={styles.adminToolbar}>
+          <p className={styles.adminToolbarMeta}>
+            В рабочем списке{' '}
+            <span className={styles.adminToolbarStrong}>{filteredCategories.length}</span>{' '}
+            категорий.
+          </p>
+          {(search.trim() || visibilityFilter !== 'all') ? (
+            <button
+              type="button"
+              className={styles.adminSecondaryButton}
+              onClick={() => {
+                setSearch('');
+                setVisibilityFilter('all');
+              }}
+            >
+              Сбросить фильтры
+            </button>
+          ) : null}
+        </div>
+
         <div className={styles.adminCallout}>
           <p className={styles.adminCalloutTitle}>Что важно помнить</p>
           <p className={styles.adminCalloutText}>
             Удаление категории не удаляет товары. Связанные карточки останутся в каталоге, но
-            потеряют category binding, поэтому перед удалением лучше проверить карточки товаров.
+            потеряют привязку к разделу, поэтому перед удалением лучше проверить карточки товаров.
           </p>
         </div>
       </section>
 
       <section className={styles.adminCard}>
-        <h2 className={styles.adminCardTitle}>Создать категорию</h2>
+        <div className={styles.adminFormSectionHead}>
+          <h2 className={styles.adminCardTitle}>Создать категорию</h2>
+          <p className={styles.adminCardSub}>
+            Новая категория сразу появится в списке и будет готова к связке с товарами.
+          </p>
+        </div>
 
         <form className={styles.adminForm} onSubmit={onCreate} aria-busy={isPending}>
           <div className={styles.adminInlineRow}>
@@ -450,7 +482,7 @@ export function AdminCategoriesManager({ categories }: AdminCategoriesManagerPro
             </label>
 
             <label className={styles.adminField}>
-              <span className={styles.adminLabel}>Slug</span>
+              <span className={styles.adminLabel}>Слаг</span>
               <div className={styles.adminInlineActionRow}>
                 <input className={styles.adminInput} value={slug} onChange={(event) => setSlug(event.target.value)} required />
                 <button
@@ -462,6 +494,9 @@ export function AdminCategoriesManager({ categories }: AdminCategoriesManagerPro
                   Из названия
                 </button>
               </div>
+              <span className={styles.adminFieldHint}>
+                Используйте строчные латинские буквы, цифры и дефисы.
+              </span>
             </label>
           </div>
 
@@ -469,6 +504,9 @@ export function AdminCategoriesManager({ categories }: AdminCategoriesManagerPro
             <label className={styles.adminField}>
               <span className={styles.adminLabel}>Короткий текст</span>
               <input className={styles.adminInput} value={shortText} onChange={(event) => setShortText(event.target.value)} />
+              <span className={styles.adminFieldHint}>
+                Короткая подпись для витрины и переходов в каталог.
+              </span>
             </label>
             <label className={styles.adminField}>
               <span className={styles.adminLabel}>Порядок вывода</span>
@@ -480,6 +518,7 @@ export function AdminCategoriesManager({ categories }: AdminCategoriesManagerPro
                 value={sortOrder}
                 onChange={(event) => setSortOrder(event.target.value)}
               />
+              <span className={styles.adminFieldHint}>Чем меньше число, тем выше категория в списке.</span>
             </label>
           </div>
 

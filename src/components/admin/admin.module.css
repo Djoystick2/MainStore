@@ -293,6 +293,20 @@
   text-align: center;
 }
 
+.adminSecondaryButton {
+  min-height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--store-border);
+  background: rgba(39, 51, 71, 0.04);
+  color: var(--store-text);
+  padding: 0 12px;
+  font-size: 14px;
+  line-height: 1.1;
+  font-weight: 700;
+  white-space: normal;
+  text-align: center;
+}
+
 .adminDangerButton {
   min-height: 36px;
   border-radius: 10px;
@@ -376,6 +390,13 @@
   gap: 6px;
 }
 
+.adminFieldHint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--store-hint);
+}
+
 .adminLabel {
   margin: 0;
   font-size: 13px;
@@ -426,6 +447,13 @@
   align-items: end;
 }
 
+.adminFormActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
 .adminError {
   margin: 0;
   font-size: 14px;
@@ -445,6 +473,26 @@
   font-size: 13px;
   line-height: 1.35;
   color: var(--store-hint);
+}
+
+.adminToolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.adminToolbarMeta {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--store-hint);
+}
+
+.adminToolbarStrong {
+  font-weight: 700;
+  color: var(--store-text);
 }
 
 .adminImageList {
@@ -760,6 +808,7 @@
 .adminPrimaryLink:focus-visible,
 .adminPrimaryButton:focus-visible,
 .adminActionButton:focus-visible,
+.adminSecondaryButton:focus-visible,
 .adminDangerButton:focus-visible,
 .adminLinkCard:focus-visible,
 .adminExternalLink:focus-visible,
@@ -803,6 +852,7 @@
   .adminActionLink,
   .adminPrimaryLink,
   .adminActionButton,
+  .adminSecondaryButton,
   .adminDangerButton,
   .adminExternalLink {
     width: 100%;

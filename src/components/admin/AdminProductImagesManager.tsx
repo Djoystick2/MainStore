@@ -30,9 +30,9 @@ function mapAdminImageError(error: string | undefined): string {
       return 'Админ-часть временно недоступна.';
     case 'invalid_image_payload':
     case 'image_url_required':
-      return 'Укажите URL изображения.';
+      return 'Укажите ссылку на изображение.';
     case 'invalid_image_url':
-      return 'URL изображения должен начинаться с http:// или https://.';
+      return 'Ссылка на изображение должна начинаться с http:// или https://.';
     case 'invalid_sort_order':
       return 'Порядок должен быть неотрицательным целым числом.';
     case 'invalid_product':
@@ -163,13 +163,19 @@ function ImageRowEditor({ image, canMoveUp, canMoveDown, onSwapOrder }: ImageRow
           </div>
 
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>URL изображения</span>
+            <span className={styles.adminLabel}>Ссылка на изображение</span>
             <input className={styles.adminInput} value={url} onChange={(event) => setUrl(event.target.value)} />
+            <span className={styles.adminFieldHint}>
+              Используйте прямую ссылку, которая открывается без авторизации.
+            </span>
           </label>
 
           <label className={styles.adminField}>
-            <span className={styles.adminLabel}>Alt</span>
+            <span className={styles.adminLabel}>Описание изображения</span>
             <input className={styles.adminInput} value={alt} onChange={(event) => setAlt(event.target.value)} />
+            <span className={styles.adminFieldHint}>
+              Кратко опишите, что изображено. Это помогает доступности и импорту.
+            </span>
           </label>
 
           <div className={styles.adminInlineRow}>
@@ -292,20 +298,28 @@ export function AdminProductImagesManager({ productId, images }: AdminProductIma
       <div className={styles.adminCardHead}>
         <div>
           <h2 className={styles.adminCardTitle}>Изображения товара</h2>
-          <p className={styles.adminCardSub}>Главное изображение, порядок галереи и явные позиции сортировки.</p>
+          <p className={styles.adminCardSub}>
+            Главное изображение, порядок галереи и понятные подписи для витрины.
+          </p>
         </div>
         <span className={styles.adminStatusBadge}>{images.length} изображений</span>
       </div>
 
       <form className={styles.adminForm} onSubmit={onAddImage} aria-busy={isPending}>
         <label className={styles.adminField}>
-          <span className={styles.adminLabel}>URL изображения</span>
+          <span className={styles.adminLabel}>Ссылка на изображение</span>
           <input className={styles.adminInput} value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://..." required />
+          <span className={styles.adminFieldHint}>
+            Используйте прямую ссылку, которая открывается без авторизации.
+          </span>
         </label>
 
         <label className={styles.adminField}>
-          <span className={styles.adminLabel}>Alt</span>
+          <span className={styles.adminLabel}>Описание изображения</span>
           <input className={styles.adminInput} value={alt} onChange={(event) => setAlt(event.target.value)} />
+          <span className={styles.adminFieldHint}>
+            Кратко опишите изображение, чтобы карточка оставалась понятной и доступной.
+          </span>
         </label>
 
         <div className={styles.adminInlineRow}>
